@@ -1,0 +1,25 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: market-simulator-backend
+  cache:
+    type: caffeine
+    cache-names:
+      - alphaVantageHistory
+      - alphaVantageQuotes
+
+# Configuration dédiée à l'API Alpha Vantage
+alpha:
+  vantage:
+    api-key: ${ALPHA_VANTAGE_API_KEY:5YOT80S8HGSZEZ7K}
+    base-url: https://www.alphavantage.co/query
+    cache-ttl-minutes: 15
+    connect-timeout-seconds: 10
+    read-timeout-seconds: 15
+
+logging:
+  level:
+    com.pif.trading: INFO
+    org.springframework.web: INFO
