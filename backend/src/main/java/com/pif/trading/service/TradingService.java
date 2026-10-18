@@ -66,8 +66,9 @@ public class TradingService {
             throw new IllegalArgumentException("Le cours d'exécution doit être strictement positif.");
         }
 
-        if (request.type() == OrderType.BUY) {
-            return executeBuyOrder(persistentUser, symbol, quantity, price, simDate);
+        if (request.type() == OrderType.BUY || request.type() == OrderType.LIMIT || request.type() == OrderType.MARKET) {
+            return executeBuyOrder(persistentUser, symbol, quantity, price, simDate,
+                    request.stopLossPrice(), request.takeProfitPrice(), request.trailingStopDistance());
         } else if (request.type() == OrderType.SELL) {
             return executeSellOrder(persistentUser, symbol, quantity, price, simDate);
         } else {
@@ -76,10 +77,12 @@ public class TradingService {
     }
 
     /**
-     * Logique transactionnelle d'Achat (BUY).
+     * Logique transactionnelle d'Achat (BUY) avec association optionnelle de Stop-Loss, Take-Profit et Trailing Stop.
      */
     private OrderExecutionResponse executeBuyOrder(User user, String symbol, Integer quantity,
-                                                  BigDecimal price, String simDate) {
+                                                   BigDecimal price, String simDate,
+                                                   BigDecimal stopLossPrice, BigDecimal takeProfitPrice,
+                                                   BigDecimal trailingStopDistance) {
         BigDecimal qtyBd = new BigDecimal(quantity);
         BigDecimal grossAmount = price.multiply(qtyBd).setScale(3, RoundingMode.HALF_UP);
         BigDecimal fees = grossAmount.multiply(FEE_RATE).setScale(3, RoundingMode.HALF_UP);
@@ -127,6 +130,18 @@ public class TradingService {
             newQuantity = quantity;
             newPru = price;
         }
+
+        // Enregistrement des seuils de protection SL/TP/Trailing Stop
+        if (stopLossPrice != null) {
+            position.setStopLossPrice(stopLossPrice.setScale(3, RoundingMode.HALF_UP));
+        }
+        if (takeProfitPrice != null) {
+            position.setTakeProfitPrice(takeProfitPrice.setScale(3, RoundingMode.HALF_UP));
+        }
+        if (trailingStopDistance != null) {
+            position.setTrailingStopDistance(trailingStopDistance.setScale(3, RoundingMode.HALF_UP));
+        }
+        position.setHighestPriceSeen(price);
         positionRepository.save(position);
 
         // Enregistrement de la transaction d'audit
@@ -135,8 +150,8 @@ public class TradingService {
         );
         OrderTransaction savedTx = transactionRepository.save(tx);
 
-        log.info("Ordre ACHAT exécuté : User={}, Symbol={}, Qty={}, Price={} TND, Frais={} TND, Nouveau Solde={} TND, Nouveau PRU={} TND",
-                user.getEmail(), symbol, quantity, price, fees, newCashBalance, newPru);
+        log.info("Ordre ACHAT exécuté : User={}, Symbol={}, Qty={}, Price={} TND, Frais={} TND, SL={}, TP={}, TS={}, Nouveau Solde={} TND, Nouveau PRU={} TND",
+                user.getEmail(), symbol, quantity, price, fees, stopLossPrice, takeProfitPrice, trailingStopDistance, newCashBalance, newPru);
 
         return new OrderExecutionResponse(
                 true,
@@ -280,7 +295,11 @@ public class TradingService {
                     currPrice,
                     marketValue,
                     unrealizedPnl,
-                    unrealizedPnlPercent
+                    unrealizedPnlPercent,
+                    pos.getStopLossPrice(),
+                    pos.getTakeProfitPrice(),
+                    pos.getTrailingStopDistance(),
+                    pos.getHighestPriceSeen()
             ));
         }
 
@@ -446,4 +465,115 @@ public class TradingService {
         log.info("Compte réinitialisé pour l'utilisateur {} : Solde restauré à {} TND.",
                 user.getEmail(), INITIAL_CAPITAL);
     }
+
+    /**
+     * Modifie ou supprime à la volée les seuils de risque (Stop-Loss, Take-Profit, Trailing-Stop) d'une position.
+     */
+    @Transactional
+    public PositionDto updatePositionRiskThresholds(User user, Long positionId, UpdateRiskThresholdsRequest req) {
+        Position position = positionRepository.findById(positionId)
+                .orElseThrow(() -> new IllegalArgumentException("Position introuvable : " + positionId));
+
+        if (!position.getUser().getId().equals(user.getId())) {
+            throw new IllegalArgumentException("Action non autorisée sur cette position.");
+        }
+
+        position.setStopLossPrice(req.stopLossPrice() != null ? req.stopLossPrice().setScale(3, RoundingMode.HALF_UP) : null);
+        position.setTakeProfitPrice(req.takeProfitPrice() != null ? req.takeProfitPrice().setScale(3, RoundingMode.HALF_UP) : null);
+        position.setTrailingStopDistance(req.trailingStopDistance() != null ? req.trailingStopDistance().setScale(3, RoundingMode.HALF_UP) : null);
+
+        Position saved = positionRepository.save(position);
+
+        BigDecimal pru = saved.getAverageCostPrice();
+        BigDecimal currentPrice = pru;
+        BigDecimal qtyBd = new BigDecimal(saved.getQuantity());
+        BigDecimal marketVal = currentPrice.multiply(qtyBd).setScale(3, RoundingMode.HALF_UP);
+        BigDecimal costBasis = pru.multiply(qtyBd).setScale(3, RoundingMode.HALF_UP);
+        BigDecimal unrealized = marketVal.subtract(costBasis).setScale(3, RoundingMode.HALF_UP);
+        BigDecimal unrealizedPct = costBasis.compareTo(BigDecimal.ZERO) > 0
+                ? unrealized.divide(costBasis, 4, RoundingMode.HALF_UP).multiply(new BigDecimal("100")).setScale(2, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
+
+        log.info("Seuils de risque mis à jour pour position #{} ({}): SL={}, TP={}, TS={}",
+                positionId, saved.getSymbol(), saved.getStopLossPrice(), saved.getTakeProfitPrice(), saved.getTrailingStopDistance());
+
+        return new PositionDto(
+                saved.getId(),
+                saved.getSymbol(),
+                saved.getQuantity(),
+                pru,
+                currentPrice,
+                marketVal,
+                unrealized,
+                unrealizedPct,
+                saved.getStopLossPrice(),
+                saved.getTakeProfitPrice(),
+                saved.getTrailingStopDistance(),
+                saved.getHighestPriceSeen()
+        );
+    }
+
+    /**
+     * Moteur de surveillance continue des risques lors de l'avancement temporel (Time-Lapse).
+     * Vérifie si le cours franchit un Stop-Loss, Take-Profit, Trailing Stop ou OCO.
+     * En cas de franchissement, liquide automatiquement la position au cours du marché avec OCO.
+     */
+    @Transactional
+    public List<OrderExecutionResponse> checkAndTriggerRiskOrders(User user, Map<String, BigDecimal> currentPrices, String simulatedDate) {
+        User persistentUser = userRepository.findById(user.getId()).orElse(user);
+        List<Position> positions = positionRepository.findByUser(persistentUser);
+        List<OrderExecutionResponse> triggeredOrders = new ArrayList<>();
+
+        if (currentPrices == null || currentPrices.isEmpty()) {
+            return triggeredOrders;
+        }
+
+        for (Position pos : positions) {
+            String sym = pos.getSymbol().toUpperCase();
+            if (!currentPrices.containsKey(sym)) continue;
+
+            BigDecimal currentPrice = currentPrices.get(sym).setScale(3, RoundingMode.HALF_UP);
+            BigDecimal highestSeen = pos.getHighestPriceSeen() != null ? pos.getHighestPriceSeen() : pos.getAverageCostPrice();
+
+            // Mise à jour du plus haut historique observé pour le Trailing Stop
+            if (currentPrice.compareTo(highestSeen) > 0) {
+                pos.setHighestPriceSeen(currentPrice);
+                highestSeen = currentPrice;
+                positionRepository.save(pos);
+            }
+
+            BigDecimal sl = pos.getStopLossPrice();
+            BigDecimal tp = pos.getTakeProfitPrice();
+            BigDecimal tsDist = pos.getTrailingStopDistance();
+
+            // Calcul du seuil dynamique de Trailing Stop : Seuil = HighestSeen - Distance
+            BigDecimal trailingStopThreshold = null;
+            if (tsDist != null && tsDist.compareTo(BigDecimal.ZERO) > 0) {
+                trailingStopThreshold = highestSeen.subtract(tsDist).setScale(3, RoundingMode.HALF_UP);
+            }
+
+            boolean isSlTriggered = sl != null && currentPrice.compareTo(sl) <= 0;
+            boolean isTpTriggered = tp != null && currentPrice.compareTo(tp) >= 0;
+            boolean isTsTriggered = trailingStopThreshold != null && currentPrice.compareTo(trailingStopThreshold) <= 0;
+
+            if (isSlTriggered || isTpTriggered || isTsTriggered) {
+                String reason = isTpTriggered ? "TAKE-PROFIT" : (isTsTriggered ? "TRAILING-STOP" : "STOP-LOSS");
+                log.info("DÉCLENCHEMENT AUTOMATIQUE RISK MANAGEMENT [{} - OCO] pour {} : Cours={} TND (SL={}, TP={}, TS_Seuil={})",
+                        reason, sym, currentPrice, sl, tp, trailingStopThreshold);
+
+                // Exécution automatique de la vente pour liquider la position
+                OrderExecutionResponse sellResp = executeSellOrder(
+                        persistentUser,
+                        sym,
+                        pos.getQuantity(),
+                        currentPrice,
+                        simulatedDate
+                );
+                triggeredOrders.add(sellResp);
+            }
+        }
+
+        return triggeredOrders;
+    }
 }
+

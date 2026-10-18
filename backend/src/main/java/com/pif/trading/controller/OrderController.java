@@ -145,4 +145,43 @@ public class OrderController {
         Map<String, Object> analysis = aiClientService.explainPortfolio(payload);
         return ResponseEntity.ok(analysis);
     }
+
+    /**
+     * Modifie à la volée les seuils de risque (Stop-Loss, Take-Profit, Trailing Stop) d'une position ouverte.
+     * PATCH /api/v1/orders/positions/{id}/risk
+     */
+    @PatchMapping("/positions/{id}/risk")
+    public ResponseEntity<PositionDto> updatePositionRisk(
+            @AuthenticationPrincipal User principal,
+            @PathVariable Long id,
+            @RequestBody UpdateRiskThresholdsRequest req) {
+        User user = resolveUser(principal);
+        PositionDto updated = tradingService.updatePositionRiskThresholds(user, id, req);
+        return ResponseEntity.ok(updated);
+    }
+
+    /**
+     * Moteur de surveillance continue : vérifie si le cours de la bougie franchit un seuil SL/TP/TS
+     * et exécute automatiquement la liquidation OCO correspondante.
+     * POST /api/v1/orders/check-risk
+     */
+    @PostMapping("/check-risk")
+    public ResponseEntity<List<OrderExecutionResponse>> checkRisk(
+            @AuthenticationPrincipal User principal,
+            @RequestBody Map<String, Object> body) {
+        User user = resolveUser(principal);
+        String simDate = (String) body.getOrDefault("simulatedDate", "");
+        Map<String, BigDecimal> currentPrices = new HashMap<>();
+
+        if (body.containsKey("prices") && body.get("prices") instanceof Map<?, ?> rawPrices) {
+            rawPrices.forEach((k, v) -> {
+                if (k != null && v != null) {
+                    currentPrices.put(k.toString().toUpperCase(), new BigDecimal(v.toString()));
+                }
+            });
+        }
+
+        List<OrderExecutionResponse> triggered = tradingService.checkAndTriggerRiskOrders(user, currentPrices, simDate);
+        return ResponseEntity.ok(triggered);
+    }
 }

@@ -497,6 +497,9 @@ export default function PortfolioAnalyticsView({
                 <th className="py-2.5 px-3 text-right">Valeur Marché</th>
                 <th className="py-2.5 px-3 text-right">P&L Latent (TND)</th>
                 <th className="py-2.5 px-3 text-right">P&L Latent (%)</th>
+                <th className="py-2.5 px-3 text-center">Stop-Loss (SL)</th>
+                <th className="py-2.5 px-3 text-center">Take-Profit (TP)</th>
+                <th className="py-2.5 px-3 text-center">Trailing Stop</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#1E293B]">
@@ -524,12 +527,39 @@ export default function PortfolioAnalyticsView({
                       >
                         {isPos ? '+' : ''}{Number(pos.unrealizedPnlPercent).toFixed(2)}%
                       </td>
+                      <td className="py-2.5 px-3 text-center">
+                        {pos.stopLossPrice ? (
+                          <span className="text-rose-400 font-bold bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">
+                            {Number(pos.stopLossPrice).toFixed(3)}
+                          </span>
+                        ) : (
+                          <span className="text-slate-500">Non défini</span>
+                        )}
+                      </td>
+                      <td className="py-2.5 px-3 text-center">
+                        {pos.takeProfitPrice ? (
+                          <span className="text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                            {Number(pos.takeProfitPrice).toFixed(3)}
+                          </span>
+                        ) : (
+                          <span className="text-slate-500">Non défini</span>
+                        )}
+                      </td>
+                      <td className="py-2.5 px-3 text-center">
+                        {pos.trailingStopDistance ? (
+                          <span className="text-amber-400 font-bold bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                            -{Number(pos.trailingStopDistance).toFixed(3)}
+                          </span>
+                        ) : (
+                          <span className="text-slate-500">---</span>
+                        )}
+                      </td>
                     </tr>
                   );
                 })
               ) : (
                 <tr>
-                  <td colSpan="7" className="py-6 text-center text-slate-500 font-mono text-xs">
+                  <td colSpan="10" className="py-6 text-center text-slate-500 font-mono text-xs">
                     Aucune position ouverte actuellement. Passez un ordre d'achat dans le terminal.
                   </td>
                 </tr>

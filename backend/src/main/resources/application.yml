@@ -7,21 +7,21 @@ spring:
 
   # Base de données PostgreSQL alimentée par les variables d'environnement .env
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/market_db}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:votre_mot_de_passe}
+    url: ${SPRING_DATASOURCE_URL:${DB_URL:jdbc:postgresql://localhost:5432/pif_trading_db}}
+    username: ${SPRING_DATASOURCE_USERNAME:${DB_USERNAME:postgres}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:Adem2026!}}
     driver-class-name: org.postgresql.Driver
 
   # Hibernate & Spring Data JPA
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: false
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+    show-sql: ${SPRING_JPA_SHOW_SQL:true}
     open-in-view: false
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        dialect: ${SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT:org.hibernate.dialect.PostgreSQLDialect}
 
   # Cache Caffeine pour optimiser les quotas API externes
   cache:

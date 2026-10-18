@@ -8,11 +8,14 @@ import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
 
+/**
+ * Requête d'exécution d'ordre incluant les paramètres avancés de gestion des risques (SL, TP, Trailing Stop).
+ */
 public record OrderRequest(
         @NotBlank(message = "Le symbole de l'actif est obligatoire")
         String symbol,
 
-        @NotNull(message = "Le type d'ordre (BUY ou SELL) est obligatoire")
+        @NotNull(message = "Le type d'ordre est obligatoire")
         OrderType type,
 
         @NotNull(message = "La quantité est obligatoire")
@@ -24,5 +27,14 @@ public record OrderRequest(
         BigDecimal executionPrice,
 
         @NotBlank(message = "La date simulée courante est obligatoire")
-        String simulatedDate
-) {}
+        String simulatedDate,
+
+        // Paramètres avancés optionnels de gestion des risques
+        BigDecimal stopLossPrice,
+        BigDecimal takeProfitPrice,
+        BigDecimal trailingStopDistance
+) {
+    public OrderRequest(String symbol, OrderType type, Integer quantity, BigDecimal executionPrice, String simulatedDate) {
+        this(symbol, type, quantity, executionPrice, simulatedDate, null, null, null);
+    }
+}

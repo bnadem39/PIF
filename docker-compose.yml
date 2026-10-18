@@ -6,9 +6,9 @@ services:
     env_file:
       - backend/.env
     environment:
-      POSTGRES_DB: market_db
-      POSTGRES_USER: ${DB_USERNAME:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-votre_mot_de_passe}
+      POSTGRES_DB: ${DB_NAME:-pif_trading_db}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-Adem2026!}
     ports:
       - "5432:5432"
     volumes:

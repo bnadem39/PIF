@@ -7,7 +7,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * Entité Position représentant un actif détenu en portefeuille avec son PRU (Prix de Revient Unitaire).
+ * Entité Position représentant un actif détenu en portefeuille avec son PRU (Prix de Revient Unitaire)
+ * et ses paramètres avancés de gestion des risques (Stop-Loss, Take-Profit, Trailing Stop).
  * Précision financière stricte BigDecimal(15,3).
  */
 @Entity
@@ -33,6 +34,18 @@ public class Position {
     @Column(name = "average_cost_price", nullable = false, precision = 15, scale = 3)
     private BigDecimal averageCostPrice; // PRU
 
+    @Column(name = "stop_loss_price", precision = 15, scale = 3)
+    private BigDecimal stopLossPrice;
+
+    @Column(name = "take_profit_price", precision = 15, scale = 3)
+    private BigDecimal takeProfitPrice;
+
+    @Column(name = "trailing_stop_distance", precision = 15, scale = 3)
+    private BigDecimal trailingStopDistance;
+
+    @Column(name = "highest_price_seen", precision = 15, scale = 3)
+    private BigDecimal highestPriceSeen;
+
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
@@ -44,12 +57,16 @@ public class Position {
         this.symbol = symbol;
         this.quantity = quantity;
         this.averageCostPrice = averageCostPrice;
+        this.highestPriceSeen = averageCostPrice;
     }
 
     @PrePersist
     @PreUpdate
     protected void onPersistOrUpdate() {
         this.updatedAt = LocalDateTime.now();
+        if (this.highestPriceSeen == null && this.averageCostPrice != null) {
+            this.highestPriceSeen = this.averageCostPrice;
+        }
     }
 
     public Long getId() {
@@ -90,6 +107,38 @@ public class Position {
 
     public void setAverageCostPrice(BigDecimal averageCostPrice) {
         this.averageCostPrice = averageCostPrice;
+    }
+
+    public BigDecimal getStopLossPrice() {
+        return stopLossPrice;
+    }
+
+    public void setStopLossPrice(BigDecimal stopLossPrice) {
+        this.stopLossPrice = stopLossPrice;
+    }
+
+    public BigDecimal getTakeProfitPrice() {
+        return takeProfitPrice;
+    }
+
+    public void setTakeProfitPrice(BigDecimal takeProfitPrice) {
+        this.takeProfitPrice = takeProfitPrice;
+    }
+
+    public BigDecimal getTrailingStopDistance() {
+        return trailingStopDistance;
+    }
+
+    public void setTrailingStopDistance(BigDecimal trailingStopDistance) {
+        this.trailingStopDistance = trailingStopDistance;
+    }
+
+    public BigDecimal getHighestPriceSeen() {
+        return highestPriceSeen;
+    }
+
+    public void setHighestPriceSeen(BigDecimal highestPriceSeen) {
+        this.highestPriceSeen = highestPriceSeen;
     }
 
     public LocalDateTime getUpdatedAt() {
