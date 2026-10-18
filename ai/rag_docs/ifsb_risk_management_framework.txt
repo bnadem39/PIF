@@ -1,0 +1,50 @@
+# ==============================================================================
+# IFSB GUIDING PRINCIPLES OF RISK MANAGEMENT FOR INSTITUTIONS OFFERING ISLAMIC SERVICES
+# Source: Islamic Financial Services Board (IFSB-1 & IFSB-15)
+# Domain: Islamic Prudential Regulation / Governance / Risk Categories
+# Tags: banque_islamique, ifsb, gestion_risque, charia_governance, car, liquidite
+# ==============================================================================
+
+1. CADRE GLOBAL DE L'IFSB (ISLAMIC FINANCIAL SERVICES BOARD)
+L'IFSB, base a Kuala Lumpur, est l'organisme international de normalisation reglementaire et prudentielle pour l'industrie des services financiers islamiques. Il elabore des standards visant a assurer la stabilite et la resilience des institutions financieres islamiques (IIFS), en complement et harmonie avec les accords de Bale du Comite de Bale sur le controle bancaire (BCBS).
+
+Le standard IFSB-1 definit 6 categories majeures de risques applicables aux institutions offrant des services financiers islamiques :
+
+2. LES SIX GRANDES CATEGORIES DE RISQUES IFSB
+
+A. RISQUE DE CREDIT (Credit Risk) :
+- Definition : Perte financiere resultante du defaut ou de la degradation de qualite de credit d'une contrepartie debitrice.
+- Particularites islamiques :
+  * Dans la Murabaha et l'Istisna'a, le risque de credit apparait des lors que le bien a ete livre et que la creance de paiement echelonne est activee.
+  * Prohibition des interets moratoires ou de la penalisation lucrative : en cas d'impaye, la banque ne peut pas se remunerer sur le retard.
+  * Les provisions pour pertes de credit attendues (ECL - IFRS 9 / FAS 30 AAOIFI) doivent etre constituees conformement au profil des contrats participatifs.
+
+B. RISQUE DE MARCHE (Market Risk) :
+- Definition : Perte sur les positions sur et hors-bilan due aux fluctuations des prix de marche (taux de change, matieres premieres, titres de capitaux).
+- Particularites islamiques :
+  * Risque de possession (Ownership risk) : dans les operations de Murabaha, Salam et Istisna'a, la banque prend possession physique ou constructive des actifs marchands, s'exposant a la volatilite des prix des sous-jacents avant transmission au client.
+
+C. RISQUE DE LIQUIDITE (Liquidity Risk) :
+- Definition : Incapacite potentielle d'une IIFS a faire face a ses engagements financiers au fur et a mesure de leur echeance sans encourir de pertes inacceptables.
+- Defi structurel de l'industrie islamique :
+  * Absence de marche monetaire interbancaire islamique pleinement mature dans de nombreuses juridictions.
+  * Impossibilite d'utiliser les facilites de pret d'urgence des banques centrales basees sur l'escompte ou les taux d'interet conventionnels.
+  * Outils de gestion : Developpement de Sukuk d'Etat a court terme (Short-Term Sovereign Sukuk), Commodity Murabaha (Tawarruq) et reserves de liquidite accrues.
+
+D. RISQUE DE TAUX DE RENDEMENT (Rate of Return Risk) :
+- Definition : Risque decoulant de l'impact des variations des taux de rendement du marche sur la rentabilite des actifs et le cout des passifs participatifs.
+- Difference avec le risque de taux d'interet :
+  * Les contrats islamiques sont adosses a des actifs reels avec marge de profit fixe (Murabaha) ou rendement variable (Mudaraba/Musharaka). Si les taux de marche augmentent, les revenus des financements a marge fixe restent figes alors que les deposants attendent un rendement superieur.
+
+E. RISQUE OPERATIONNEL ET RISQUE CHARIA (Operational & Shariah Risk) :
+- Risque de non-conformite Charia (Shariah Non-Compliance Risk) : risque qu'un contrat, un flux ou un produit soit declare non conforme par le Comite de Conformite Charia (Shariah Supervisory Board - SSB) ou les tribunaux. Consequence : les revenus percus deviennent impurs (Ghair Jaa'iz) et sont obligatoirement confisques au profit d'oeuvres de bienfaisance.
+- Risque juridique : complexite de l'interaction entre le droit civil/commercial des contrats locaux et les principes jurisprudentiels islamiques (Fiqh al-Mu'amalat).
+
+F. RISQUE DE DEPLACEMENT COMMERCIAL (Displaced Commercial Risk - DCR) :
+- Risque commercial dans lequel la banque islamique subit une pression du marche pour verser aux titulaires de comptes PSIA des rendements superieurs a ceux reellement degages par les investissements sous-jacents, en rognant sur la remuneration des actionnaires.
+
+3. STRUCTURE DE GOUVERNANCE CHARIA OBLIGATOIRE
+Selon le standard IFSB-10 et les normes AAOIFI :
+- Shariah Supervisory Board (SSB) : comite compose d'experts juridiques et financiers independants habilites a approuver chaque produit et transaction.
+- Audit et controle interne Charia (Internal Shariah Review/Audit) : departement dedie verifiant au quotidien le respect des fatwas et procedures operationnelles.
+- Reporting public annuel de conformite Charia destine aux actionnaires, regulateurs et clients.

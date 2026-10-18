@@ -1,0 +1,52 @@
+# ==============================================================================
+# PRUDENTIAL STRESS TESTING & CRISIS SIMULATION METHODOLOGY
+# Source: European Banking Authority (EBA) & BCBS Stress Testing Principles
+# Domain: Risk Analytics / Macroprudential Supervision / Trading Desk Stress Tests
+# Tags: stress_test, scenario_adverse, eba, bcbs, icaap, ilaap, risque_systemique
+# ==============================================================================
+
+1. PRINCIPES FONDAMENTAUX DU STRESS TESTING BANCAIRE
+Le stress testing est un outil prudentiel d'analyse prospective permettant de quantifier la vulnerabilite d'un etablissement bancaire ou d'une salle de marche a des evenements rares mais plausibles et severes. Il constitue une exigence centrale du Pilier 2 des accords de Bale (Supervisory Review Process - SREP) a travers les processus ICAAP (Internal Capital Adequacy Assessment Process) et ILAAP (Internal Liquidity Adequacy Assessment Process).
+
+2. TYPOLOGIE DES TESTS DE RESISTANCE
+
+A. Tests de Sensibilite Unifactoriels (Sensitivity Tests) :
+Evaluation de l'impact direct de la variation brutale d'un facteur unique sur le bilan ou le P&L du trading desk :
+- Choc de taux d'interet souverain de +200 a +300 points de base (Shift de la courbe des rendements).
+- Devaluation ou depreciation soudaine d'une devise majeure (-15% a -30%).
+- Chute brutale de la valorisation des crypto-actifs ou actions (-40% a -60%).
+- Hausse instantanee de la volatilite implicite VIX de +100%.
+
+B. Tests de Scenarios Multifactoriels (Scenario Analysis) :
+Simulation de trajectoires macroeconomiques integrees sur un horizon de 1 a 3 ans :
+1. Scenario de Reference (Baseline Scenario) :
+   Projection centrale de consensus selon les perspectives de croissance du PIB, d'inflation et de politique monetaire.
+2. Scenario Adverse Severe (Adverse Macroeconomic Scenario) :
+   Combinaison de chocs simultanes interconnectes :
+   - Recession marquee : contraction cumulee du PIB reel de -3% a -5%.
+   - Forte montee du chomage (+3 a +5 points de pourcentage).
+   - Effondrement des prix de l'immobilier residentiel (-15% a -25%) et commercial (-30%).
+   - Ecartement majeur des spreads de credit corporate et souverain (credit spread widening).
+   - Durcissement severe des conditions de liquidite interbancaire.
+
+C. Stress Tests Inverses (Reverse Stress Testing) :
+Demarche inverse consistant a identifier les scenarios extremes ou la combinaison fatale de chocs qui amenerait la banque au seuil de rupture (insolvabilite reglementaire, ratio CET1 < 4.5%, epuisement total du stock HQLA ou perte de confiance entrainant un defaut de paiement).
+
+3. IMPACTS QUANTITATIFS SUR LES COMPOSANTES DU BILAN
+
+A. Impact sur le Risque de Credit :
+- Migration des notations de credit (rating migration).
+- Augmentation drastique des probabilites de defaut (Probability of Default - PD) et des pertes en cas de defaut (Loss Given Default - LGD).
+- Explosion des provisions pour pertes attendues au sens de la norme IFRS 9 (passage du Stage 1 au Stage 2 et Stage 3).
+
+B. Impact sur le Risque de Marche et Portefeuille Trading :
+- Pertes de valorisation instantanees au prix du marche (Mark-to-Market losses).
+- Gel de la liquidite sur les instruments derives complexes, allongeant les horizons de liquidation requis par FRTB.
+
+C. Impact sur la Liquidite et le Financement :
+- Retrait massif et concentre des depots non garantis (bank run wholesale a 30-50% sur 30 jours).
+- Impossibilite de renégocier les lignes de credit interbancaires a court terme (repo rollover freeze).
+
+4. EXIGENCES POUR LE SIMULATEUR DE SALLE DE MARCHE
+- Les modeles predictifs (ex. XGBoost sur signaux de marche) doivent etre confrontes aux periodes historiques de crise extreme (crise des subprimes 2008, choc pandemique mars 2020, effondrements des cryptos en 2022).
+- Le moteur IA doit integrer les signaux de stress testing reglementaires afin d'ajuster automatiquement la taille des positions et les allocations d'actifs, protegeant les ratios de solvabilite CET1 et de liquidite LCR de la banque simulee.

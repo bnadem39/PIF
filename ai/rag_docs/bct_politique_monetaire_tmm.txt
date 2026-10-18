@@ -1,0 +1,26 @@
+# ==============================================================================
+# BCT: POLITIQUE MONETAIRE & TAUX MOYEN DU MARCHE MONETAIRE (TMM)
+# Source: Banque Centrale de Tunisie (BCT)
+# Domain: market
+# Tags: bct, politique_monetaire, tmm, inflation, taux_directeur, marche_monetaire
+# ==============================================================================
+
+Banque Centrale de Tunisie (BCT) — Note de Politique Monétaire et Évolution du TMM
+
+1. Orientation de la Politique Monétaire :
+Le Conseil d'Administration de la Banque Centrale de Tunisie (BCT) pilote la politique monétaire avec pour objectif primordial la maîtrise des tensions inflationnistes et la préservation de la valeur du Dinar Tunisien (TND).
+Le taux directeur de la BCT est l'instrument pivot pour réguler la liquidité bancaire et stabiliser le Taux Moyen du Marché Monétaire (TMM).
+
+2. Trajectoire des Taux et TMM :
+- Le TMM oscille historiquement en fonction des resserrements monétaires opérés pour juguler l'inflation sous-jacente.
+- Les opérations principales de refinancement à 7 jours constituent le principal canal d'injection de liquidités pour le système bancaire.
+- Les facilités permanentes (prêt à 24h et dépôt à 24h) encadrent le corridor des taux interbancaires.
+
+3. Liquidité Bancaire et Refinancement :
+- Le volume global de refinancement auprès de la BCT reflète le déficit structurel de liquidité des établissements de crédit tunisiens.
+- Les banques sont tenues de respecter un ratio de liquidité réglementaire LCR adapté au contexte local, garanti par des Bons du Trésor Assimilables (BTA) et des créances éligibles.
+
+4. Risque de Change et Réserves en Devises :
+- Le niveau des avoirs nets en devises (exprimé en jours d'importation) conditionne la flexibilité de la BCT sur le marché des changes interbancaire.
+- Les fluctuations des cours EUR/TND et USD/TND impactent directement les coûts d'importation et la rentabilité des entreprises cotées sur la BVMT.
+- Les ratios prudentiels de position de change globale et par devise sont strictement surveillés pour éviter tout risque systémique.

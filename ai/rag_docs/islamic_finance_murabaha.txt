@@ -1,0 +1,46 @@
+# ==============================================================================
+# ISLAMIC FINANCE: MURABAHA CONTRACT STANDARDS & RISK PRUDENTIAL FRAMEWORK
+# Source: AAOIFI Shariah Standard No. 8 & IFSB Standard 1
+# Domain: Islamic Banking / Trade Finance / Asset-Backed Transactions
+# Tags: banque_islamique, murabaha, charia, aaoifi, ifsb, risque_credit, marge
+# ==============================================================================
+
+1. DEFINITION ET NATURE JURIDIQUE DU CONTRAT MURABAHA
+La Murabaha (vente a prix de revient majore ou cost-plus sale) est l'un des contrats les plus repandus dans la finance islamique contemporaine (representant souvent plus de 70% des portefeuilles d'actifs bancaires islamiques). Il s'agit d'une operation de vente dans laquelle le vendeur declare explicitement le cout d'acquisition du bien (prix de revient) et convient avec l'acheteur d'une marge beneficiaire (marge de profit ou ribh) fixe d'un commun accord.
+
+Dans la pratique bancaire islamique, la structure utilisee est la "Murabaha to the Purchase Orderer" (Murabaha li al-Amir bi al-Shira) :
+- Le client donneur d'ordre exprime le besoin d'acquerir un actif reel et determine (matiere premiere, vehicule, equipement industriel, bien immobilier).
+- La banque achete d'abord l'actif aupres d'un tiers fournisseur a son propre nom et en prend la propriete / possession (Qabd).
+- La banque revend ensuite l'actif au client avec une marge convenue, le paiement s'effectuant sous forme d'echeances echelonnees (Bay Bithaman Ajil).
+
+2. CONDITIONS STRICTES DE CONFORMITE CHARIA (AAOIFI STANDARD NO. 8)
+Pour que la transaction Murabaha soit licite selon la Charia :
+1. Interdiction du Riba (Interet) :
+   La marge de profit doit etre issue de la commercialisation d'un actif sous-jacent reel et tangible. La vente d'argent contre argent avec interet est strictement prohibee.
+2. Possession et Risque de Propriete (Dhaman) :
+   La banque doit acquerir reellement la propriete physique ou constructive (Qabd Hukmi) du bien avant de le revendre au client. Si le bien perit entre les mains du fournisseur avant le transfert de propriete a la banque, c'est la banque qui assume le risque de perte.
+3. Transparence totale des couts :
+   Le prix d'achat initial et tous les frais reels accessoires doivent etre reveles sans ambiguite au client final.
+4. Prohibition de la penalite de retard lucrative :
+   En cas de retard de paiement du client, la banque ne peut pas percevoir d'interets de retard ou de penalites financieres a son propre profit. Toute penalite conventionnelle de retard autorisee par le Sharia Supervisory Board (SSB) pour dissuader la negligence dolosive doit etre integralement versee a des oeuvres caritatives (Sadaqah).
+5. Interdiction de la clause de reajustement de taux :
+   Une fois le contrat signe, la marge de profit et le prix total de cession sont irrevocablement fixes. La banque ne peut pas ajuster le prix meme si les taux de reference de marche (LIBOR, SOFR) evoluent a la hausse.
+
+3. RISQUES SPECIFIQUES DU FINANCEMENT MURABAHA ET GESTION PRUDENTIELLE
+
+A. Risque de Refus de Prise de Livraison (Commitment Risk) :
+Si le contrat initial entre le client et la banque n'a que la valeur d'une promesse d'achat (Wa'ad), le client peut refuser de finaliser l'acquisition apres que la banque a achete le bien.
+- Mitigation : Exigence de l'AAOIFI pour que la promesse d'achat soit juridiquement contraignante (Wa'ad Mulzim), et versement d'un depot de garantie serieux (Hamish Jiddiyyah) ou arrhes (Urbun) pouvant couvrir les pertes effectives de revente de la banque sur le marche secondaire.
+
+B. Risque de Marche et de Possession Temporaire :
+Durant l'intervalle entre l'achat par la banque et la revente au client, la banque supporte le risque de baisse de valeur du marche ou de degradation de l'actif.
+
+C. Risque de Credit et de Defaut :
+Une fois le bien livre, la dette du client devient une creance commerciale (Dayn). En cas de defaut du client, la banque fait face a un risque de credit standard mais avec des contraintes de restructuration : impossibilite de capitaliser les interets ou de facturer des interets moratoires.
+
+D. Risque de Non-Conformite Charia (Sharia Non-Compliance Risk) :
+Tout vice de forme (par exemple, signer le contrat de revente avant d'avoir acquis le titre du bien, ou effectuer une operation purement financiere sans actif physique sous-jacent assimilable a une 'Inah interdite) annule la transaction. Les revenus generes sont alors exclus du compte de resultat bancaire et verses a des oeuvres de bienfaisance.
+
+4. TRAITEMENT REGLEMENTAIRE SOUS LE RATIO IFSB-1 ET BALE III
+- Ponderation de risque de credit : les creances de Murabaha sont ponderees selon la notation de la contrepartie ou le profil retail / corporate (identique a Bale III standard une fois le bien cede).
+- Les stocks de commodites detenus brievement sont ponderes a 100% ou soumis au risque de marche specifique.

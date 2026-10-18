@@ -1,0 +1,45 @@
+# ==============================================================================
+# BASEL III / BASEL IV: MARKET RISK & FUNDAMENTAL REVIEW OF THE TRADING BOOK (FRTB)
+# Source: Basel Committee on Banking Supervision (BCBS) - Standards d352 / d457
+# Domain: Trading Desk Risk Management / Value-at-Risk / Expected Shortfall
+# Tags: bale3, bale4, frtb, market_risk, var, expected_shortfall, risque_marche, salle_marche
+# ==============================================================================
+
+1. OBJECTIFS DE LA REFORME DU TRADING BOOK (FRTB - BCBS 457)
+Apres la crise financiere, le Comite de Bale a constate des faiblesses majeures dans l'evaluation des risques de marche :
+- Arbitrage reglementaire excessif entre Banking Book (portefeuille bancaire) et Trading Book (portefeuille de negociation).
+- Incapacite de la Value-at-Risk (VaR) a mesurer les pertes extremes et risques de queue (tail risk).
+- Risque d'illiquidite des positions de trading non pris en compte durant les episodes de stress.
+
+2. TRANSITION DE LA VALUE-AT-RISK (VaR) VERS L'EXPECTED SHORTFALL (ES)
+FRTB remplace la Value-at-Risk a 99% sur 10 jours par l'Expected Shortfall (ES) a 97.5% :
+
+A. Pourquoi l'Expected Shortfall ?
+- La VaR a 99% n'indique que le seuil de perte depasse dans 1% des cas, sans evaluer la gravite de la perte au-dela de ce seuil.
+- L'Expected Shortfall (ES) calcule la moyenne ponderee des pertes dans la queue de distribution (au-dela du 97.5-ieme percentile).
+- L'ES est une mesure coherente du risque (coherent risk measure) qui respecte la sous-additivite, incitant a la diversification reelle du portefeuille de trading.
+
+B. Horizons de Liquidite Ajustes (Liquidity Horizons) :
+Contrairement a la VaR standard a 10 jours uniforme, FRTB impose des horizons de liquidite echelonnes selon la classe d'actifs :
+- Devises majeures et taux d'interet souverains tres liquides : 10 jours.
+- Actions a large capitalisation et spreads de credit sovereigns : 20 jours.
+- Actions small cap, obligations corporates investment grade : 40 a 60 jours.
+- Titres exotiques, actions non cotees, obligations a haut rendement (High Yield) : 120 jours.
+
+3. LES DEUX APPROCHES REGLEMENTAIRES SOUS FRTB
+
+A. L'Approche Standard Revisee (Standardised Approach - SA) :
+Obligatoire pour toutes les banques et servant de plancher (Output Floor a 72.5%) aux banques utilisant des modeles internes :
+1. Sensitivities-Based Method (SBM) : calcul base sur les sensibilites Delta, Vega et Curvature pour chaque facteur de risque (taux, devises, actions, credit, matieres premieres).
+2. Default Risk Charge (DRC) : charge de risque pour le risque de defaut de signature dans le portefeuille de trading.
+3. Residual Risk Add-on (RRAO) : surcharge pour instruments complexes (derivés exotiques, options sur correlation).
+
+B. L'Approche Modeles Internes (Internal Models Approach - IMA) :
+Soumise a une validation desk par desk (Trading Desk Level Approval) :
+- Backtesting quotidien : comparaison des P&L realises et hypothetiques avec les previsions de risque.
+- P&L Attribution Test (PLAT) : verifie que le moteur de risque interne (Risk Engine) utilise des proxys fideles aux modeles de valorisation comptable du Front-Office.
+- Si un desk de trading echoue aux tests de backtesting ou PLAT, il est immediatement disqualifie et bascule sur l'approche standard punitive.
+
+4. APPLICATION AU MOTEUR DE PREDICTION ET SALLE DE MARCHE
+- Les positions detenues par les traders ou algorithmes (ex. BTC, ETH, BNB, actions) doivent faire l'objet d'un suivi permanent des limites de risque : VaR, ES 97.5%, et stress tests historiques.
+- Des stop-loss reglementaires et des marges d'ajustement de valorisation (Prudent Valuation Adjustment - PVA) doivent etre appliques en temps reel sur les devises et cryptomonnaies du simulateur.

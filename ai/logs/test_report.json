@@ -1,0 +1,269 @@
+{
+  "timestamp": "2026-10-16T20:14:38Z",
+  "passed": 51,
+  "failed": 0,
+  "skipped": 1,
+  "total_ms": 17671.79,
+  "details": [
+    {
+      "test": "Fichier data_pipeline.py",
+      "status": "pass",
+      "msg": "data_pipeline.py"
+    },
+    {
+      "test": "Fichier train_model.py",
+      "status": "pass",
+      "msg": "train_model.py"
+    },
+    {
+      "test": "Fichier rag_engine.py",
+      "status": "pass",
+      "msg": "rag_engine.py"
+    },
+    {
+      "test": "Fichier agent_service.py",
+      "status": "pass",
+      "msg": "agent_service.py"
+    },
+    {
+      "test": "Fichier ai_server.py",
+      "status": "pass",
+      "msg": "ai_server.py"
+    },
+    {
+      "test": "Fichier test_pipeline.py",
+      "status": "pass",
+      "msg": "test_pipeline.py"
+    },
+    {
+      "test": "Fichier requirements_ai.txt",
+      "status": "pass",
+      "msg": "requirements_ai.txt"
+    },
+    {
+      "test": "Dossier models",
+      "status": "pass",
+      "msg": "models"
+    },
+    {
+      "test": "Dossier vector_db",
+      "status": "pass",
+      "msg": "vector_db"
+    },
+    {
+      "test": "Dossier rag_docs",
+      "status": "pass",
+      "msg": "rag_docs"
+    },
+    {
+      "test": "Dossier logs",
+      "status": "pass",
+      "msg": "logs"
+    },
+    {
+      "test": "import pandas",
+      "status": "pass",
+      "msg": "OK"
+    },
+    {
+      "test": "import numpy",
+      "status": "pass",
+      "msg": "OK"
+    },
+    {
+      "test": "import sklearn",
+      "status": "pass",
+      "msg": "OK"
+    },
+    {
+      "test": "import xgboost",
+      "status": "pass",
+      "msg": "OK"
+    },
+    {
+      "test": "import joblib",
+      "status": "pass",
+      "msg": "OK"
+    },
+    {
+      "test": "import fastapi",
+      "status": "pass",
+      "msg": "OK"
+    },
+    {
+      "test": "import httpx",
+      "status": "pass",
+      "msg": "OK"
+    },
+    {
+      "test": "import pyarrow",
+      "status": "pass",
+      "msg": "OK"
+    },
+    {
+      "test": "import sentence_transformers",
+      "status": "pass",
+      "msg": "OK"
+    },
+    {
+      "test": "import uvicorn",
+      "status": "pass",
+      "msg": "OK"
+    },
+    {
+      "test": "import chromadb (optionnel)",
+      "status": "pass",
+      "msg": "disponible"
+    },
+    {
+      "test": "import faiss (optionnel)",
+      "status": "pass",
+      "msg": "disponible"
+    },
+    {
+      "test": "import lightgbm (optionnel)",
+      "status": "pass",
+      "msg": "disponible"
+    },
+    {
+      "test": "Source ALL_DATA.csv",
+      "status": "pass",
+      "msg": "8.7 MB"
+    },
+    {
+      "test": "Source BNB_USD_daily_data.csv",
+      "status": "pass",
+      "msg": "0.3 MB"
+    },
+    {
+      "test": "Source ETH_1min.csv",
+      "status": "pass",
+      "msg": "340.5 MB"
+    },
+    {
+      "test": "Source coinbaseUSD_1min_data.csv",
+      "status": "pass",
+      "msg": "418.7 MB"
+    },
+    {
+      "test": "Sanitation donnees",
+      "status": "pass",
+      "msg": "299 lignes conservees / 300"
+    },
+    {
+      "test": "Validation OHLC mathematique",
+      "status": "pass",
+      "msg": "0 incoherences detectees (dataset propre)"
+    },
+    {
+      "test": "Feature engineering",
+      "status": "pass",
+      "msg": "Colonnes OK"
+    },
+    {
+      "test": "Creation target 3-classes (ATR)",
+      "status": "pass",
+      "msg": "Classes : [-1, 0, 1] | -1=1.4% | 0=94.9% | +1=3.7%"
+    },
+    {
+      "test": "Optimisation memoire float32",
+      "status": "pass",
+      "msg": "Toutes les features en float32"
+    },
+    {
+      "test": "Chargement modele XGBoost",
+      "status": "pass",
+      "msg": "20 features"
+    },
+    {
+      "test": "Inference XGBoost 3-classes",
+      "status": "pass",
+      "msg": "pred=1 | probs=[0.343,0.362,0.295] | 18.49ms"
+    },
+    {
+      "test": "Perf inference (<100ms)",
+      "status": "pass",
+      "msg": "18.49ms"
+    },
+    {
+      "test": "Metrique CV Accuracy",
+      "status": "pass",
+      "msg": "0.5006 (>0.40 requis)"
+    },
+    {
+      "test": "Metrique CV F1-Macro",
+      "status": "pass",
+      "msg": "0.4150 (>0.30 requis)"
+    },
+    {
+      "test": "Modele 3-classes valide",
+      "status": "pass",
+      "msg": "Classes=[-1, 0, 1]"
+    },
+    {
+      "test": "Chunking texte",
+      "status": "pass",
+      "msg": "8 chunks produits"
+    },
+    {
+      "test": "Preparation documents",
+      "status": "pass",
+      "msg": "9 chunks depuis 2 docs"
+    },
+    {
+      "test": "Construction index vectoriel",
+      "status": "pass",
+      "msg": "6441ms"
+    },
+    {
+      "test": "Requete RAG conventionnel",
+      "status": "pass",
+      "msg": "3 resultats en 43ms"
+    },
+    {
+      "test": "Requete RAG islamique",
+      "status": "pass",
+      "msg": "3 resultats"
+    },
+    {
+      "test": "Pertinence RAG (score > 0.3)",
+      "status": "pass",
+      "msg": "Score max = 0.6666"
+    },
+    {
+      "test": "Construction prompt systemique",
+      "status": "pass",
+      "msg": "1363 caracteres"
+    },
+    {
+      "test": "Parsing reponse LLM",
+      "status": "pass",
+      "msg": "Reco=BUY | Risk=HIGH"
+    },
+    {
+      "test": "Detection compliance islamique",
+      "status": "pass",
+      "msg": "Note: Je recommande un BUY sur cet actif. Le risque est ..."
+    },
+    {
+      "test": "Connectivite FinGPT LLM",
+      "status": "skip",
+      "msg": "Test LLM ignore (--no-llm)"
+    },
+    {
+      "test": "Optimisation float32 vs float64",
+      "status": "pass",
+      "msg": "float32=0.76MB vs float64=1.53MB (economie=50%)"
+    },
+    {
+      "test": "Garbage collection",
+      "status": "pass",
+      "msg": "gc.collect() en 165.3ms"
+    },
+    {
+      "test": "Memoire pic du test",
+      "status": "pass",
+      "msg": "Pic = 2.3 MB"
+    }
+  ]
+}

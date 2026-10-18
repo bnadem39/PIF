@@ -302,4 +302,110 @@ public class MarketDataService {
 
         return new OrderBookDto(sym, midPrice, spread, spreadPercent, normalizedAsks, normalizedBids);
     }
+
+    /**
+     * Initialise la simulation Time-Lapse pour un actif et une année donnée.
+     * ZERO LOOKAHEAD BIAS : renvoie uniquement le calendrier des dates ouvrées et la bougie initiale (Jour 1).
+     * Aucune bougie future n'est transmise au client.
+     */
+    public Map<String, Object> initSimulation(String symbol, String year) {
+        String sym = symbol.toUpperCase();
+        MarketHistoryResponse hist = getHistory(sym, "1d", year, 10000);
+        List<CandleDto> allCandles = hist.candles();
+
+        List<String> tradingDates = allCandles.stream()
+                .map(CandleDto::time)
+                .toList();
+
+        CandleDto initialCandle = allCandles.isEmpty() ? null : allCandles.get(0);
+        String firstDate = tradingDates.isEmpty() ? null : tradingDates.get(0);
+        String lastDate = tradingDates.isEmpty() ? null : tradingDates.get(tradingDates.size() - 1);
+
+        Map<String, Object> res = new HashMap<>();
+        res.put("symbol", sym);
+        res.put("year", year);
+        res.put("totalTradingDays", tradingDates.size());
+        res.put("tradingDates", tradingDates);
+        res.put("firstDate", firstDate);
+        res.put("lastDate", lastDate);
+        res.put("initialCandle", initialCandle);
+        return res;
+    }
+
+    /**
+     * Délivre les données strictement jusqu'à la date simulée courante T_courant.
+     * ZERO LOOKAHEAD BIAS STRICT : bloque techniquement toute bougie postérieure à currentDate.
+     */
+    public Map<String, Object> getSimulationSlice(String symbol, String year, String currentDate) {
+        String sym = symbol.toUpperCase();
+        MarketHistoryResponse hist = getHistory(sym, "1d", year, 10000);
+        List<CandleDto> allCandles = hist.candles();
+
+        List<String> tradingDates = allCandles.stream()
+                .map(CandleDto::time)
+                .toList();
+
+        String effectiveDate = (currentDate == null || currentDate.isBlank())
+                ? (tradingDates.isEmpty() ? "" : tradingDates.get(0))
+                : currentDate;
+
+        // Filtrage STRICT sans aucun regard vers le futur : time <= effectiveDate
+        List<CandleDto> visibleCandles = allCandles.stream()
+                .filter(c -> c.time().compareTo(effectiveDate) <= 0)
+                .toList();
+
+        int currentIndex = 0;
+        for (int i = 0; i < tradingDates.size(); i++) {
+            if (tradingDates.get(i).equals(effectiveDate)) {
+                currentIndex = i + 1;
+                break;
+            }
+        }
+        if (currentIndex == 0 && !visibleCandles.isEmpty()) {
+            currentIndex = visibleCandles.size();
+        }
+
+        String nextDate = (currentIndex < tradingDates.size()) ? tradingDates.get(currentIndex) : null;
+        boolean isCompleted = currentIndex >= tradingDates.size() && !tradingDates.isEmpty();
+
+        CandleDto currentCandle = visibleCandles.isEmpty() ? null : visibleCandles.get(visibleCandles.size() - 1);
+
+        // Recalcul dynamique des SMA 20 et SMA 50 UNIQUEMENT sur les chandeliers visibles
+        List<IndicatorPointDto> sma20 = new ArrayList<>();
+        List<IndicatorPointDto> sma50 = new ArrayList<>();
+        for (int i = 0; i < visibleCandles.size(); i++) {
+            if (i >= 19) {
+                double sum20 = 0;
+                for (int j = 0; j < 20; j++) sum20 += visibleCandles.get(i - j).close();
+                sma20.add(new IndicatorPointDto(visibleCandles.get(i).time(), Math.round((sum20 / 20.0) * 1000.0) / 1000.0));
+            }
+            if (i >= 49) {
+                double sum50 = 0;
+                for (int j = 0; j < 50; j++) sum50 += visibleCandles.get(i - j).close();
+                sma50.add(new IndicatorPointDto(visibleCandles.get(i).time(), Math.round((sum50 / 50.0) * 1000.0) / 1000.0));
+            }
+        }
+
+        Map<String, Object> res = new HashMap<>();
+        res.put("symbol", sym);
+        res.put("year", year);
+        res.put("currentDate", effectiveDate);
+        res.put("currentIndex", currentIndex);
+        res.put("totalDays", tradingDates.size());
+        res.put("nextDate", nextDate);
+        res.put("isCompleted", isCompleted);
+        res.put("currentCandle", currentCandle);
+        res.put("candlesCount", visibleCandles.size());
+        res.put("candles", visibleCandles);
+        res.put("sma20", sma20);
+        res.put("sma50", sma50);
+        return res;
+    }
+
+    /**
+     * Délégation de la matrice multi-actifs synchronisée
+     */
+    public Map<String, Object> getMultiAssetMatrix(String year, List<String> symbols) {
+        return localCsvService.getMultiAssetMatrix(year, symbols);
+    }
 }

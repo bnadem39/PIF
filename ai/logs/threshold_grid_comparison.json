@@ -1,0 +1,54 @@
+{
+  "0.45": {
+    "threshold": 0.45,
+    "accuracy": 0.638448395536334,
+    "f1_macro": 0.43423464693968133,
+    "precision_buy": 0.3247756729810568,
+    "precision_sell": 0.3270007124198528,
+    "recall_buy": 0.19963229661406465,
+    "recall_sell": 0.23474258438458917,
+    "false_buy": 2709,
+    "false_sell": 2834,
+    "n_buy": 4012,
+    "n_sell": 4211
+  },
+  "0.5": {
+    "threshold": 0.5,
+    "accuracy": 0.6639970099845159,
+    "f1_macro": 0.3847100567986205,
+    "precision_buy": 0.3606648199445983,
+    "precision_sell": 0.3714821763602251,
+    "recall_buy": 0.09973954343496247,
+    "recall_sell": 0.13501534265257414,
+    "false_buy": 1154,
+    "false_sell": 1340,
+    "n_buy": 1805,
+    "n_sell": 2132
+  },
+  "0.55": {
+    "threshold": 0.55,
+    "accuracy": 0.6704842757221421,
+    "f1_macro": 0.32686155315008175,
+    "precision_buy": 0.40030911901081917,
+    "precision_sell": 0.4083044982698962,
+    "recall_buy": 0.03968132373218937,
+    "recall_sell": 0.06034776679168087,
+    "false_buy": 388,
+    "false_sell": 513,
+    "n_buy": 647,
+    "n_sell": 867
+  },
+  "0.6": {
+    "threshold": 0.6,
+    "accuracy": 0.6700838272198195,
+    "f1_macro": 0.2872307708579071,
+    "precision_buy": 0.45930232558139533,
+    "precision_sell": 0.4007352941176471,
+    "recall_buy": 0.012103569787038455,
+    "recall_sell": 0.01858165700647801,
+    "false_buy": 93,
+    "false_sell": 163,
+    "n_buy": 172,
+    "n_sell": 272
+  }
+}

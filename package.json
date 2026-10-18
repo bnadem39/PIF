@@ -1,0 +1,15 @@
+{
+  "name": "pif-market-simulator-root",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PIF Trading Simulator - Racine du projet",
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "preview": "npm --prefix frontend run preview",
+    "frontend": "npm --prefix frontend run dev",
+    "backend": "cd backend && .\\mvnw.cmd spring-boot:run",
+    "docker:up": "docker compose up -d postgres",
+    "docker:down": "docker compose down"
+  }
+}
