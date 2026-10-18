@@ -1,0 +1,50 @@
+# ==============================================================================
+# ISLAMIC FINANCE: MUDARABA PARTNERSHIP & PROFIT-AND-LOSS SHARING (PLS)
+# Source: AAOIFI Shariah Standard No. 13 & IFSB Guidelines
+# Domain: Islamic Banking / Asset Management / Profit Sharing Investment Accounts
+# Tags: banque_islamique, mudaraba, pls, rab_al_mal, mudarib, psia, aaoifi, ifsb
+# ==============================================================================
+
+1. DEFINITION ET FONDEMENTS DU PARTENARIAT MUDARABA
+Le contrat de Mudaraba (ou Qirad) est un contrat d'association fiduciaire fonde sur le principe du partage des profits et des pertes (Profit and Loss Sharing - PLS). Il implique deux parties essentielles :
+1. Rab al-Mal (le pourvoyeur de fonds ou investisseur) : apporte l'integralite du capital financier.
+2. Mudarib (l'entrepreneur ou gestionnaire) : apporte son expertise professionnelle, son savoir-faire commercial, son travail et sa gestion.
+
+Ce contrat est le pilier central de l'intermédiation financiere islamique, tant au passif (collecte des depots des epargnants sous forme de comptes d'investissement participatifs - PSIA) qu'a l'actif (financement de projets d'entrepreneurs ou fonds d'investissement islamiques).
+
+2. REGLES DU PARTAGE DES RESULTATS FINANCIERS
+
+A. Repartition des Profits :
+- Les profits generes par l'activite sont partages selon un ratio pre-determine et explicitement negocie dans le contrat (ex. 70% pour l'investisseur et 30% pour le gestionnaire, ou 50/50).
+- Il est strictement prohibe de garantir a l'investisseur un taux de rendement fixe en pourcentage du capital investi, sous peine de requalification du contrat en pret a interet (Riba).
+- Le Mudarib ne percoit sa remuneration QUE sous la forme de sa part convenue dans les benefices nets. Si aucun benefice n'est realise, le Mudarib ne recoit aucune remuneration pour son travail.
+
+B. Repartition des Pertes en Capital :
+- En cas de perte financiere sans faute ni manquement, la perte en capital est integralement et exclusivement supportee par le bailleur de fonds (Rab al-Mal).
+- Le Mudarib perd la valeur de son travail et de son temps consacre.
+- Exception majeure : si la perte resulte d'une negligence grave (Ta'addi), d'une fraude, d'une violation deliberee des instructions convenues (Tafreet) ou du non-respect de la Charia, la responsabilite du Mudarib est engagee et il doit rembourser l'integralite du capital perdu.
+
+3. LES DEUX MODES DE MUDARABA EN PRATIQUE BANCAIRE
+
+A. Mudaraba Muqayyadah (Restreinte) :
+Le Rab al-Mal fixe des restrictions precises a l'entrepreneur : choix des projets, secteur d'activite autorise, localisation geographique, modalite d'achat ou de vente. Tout ecart constitue une faute engageant la responsabilite du Mudarib.
+
+B. Mudaraba Mutlaqah (Non Restreinte) :
+Le Mudarib dispose de pleins pouvoirs de gestion dans le cadre des activites licites conformes a la Charia. C'est le modele utilise pour les comptes de depot d'investissement bancaires (Unrestricted Profit Sharing Investment Accounts - UPSIA).
+
+4. COMPTES D'INVESTISSEMENT PARTICIPATIFS (PSIA) ET GESTION DES RISQUES PRUDENTIELS
+Au passif des banques islamiques, les titulaires de comptes PSIA (Investment Account Holders - IAH) confient leurs liquidites a la banque en agissant comme Rab al-Mal, tandis que la banque agit en qualite de Mudarib.
+
+A. Le Risque de Deplacement Commercial (Displaced Commercial Risk - DCR) :
+Lorsque les rendements des investissements de la banque sont inferieurs a ceux offerts par les banques conventionnelles concurrentes, les deposants IAH risquent de retirer massivement leurs fonds. Pour eviter ce "bank run", la banque islamique subit une forte pression commerciale l'incitant a reduire sa propre part de profit de Mudarib au benefice des deposants.
+
+B. Coussins et Reserves Islamiques de Regularisation :
+Pour gerer ce risque prudentiel specifique conformement aux normes IFSB :
+1. PER (Profit Equalization Reserve - Reserve de Perequation des Profits) :
+   Prelevee sur le profit brut avant le partage entre le Rab al-Mal et le Mudarib, afin d'atténuer les variations de rendement d'une annee sur l'autre et offrir un rendement stable aux epargnants.
+2. IRR (Investment Risk Reserve - Reserve pour Risques d'Investissement) :
+   Prelevee sur la part de profit revenant exclusivement aux investisseurs IAH, apres deduction de la part du Mudarib, pour servir de coussin contre d'eventuelles pertes en capital futures sur les actifs sous-jacents.
+
+5. REGLEMENTATION PRUDENTIELLE DE SOLVABILITE (IFSB STANDARD 15)
+L'IFSB autorise un traitement adapte dans le calcul du ratio de solvabilite (Capital Adequacy Ratio) :
+Puisque les deposants UPSIA absorbent une partie substantielle des pertes d'actifs, le denominateur RWA de la banque est pondere par un facteur Alpha (alpha factor, generalement fixe a 30% ou determine par le superviseur national), reduisant l'exigence de fonds propres CET1 portee directement par les actionnaires de la banque.

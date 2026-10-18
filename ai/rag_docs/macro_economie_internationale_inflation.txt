@@ -1,0 +1,20 @@
+# ==============================================================================
+# MACRO: CONJONCTURE MACROECONOMIQUE INTERNATIONALE & POLITIQUES MONETAIRES
+# Source: International Macroeconomic Analysis (Fed, BCE)
+# Domain: market
+# Tags: macro_economie, fed, bce, inflation, taux_interet, matieres_premieres, frtb
+# ==============================================================================
+
+Conjoncture Macroéconomique Internationale, Politiques des Banques Centrales et Marchés Émergents
+
+1. Cycle Monétaire Mondial (Federal Reserve & BCE) :
+Les décisions de la Réserve Fédérale américaine (Fed) et de la Banque Centrale Européenne (BCE) déterminent le coût mondial du capital et l'appétit pour le risque sur les marchés émergents et frontières.
+Un cycle de durcissement monétaire international (hausse des taux d'intérêt directeurs) provoque des pressions sur les devises locales, un renchérissement du service de la dette extérieure et un désengagement des capitaux internationaux.
+
+2. Tensions Inflationnistes et Matières Premières :
+- Les chocs sur les prix de l'énergie (pétrole Brent, gaz naturel) et des denrées agricoles importées (blé, sucre) se transmettent directement à l'inflation importée des pays dépendants des importations.
+- Les banques centrales réagissent en relevant leurs taux directeurs pour ancrer les anticipations d'inflation, pesant temporairement sur les valorisations d'actifs risqués (actions, obligations spéculatives).
+
+3. Corrélations Multi-Actifs et Risque Systémique :
+- Les périodes de volatilité extrême (VIX élevé) s'accompagnent d'un phénomène de fuite vers la qualité (Fly to Quality / Fly to Liquidity), entraînant une baisse simultanée des actions et des crypto-actifs et un renforcement des devises refuges (USD, CHF).
+- Pour les banques, la gestion du risque de marché selon la norme Bâle III FRTB (Fundamental Review of the Trading Book) impose l'utilisation de l'Expected Shortfall (ES) calibré sur des périodes de stress historique.

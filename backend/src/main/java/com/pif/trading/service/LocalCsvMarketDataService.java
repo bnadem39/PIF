@@ -542,6 +542,193 @@ public class LocalCsvMarketDataService {
         return Optional.ofNullable(catalogMap.get(symbol.toUpperCase()));
     }
 
+    /**
+     * Moteur de Matrice Multi-Actifs Synchronisée (Zero Lookahead Bias)
+     * Aligne l'ensemble des actifs (BVMT & Cryptos) sur un calendrier temporel unifié
+     * avec conservation du dernier cours connu (forward fill) et calcul rigoureux
+     * du Rendement Cumulé YTD : Rendement_t (%) = ((P_t - P_initial) / P_initial) * 100.
+     */
+    public Map<String, Object> getMultiAssetMatrix(String year, List<String> requestedSymbols) {
+        String targetYear = (year == null || year.isBlank() || "ALL".equalsIgnoreCase(year)) ? "2022" : year;
+
+        List<String> defaultSymbols = List.of(
+                "BIAT", "SFBT", "WIFAK", "CC", "SAH", "DH", "TLNET", "BH", "BNA", "BT",
+                "PGH", "SOTUV", "LNDOR", "AB", "ATB", "STAR", "CITY", "ARTES", "TAIR",
+                "BTC-USD", "ETH-USD", "BNB-USD"
+        );
+
+        List<String> selectedSymbols = new ArrayList<>();
+        if (requestedSymbols != null && !requestedSymbols.isEmpty()) {
+            for (String s : requestedSymbols) {
+                if (candlesByTicker.containsKey(s.toUpperCase())) {
+                    selectedSymbols.add(s.toUpperCase());
+                }
+            }
+        }
+        if (selectedSymbols.isEmpty()) {
+            for (String s : defaultSymbols) {
+                if (candlesByTicker.containsKey(s)) {
+                    selectedSymbols.add(s);
+                }
+            }
+        }
+
+        // 1. Calendrier Maître Unifié des Séances de Marché (Timeline)
+        // Priorité aux jours de négociation réels BVMT (environ ~250 séances ouvrées par an)
+        Set<String> dateSet = new TreeSet<>();
+        List<CandleDto> bvmtBenchmark = candlesByTicker.get("BIAT");
+        if (bvmtBenchmark != null) {
+            for (CandleDto c : bvmtBenchmark) {
+                if (targetYear.equals(extractYear(c.time()))) {
+                    dateSet.add(c.time());
+                }
+            }
+        }
+
+        // Si BIAT est vide sur cette année, agréger les dates de tous les actifs de la sélection
+        if (dateSet.isEmpty()) {
+            for (String sym : selectedSymbols) {
+                List<CandleDto> list = candlesByTicker.get(sym);
+                if (list != null) {
+                    for (CandleDto c : list) {
+                        if (targetYear.equals(extractYear(c.time()))) {
+                            dateSet.add(c.time());
+                        }
+                    }
+                }
+            }
+        }
+
+        List<String> timeline = new ArrayList<>(dateSet);
+        if (timeline.isEmpty()) {
+            return Map.of(
+                    "year", targetYear,
+                    "totalDays", 0,
+                    "timeline", Collections.emptyList(),
+                    "symbols", selectedSymbols,
+                    "ticks", Collections.emptyList(),
+                    "assetMetadata", Collections.emptyMap()
+            );
+        }
+
+        // 2. Indexation & Forward-Fill pour chaque actif
+        Map<String, Object> assetMetadata = new LinkedHashMap<>();
+        Map<String, Double> initialPrices = new HashMap<>();
+        Map<String, List<Map<String, Object>>> assetSeries = new HashMap<>();
+
+        for (String sym : selectedSymbols) {
+            List<CandleDto> allCandles = candlesByTicker.get(sym);
+            Map<String, CandleDto> dateMap = new HashMap<>();
+            if (allCandles != null) {
+                for (CandleDto c : allCandles) {
+                    dateMap.put(c.time(), c);
+                }
+            }
+
+            // Détermination du P_initial (cours de clôture de la première séance de l'année)
+            double pInitial = -1.0;
+            CandleDto firstCandleInYear = null;
+
+            for (String date : timeline) {
+                if (dateMap.containsKey(date)) {
+                    firstCandleInYear = dateMap.get(date);
+                    pInitial = firstCandleInYear.close();
+                    break;
+                }
+            }
+
+            // Fallback si l'actif n'a coté qu'après ou avant
+            if (pInitial <= 0 && allCandles != null && !allCandles.isEmpty()) {
+                pInitial = allCandles.get(0).close();
+                firstCandleInYear = allCandles.get(0);
+            }
+
+            initialPrices.put(sym, Math.round(pInitial * 1000.0) / 1000.0);
+
+            WatchlistAssetDto meta = catalogMap.get(sym);
+            assetMetadata.put(sym, Map.of(
+                    "symbol", sym,
+                    "name", meta != null ? meta.name() : sym,
+                    "category", meta != null ? meta.category() : "BVMT",
+                    "currency", meta != null ? meta.currency() : "TND",
+                    "initialPrice", Math.round(pInitial * 1000.0) / 1000.0
+            ));
+
+            // Parcours chronologique avec Forward-Fill
+            List<Map<String, Object>> filledCandles = new ArrayList<>();
+            CandleDto lastKnown = firstCandleInYear;
+            double prevClose = pInitial;
+
+            for (String date : timeline) {
+                CandleDto candle = dateMap.get(date);
+                if (candle != null) {
+                    lastKnown = candle;
+                } else if (lastKnown != null) {
+                    // Forward-fill : conservation du dernier cours connu
+                    candle = new CandleDto(date, lastKnown.close(), lastKnown.close(), lastKnown.close(), lastKnown.close(), 0L);
+                } else {
+                    candle = new CandleDto(date, pInitial, pInitial, pInitial, pInitial, 0L);
+                }
+
+                double curClose = candle.close();
+                double ytdReturn = (pInitial > 0)
+                        ? Math.round(((curClose - pInitial) / pInitial) * 10000.0) / 100.0
+                        : 0.0;
+                double dailyChange = (prevClose > 0)
+                        ? Math.round(((curClose - prevClose) / prevClose) * 10000.0) / 100.0
+                        : 0.0;
+
+                Map<String, Object> tickData = new HashMap<>();
+                tickData.put("time", date);
+                tickData.put("open", candle.open());
+                tickData.put("high", candle.high());
+                tickData.put("low", candle.low());
+                tickData.put("close", curClose);
+                tickData.put("volume", candle.volume());
+                tickData.put("ytdReturn", ytdReturn);
+                tickData.put("change", dailyChange);
+
+                filledCandles.add(tickData);
+                prevClose = curClose;
+            }
+
+            assetSeries.put(sym, filledCandles);
+        }
+
+        // 3. Construction des Ticks synchronisés (Matrice Temporelle)
+        List<Map<String, Object>> ticks = new ArrayList<>();
+        for (int i = 0; i < timeline.size(); i++) {
+            String date = timeline.get(i);
+            Map<String, Object> tick = new HashMap<>();
+            tick.put("date", date);
+            tick.put("index", i);
+
+            Map<String, Object> marketTick = new HashMap<>();
+            for (String sym : selectedSymbols) {
+                List<Map<String, Object>> series = assetSeries.get(sym);
+                if (series != null && i < series.size()) {
+                    marketTick.put(sym, series.get(i));
+                }
+            }
+
+            tick.put("marketTick", marketTick);
+            ticks.add(tick);
+        }
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("year", targetYear);
+        response.put("totalDays", timeline.size());
+        response.put("timeline", timeline);
+        response.put("firstDate", timeline.get(0));
+        response.put("lastDate", timeline.get(timeline.size() - 1));
+        response.put("symbols", selectedSymbols);
+        response.put("initialPrices", initialPrices);
+        response.put("assetMetadata", assetMetadata);
+        response.put("ticks", ticks);
+
+        return response;
+    }
+
     private File resolveFile(String path1, String path2) {
         File f1 = new File("d:/PIF", path1);
         if (f1.exists()) return f1;

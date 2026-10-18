@@ -1,0 +1,16 @@
+{
+  "threshold": 0.6,
+  "test_size": 37458,
+  "argmax": {
+    "accuracy": 0.5160446366597256,
+    "f1_macro": 0.4314800825069863,
+    "false_buy": 7170,
+    "false_sell": 7139
+  },
+  "calibrated": {
+    "accuracy": 0.6700838272198195,
+    "f1_macro": 0.2872307708579071,
+    "false_buy": 93,
+    "false_sell": 163
+  }
+}

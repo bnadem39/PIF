@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Search, SlidersHorizontal, ShieldCheck, Database, Globe } from 'lucide-react';
 
-export default function MarketWatch({ assets = [], selectedAsset, onSelectAsset, isLoading }) {
+export default function MarketWatch({ assets = [], selectedAsset, onSelectAsset, isLoading, assetSignals = {} }) {
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('ALL');
 
@@ -13,6 +13,39 @@ export default function MarketWatch({ assets = [], selectedAsset, onSelectAsset,
       filterCategory === 'ALL' || asset.category === filterCategory;
     return matchesSearch && matchesCategory;
   });
+
+  const getSignalBadge = (sig) => {
+    if (!sig) {
+      return (
+        <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700/60">
+          NEUTRE
+        </span>
+      );
+    }
+    const action = sig.action || (sig.prediction === 1 ? 'BUY' : (sig.prediction === -1 ? 'SELL' : 'HOLD'));
+    const prob = Math.round((sig.probabilities?.buy || sig.probability_up || 0.33) * 100);
+    const probSell = Math.round((sig.probabilities?.sell || 0.33) * 100);
+
+    if (action === 'BUY' || (sig.probabilities?.buy >= 0.60)) {
+      return (
+        <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-950/90 text-emerald-400 border border-emerald-700/80 shadow-sm animate-pulse">
+          ACHAT {prob}%
+        </span>
+      );
+    }
+    if (action === 'SELL' || (sig.probabilities?.sell >= 0.60)) {
+      return (
+        <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-rose-950/90 text-rose-400 border border-rose-700/80 shadow-sm">
+          VENTE {probSell}%
+        </span>
+      );
+    }
+    return (
+      <span className="text-[9px] font-mono font-medium px-1.5 py-0.5 rounded bg-slate-800/80 text-slate-400 border border-slate-700/50">
+        ATTENTE
+      </span>
+    );
+  };
 
   return (
     <aside className="w-80 bg-[#0F172A] border-r border-[#1E293B] flex flex-col h-full select-none">
@@ -78,6 +111,7 @@ export default function MarketWatch({ assets = [], selectedAsset, onSelectAsset,
           filteredAssets.map((asset) => {
             const isSelected = selectedAsset && selectedAsset.ticker === asset.ticker;
             const isPositive = asset.change24h >= 0;
+            const signalData = assetSignals[asset.ticker];
 
             return (
               <div
@@ -88,10 +122,11 @@ export default function MarketWatch({ assets = [], selectedAsset, onSelectAsset,
                 }`}
               >
                 <div className="min-w-0 pr-2">
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="font-bold text-xs text-[#F8FAFC] tracking-wide">
                       {asset.ticker}
                     </span>
+                    {getSignalBadge(signalData)}
                     {asset.ticker === 'WIFAK' && (
                       <span className="bg-emerald-950 text-emerald-400 border border-emerald-800 text-[9px] px-1 py-0.2 rounded font-semibold flex items-center gap-0.5">
                         <ShieldCheck size={10} /> Islamique
@@ -108,7 +143,7 @@ export default function MarketWatch({ assets = [], selectedAsset, onSelectAsset,
                       </span>
                     )}
                   </div>
-                  <div className="text-[10px] text-slate-400 truncate max-w-[140px]" title={asset.name}>
+                  <div className="text-[10px] text-slate-400 truncate max-w-[140px] mt-0.5" title={asset.name}>
                     {asset.name}
                   </div>
                   <div className="text-[10px] font-mono text-slate-400 mt-0.5">

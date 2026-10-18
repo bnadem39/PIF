@@ -1,0 +1,20 @@
+# ==============================================================================
+# BVMT: CONJONCTURE DU MARCHE FINANCIER & VALORISATIONS SECTORIELLES
+# Source: Bourse de Tunis (BVMT)
+# Domain: market
+# Tags: bvmt, tunindex, marche_actions, dividende, valorisation, liquidite
+# ==============================================================================
+
+Bourse de Tunis (BVMT) — Conjoncture du Marché Financier et Valorisations Sectorielles
+
+1. Dynamique du Marché et Indice Tunindex :
+L'indice de référence Tunindex reflète la performance globale des plus grandes capitalisations de la place de Tunis.
+Le secteur financier (banques commerciales, sociétés de leasing et compagnies d'assurance) représente plus de 50% de la capitalisation boursière totale.
+
+2. Liquidité du Marché et Volumes d'Échange :
+- Les volumes quotidiens sont concentrés sur un noyau de valeurs phares du secteur bancaire (BIAT, Attijari Bank, BNA, Amen Bank).
+- Le coefficient de rotation du capital flottant reste modéré, ce qui justifie l'utilisation de filtres de liquidité et de bandes de volatilité (ATR) lors de l'exécution des ordres de trading.
+
+3. Politiques de Dividendes et Rendement (Dividend Yield) :
+- Le marché tunisien offre historiquement un rendement de dividende attractif (entre 4% et 7%), servant d'ancrage fondamental pour les investisseurs institutionnels face aux hausses de taux monétaires.
+- Les annonces de résultats annuels et d'assemblées générales ordinaires (mars à juin) génèrent des cycles de momentum saisonniers sur les cours des banques.

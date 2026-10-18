@@ -1,0 +1,65 @@
+# ==============================================================================
+# BASEL III FRAMEWORK: LIQUIDITY COVERAGE RATIO (LCR) & LIQUIDITY RISK
+# Source: Basel Committee on Banking Supervision (BCBS) - Standards BCBS 238
+# Domain: banking_islamic
+# Tags: bale3, liquidite, lcr, hqla, tresorerie, banque_conventionnelle
+# ==============================================================================
+
+1. OBJECTIF ET RATIO CIBLE DU LCR
+Le ratio de liquidite a court terme (Liquidity Coverage Ratio ou LCR) a ete concu par le Comite de Bale sur le controle bancaire a la suite de la crise financiere de 2007-2008. Son objectif est de s'assurer qu'un etablissement bancaire maintient un niveau adequat d'actifs liquides de haute qualite (High Quality Liquid Assets - HQLA) pouvant etre facilement et immediatement convertis en liquidites sans decote excessive, pour faire face a un choc de liquidite aigu d'une duree de 30 jours calendaires.
+
+Formule reglementaire :
+  LCR = Actifs Liquides de Haute Qualite (HQLA) / Total des Sorties Nettes de Tresorerie sur 30 jours >= 100%
+
+Exigence minimale reglementaire :
+- Le ratio doit etre superieur ou egal a 100% sur une base continue.
+- Un ratio inferieur a 100% declenche un plan d'urgence de liquidite (CFP) et une notification immediate a l'autorite de supervision (BCE, EBA, Fed ou ACPR).
+
+2. CLASSIFICATION DES ACTIFS LIQUIDES DE HAUTE QUALITE (HQLA)
+Le stock d'actifs HQLA doit respecter des regles strictes de composition et de decote (haircut).
+
+A. Actifs de Niveau 1 (Level 1 HQLA) - Aucun plafond dans le stock HQLA :
+- Decote obligatoire : 0% (valeur a 100% du prix de marche).
+- Composition :
+  * Billets de banque et monnaies en caisse.
+  * Reserves de banque centrale (y compris reserves obligatoires dans la mesure ou elles sont mobilisables en periode de stress).
+  * Titres souverains ou titres de banques centrales affectes d'une ponderation de risque de 0% sous l'approche standard de Bale II/III (ex. OAT francaises, Bunds allemands, US Treasuries).
+  * Titres emis par des banques multilaterales de developpement (ex. BEI, BIRD, FMI) ou entites du secteur public (PSE) ponderes a 0%.
+
+B. Actifs de Niveau 2A (Level 2A HQLA) - Plafond max 40% du stock total HQLA :
+- Decote obligatoire : 15%.
+- Composition :
+  * Titres souverains et de banques centrales ponderes a 20% en risque de credit.
+  * Obligations d'entreprises non financieres de tres haute qualite de credit (rating minimal AA- ou equivalent).
+  * Obligations securisees (covered bonds) beneficiant d'une notation minimale de AA-.
+
+C. Actifs de Niveau 2B (Level 2B HQLA) - Plafond max 15% du stock total HQLA :
+- Decote obligatoire : 25% a 50%.
+- Composition :
+  * Obligations securisees de notation inferieure (de A- a A+) avec decote de 25%.
+  * Obligations corporates non financieres de notation d'investissement (investment grade de BBB- a A+) avec decote de 50%.
+  * Actions ordinaires liquides incluses dans un indice boursier majeur (CAC 40, S&P 500, DAX) avec decote de 50%.
+  * Titres adosses a des prets hypothecaires residentiels (RMBS) de haute qualite avec decote de 25%.
+
+3. SORTIES NETTES DE TRESORERIE CALCULEES SUR 30 JOURS
+Les sorties nettes de tresorerie representent la difference entre les sorties attendues et les entrees attendues (plafonees a 75% des sorties).
+
+A. Taux de fuite des depots de la clientele de detail (Retail Deposits) :
+- Depots stables (couverts par une assurance des depots type FGDR et relation bancaire etablie) : 3% a 5%.
+- Depots moins stables (comptes en ligne sans relation durable, soldes tres eleves depassant le plafond de garantie) : 10%.
+
+B. Financement de gros non garanti (Unsecured Wholesale Funding) :
+- Depots operationnels generes par des activites de clearing, custody ou cash management : 25%.
+- Depots d'entreprises non financieres et PME non operationnels : 40% a 100%.
+- Depots d'institutions financieres (hedge funds, banques d'investissement, brokers) : 100% de fuite.
+
+C. Engagements de liquidite et facilites de credit confirmees (Off-Balance Sheet) :
+- Facilites de credit non tirees accordees aux clients de detail et PME : 5%.
+- Facilites de credit confirmees aux entreprises non financieres : 10% a 30%.
+- Facilites accordees aux institutions financieres et entites d'arbitrage : 40% a 100%.
+
+4. REGLES DE RESTRICTION ET INTERACTION SALLE DE MARCHE
+Dans le simulateur de trading et de salle de marche :
+- Tout ordre de vente ou d'achat massif sur titres souverains ou actions modifie instantanement la composition HQLA.
+- L'utilisation excessive d'effets de levier ou de financements repo a court terme deteriore le ratio LCR en augmentant le denominateur.
+- Le non-respect du seuil LCR >= 100% induit une penalite reglementaire immediate et un cout d'opportunite de refinancement en urgence.

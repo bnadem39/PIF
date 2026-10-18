@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/market")
+@RequestMapping({"/api/market", "/api/v1/market"})
 public class MarketDataController {
 
     private final MarketDataService marketDataService;
@@ -95,5 +95,39 @@ public class MarketDataController {
                 Map.of("symbol", "EUR/TND", "name", "Euro / Dinar", "value", 3.3420, "change", -0.0018, "changePercent", -0.05, "currency", "TND"),
                 Map.of("symbol", "USD/TND", "name", "Dollar / Dinar", "value", 3.0850, "change", 0.0035, "changePercent", 0.11, "currency", "TND")
         ));
+    }
+
+    /**
+     * Initialisation Time-Lapse (Zero Lookahead Bias)
+     * GET /api/market/simulation/init?symbol=BIAT&year=2021
+     */
+    @GetMapping("/simulation/init")
+    public ResponseEntity<Map<String, Object>> initSimulation(
+            @RequestParam String symbol,
+            @RequestParam String year) {
+        return ResponseEntity.ok(marketDataService.initSimulation(symbol, year));
+    }
+
+    /**
+     * Rejeu chronologique d'une tranche de chandeliers jusqu'à T_courant
+     * GET /api/market/simulation/slice?symbol=BIAT&year=2021&currentDate=2021-04-15
+     */
+    @GetMapping("/simulation/slice")
+    public ResponseEntity<Map<String, Object>> getSimulationSlice(
+            @RequestParam String symbol,
+            @RequestParam String year,
+            @RequestParam(required = false, defaultValue = "") String currentDate) {
+        return ResponseEntity.ok(marketDataService.getSimulationSlice(symbol, year, currentDate));
+    }
+
+    /**
+     * Matrice multi-actifs synchronisée pour rejeu simultané et classement dynamique
+     * GET /api/market/simulation/multi-matrix?year=2022&symbols=BIAT,SFBT,BTC-USD
+     */
+    @GetMapping("/simulation/multi-matrix")
+    public ResponseEntity<Map<String, Object>> getMultiAssetMatrix(
+            @RequestParam(required = false, defaultValue = "2022") String year,
+            @RequestParam(required = false) List<String> symbols) {
+        return ResponseEntity.ok(marketDataService.getMultiAssetMatrix(year, symbols));
     }
 }

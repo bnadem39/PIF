@@ -20,6 +20,21 @@ backend/target/
 .DS_Store
 *.log
 
+# Sensitive environment files
+.env
+.env.*
+*.env
+backend/.env
+
 # Large CSV Datasets (>100MB, rejected by GitHub)
 coinbaseUSD_1-min_data.csv/
 ETH_1min.csv/
+
+# Python
+venv/
+*/venv/
+__pycache__/
+*.pyc
+ai/chroma_db/
+ai/vector_db/
+ai/processed_data.parquet

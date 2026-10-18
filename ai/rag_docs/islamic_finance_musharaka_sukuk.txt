@@ -1,0 +1,44 @@
+# ==============================================================================
+# ISLAMIC FINANCE: MUSHARAKA PARTNERSHIPS & SUKUK CAPITAL MARKET INSTRUMENTS
+# Source: AAOIFI Shariah Standards No. 12 (Sharika/Musharaka) & No. 17 (Investment Sukuk)
+# Domain: banking_islamic
+# Tags: banque_islamique, musharaka, sukuk, charia, aaoifi, ifsb
+# ==============================================================================
+
+1. DEFINITION DU CONTRAT MUSHARAKA (SOCIETE EN PARTICIPATION)
+La Musharaka est une societe conjointe (joint venture) dans laquelle deux ou plusieurs parties mettent en commun leurs apports en capital ou en nature afin de mener une entreprise commerciale, en partageant les profits selon des proportions convenues et les pertes a proportion stricte de leurs apports respectifs en capital.
+
+A. Regle fondamentale de repartition des pertes :
+- Al-Ghurm bi al-Ghunm (le gain implique le risque de perte).
+- Les profits peuvent etre repartis a volonte selon la negociation contractuelle.
+- Les pertes sont OBLIGATOIREMENT et STRICTEMENT supportees au prorata exact des quotes-parts de capital souscrites par chaque associe (Regle de consensus jurisprudentiel). Toute clause imposant une garantie de capital ou exonerant un associe des pertes est nulle et rend le contrat non-conforme a la Charia.
+
+B. Musharaka Degressive (Diminishing Musharaka / Musharaka Mutanaqisa) :
+Tres utilisee dans le financement immobilier islamique et les investissements a terme :
+- La banque et le client acquierent conjointement un actif (par ex. un immeuble).
+- Le client verse des loyers pour occuper la part de l'actif detenue par la banque (contrat Ijara).
+- Progressivement, le client rachete par tranches les parts sociales detenues par la banque a leur valeur nominale ou a la valeur de marche, jusqu'a devenir proprietaire exclusif de l'actif a 100%.
+
+2. SUKUK : INSTRUMENTS DU MARCHE DES CAPITAUX ISLAMIQUE
+Les Sukuk (pluriel de Sakk) sont des certificats d'investissement financiers negociables representant des parts indivises de propriete dans un portefeuille d'actifs reels tangibles, d'usufruits (Manfa'ah), de services ou de projets d'investissement licites selon la Charia.
+
+A. Difference fondamentale entre Obligation Classique (Bond) et Sukuk :
+- Une obligation conventionnelle est un titre de dette assorti d'un interet garanti (Riba) independamment de la rentabilite de l'emetteur.
+- Le Sukuk n'est pas une dette pure : il confere un droit de propriete direct sur les actifs sous-jacents, et sa remuneration provient des loyers (Ijara), profits de vente (Murabaha) ou benefices d'exploitation (Mudaraba/Musharaka) generes par ces actifs.
+
+B. Principales structures de Sukuk :
+1. Sukuk al-Ijara (les plus repandus et les plus liquides) :
+   L'emetteur vend un actif (ex. infrastructures aeroportuaires, biens de l'Etat) a un vehicule de titrisation (SPV) qui emet les Sukuk. Le SPV reloue les actifs a l'emetteur d'origine. Les loyers percus sont redistribues aux detenteurs de Sukuk sous forme de coupons periodiques.
+2. Sukuk al-Mudaraba ou Sukuk al-Musharaka :
+   Certificats d'investissement participatifs ou les fonds collectes financent un grand projet. Les investisseurs partagent les resultats concrets d'exploitation.
+3. Sukuk al-Wakala (Mandat d'investissement) :
+   L'emetteur nomme un agent (Wakil) pour administrer un panier d'actifs financiers conformes (portefeuille mixte d'Ijara, Murabaha et Sukuk) afin de generer un rendement cible.
+
+3. DIRECTIVES AAOIFI SUR LA NEGOCIABILITE DES SUKUK
+Pour qu'un Sukuk soit cede et negocie sur le marche secondaire (Trading Desk) a un prix different de sa valeur nominale :
+- L'actif sous-jacent doit etre compose majoritairement d'actifs tangibles ou d'usufruits (generalement au moins 33% ou 51% selon les ecoles juridiques).
+- Si le panier est compose a plus de 50% de pures creances financieres (Dayn, comme dans les pools de Murabaha), les Sukuk ne peuvent etre vendus qu'au pair (valeur nominale exacte) sous peine d'enfreindre la prohibition de Bay al-Dayn (vente de creances monétaires avec escompte).
+
+4. GESTION DES RISQUES ET SALLE DE MARCHE
+- Risque de liquidite : le marche secondaire des Sukuk demeure moins profond que le marche obligataire souverain conventionnel. Les traders doivent appliquer des decotes de liquidite dans le moteur RAG et les stress tests.
+- Risque de restructuration : en cas de defaut du sponsor, la liquidation effective des actifs reels poses en SPV peut faire l'objet de contestations juridiques entre le droit civil local et la conformite charia.

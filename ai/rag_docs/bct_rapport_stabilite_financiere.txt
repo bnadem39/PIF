@@ -1,0 +1,22 @@
+# ==============================================================================
+# BCT: RAPPORT SUR LA STABILITE FINANCIERE ET RISQUES SYSTEMIQUES
+# Source: Banque Centrale de Tunisie (BCT)
+# Domain: market
+# Tags: bct, stabilite_financiere, stress_test_macro, risque_systemique, credit
+# ==============================================================================
+
+Banque Centrale de Tunisie (BCT) — Rapport sur la Stabilité Financière et Risques Systémiques
+
+1. Évaluation de la Stabilité du Système Bancaire :
+Le secteur bancaire tunisien est caractérisé par une concentration des engagements sur les secteurs du commerce, de l'industrie manufacturière et de la promotion immobilière.
+La BCT impose aux banques et établissements financiers des coussins de fonds propres conformes aux normes Bâle III (ratio de solvabilité global minimum de 10% et ratio Tier 1 minimum de 7%).
+
+2. Risque de Crédit et Créances Classées :
+- Le taux des créances douteuses et litigieuses (CDL) fait l'objet d'un suivi rapproché avec obligation de provisionnement strict conformément à la circulaire BCT 91-24.
+- L'introduction progressive de la norme IFRS 9 (calcul des pertes de crédit attendues - ECL sur 12 mois et à maturité) accroît la sensibilité des fonds propres prudentiels.
+
+3. Stress-Testing Macro-prudentiel BCT :
+La BCT conduit régulièrement des exercices de stress-tests inversés et de scénarios de chocs macroéconomiques :
+- Scénario 1 (Choc de taux) : Hausse brutale du TMM de 100 à 200 points de base, testant la marge d'intérêt nette et la valeur économique des fonds propres (EVE).
+- Scénario 2 (Choc de dépréciation) : Dépréciation de 10% à 20% du Dinar face aux devises de référence, testant les débiteurs non couverts.
+- Scénario 3 (Contraction de la croissance) : Ralentissement du PIB entraînant un défaut de paiement accru sur les portefeuilles PME.

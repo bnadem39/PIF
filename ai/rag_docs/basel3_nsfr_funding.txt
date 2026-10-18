@@ -1,0 +1,68 @@
+# ==============================================================================
+# BASEL III FRAMEWORK: NET STABLE FUNDING RATIO (NSFR) & STRUCTURAL LIQUIDITY
+# Source: Basel Committee on Banking Supervision (BCBS) - Standards BCBS 295
+# Domain: Conventional Banking / Balance Sheet Structural Liquidity
+# Tags: bale3, financement, nsfr, asf, rsf, solvabilite, banque_conventionnelle
+# ==============================================================================
+
+1. OBJECTIF ET RATIO DU NSFR
+Le ratio de financement stable net (Net Stable Funding Ratio ou NSFR) est une norme de liquidite structurelle a long terme (horizon 1 an). Il a ete etabli pour contraindre les etablissements a financer leurs actifs illiquides ou a long terme par des sources de financement stables et durables, reduisant ainsi le risque d'illiquidite structurelle et la dependance aux financements interbancaires a court terme.
+
+Formule reglementaire :
+  NSFR = Financement Stable Disponible (Available Stable Funding - ASF) / Financement Stable Requis (Required Stable Funding - RSF) >= 100%
+
+Exigence minimale reglementaire :
+- Le NSFR doit etre superieur ou egal a 100% en permanence.
+- Les banques doivent maintenir une structure de bilan equilibree, interdisant la transformation excessive de liquidites courtes en prets longs sans couverture adequate.
+
+2. FINANCEMENT STABLE DISPONIBLE (ASF - AVAILABLE STABLE FUNDING)
+Le financement stable disponible est evalue en appliquant des facteurs de ponderation ASF aux composantes de passif et de capitaux propres :
+
+A. Ponderation ASF de 100% (Financement ultra-stable) :
+- Capitaux propres reglementaires de base (CET1, AT1 et Tier 2 avant deductions).
+- Autres instruments de capital ou emprunts a moyen et long terme dont l'echeance residuelle est >= 1 an.
+
+B. Ponderation ASF de 95% :
+- Depots de la clientele de detail et des PME consideres comme stables (garantis par un mecanisme d'assurance de depots public, avec relation durable ou salariale) dont l'echeance est inferieure a 1 an ou exigibles a vue.
+
+C. Ponderation ASF de 90% :
+- Depots de detail et PME dits "moins stables" (depots non garantis, soldes substantiels au-dela des plafonds de garantie d'Etat).
+
+D. Ponderation ASF de 50% :
+- Financements de gros non garantis (wholesale funding) provenant d'entreprises non financieres, de gouvernements souverains ou d'entites publiques avec echeance residuelle inferieure a 1 an.
+- Depots operationnels interbancaires et de compensation.
+
+E. Ponderation ASF de 0% (Aucune reconnaissance de stabilite) :
+- Tous les financements de marche provenant d'institutions financieres ou de courtiers (broker-dealers, fonds monétaires, hedge funds) dont l'echeance est inferieure a 6 mois.
+- Dettes subordonnees dont l'echeance residuelle est inferieure a 1 an.
+
+3. FINANCEMENT STABLE REQUIS (RSF - REQUIRED STABLE FUNDING)
+Le financement stable requis reflete la liquidite necessaire pour soutenir les actifs detenus au bilan et les engagements de hors-bilan :
+
+A. Ponderation RSF de 0% :
+- Billets et monnaies en caisse.
+- Reserves de banque centrale et creances sur banques centrales d'echeance < 6 mois.
+
+B. Ponderation RSF de 5% :
+- Titres souverains et obligations de banques centrales eligibles en HQLA Niveau 1.
+
+C. Ponderation RSF de 15% :
+- Titres de Niveau 2A HQLA (souverains 20% et covered bonds AA-).
+
+D. Ponderation RSF de 50% :
+- Prets et credits accordes a des institutions financieres non bancaires ou banques avec echeance residuelle entre 6 mois et 1 an.
+- Titres de Niveau 2B HQLA (obligations corporates investment grade).
+
+E. Ponderation RSF de 65% :
+- Prets hypothecaires residentiels non echus a plus d'un an, affectes d'une ponderation de risque <= 35% sous Bale II/III.
+
+F. Ponderation RSF de 85% :
+- Credits accordes a la clientele de detail et PME non echus a plus d'un an.
+- Actions cotees et matieres premieres de premier ordre.
+
+G. Ponderation RSF de 100% :
+- Tous les actifs d'echeance residuelle >= 1 an necessitant un financement a long terme (credits entreprises a long terme, participations immobilieres, immobilisations corporelles et incorporelles, creances douteuses ou non performantes).
+
+4. IMPLICATIONS DANS LE TRADING ET LA GESTION DE SALLE DE MARCHE
+- Toute augmentation des positions de trading a long terme non financees par des depots stables ou des fonds propres fait chuter le NSFR.
+- Les positions de derivés et financements de marge necessitent un apport en liquidite stable et mobilisent du RSF pour la couverture des variations de marge de garantie (variation margin).

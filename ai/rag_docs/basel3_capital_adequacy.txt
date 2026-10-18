@@ -1,0 +1,45 @@
+# ==============================================================================
+# BASEL III FRAMEWORK: CAPITAL ADEQUACY, CET1, TIER 1, TIER 2 & LEVERAGE RATIO
+# Source: Basel Committee on Banking Supervision (BCBS) - Basel III: A global regulatory framework
+# Domain: Banking Regulation / Capital Solvency / Prudential Ratios
+# Tags: bale3, capital, solvabilite, cet1, tier1, tier2, rwa, leverage, banque_conventionnelle
+# ==============================================================================
+
+1. FONDEMENTS DU RATIO DE SOLVABILITE DE BALE III
+La reglementation de Bale III renforce considerablement les exigences de solvabilite bancaire definies sous Bale II. Elle impose des exigences minimales en capital reglementaire strict (qualite des fonds propres), des coussins de securite obligatoires (conservation et contracyclique), et un ratio d'endettement non pondere (Leverage Ratio) pour empecher les modeles internes d'optimiser a l'exces les actifs ponderes par les risques (RWA - Risk Weighted Assets).
+
+2. STRUCTURE PYRAMIDALE DES FONDS PROPRES REGLEMENTAIRES
+
+A. Common Equity Tier 1 (CET1) - Noyau Dur des Fonds Propres :
+Le CET1 represente la forme de capital la plus pure et la plus absorbante des pertes sans liquidation de la banque :
+- Actions ordinaires et primes d'emission associees.
+- Reserves declarees et benefices non distribues reportes a nouveau.
+- Autres elements du resultat global accumule (AOCI - unrealized gains/losses).
+- Deductions prudentielles obligatoires : ecarts d'acquisition (goodwill), actifs incorporels, actifs d'impots differes dependant des benefices futurs, titres d'autocontrole.
+- Exigence minimale de CET1 : 4.5% des RWA.
+
+B. Additional Tier 1 (AT1) :
+Instruments financiers hybrides concus pour absorber les pertes lorsque la banque est en continuite d'exploitation (going-concern) :
+- Exemples : Contingent Convertible Bonds (CoCos) possedant une clause de conversion en capital ou de depreciation de nominal lorsque le CET1 franchit un seuil critique (ex. 5.125% ou 7.0%).
+- Sans date d'echeance (perpetuels), sans incitation au remboursement anticipe.
+- Coupons a discretion absolue de l'emetteur, non cumulatifs.
+- Exigence minimale de Tier 1 total (CET1 + AT1) : 6.0% des RWA.
+
+C. Tier 2 (Fonds Propres Complementaires) :
+Instruments absorbant les pertes en cas de resolution ou liquidation de la banque (gone-concern) :
+- Titres de dette subordonnee a maturite minimale de 5 ans avec amortissement sur les 5 dernieres annees.
+- Provisions generales pour pertes sur prets (standardized approach) dans la limite de 1.25% des RWA credit.
+- Exigence de Capital Total Minimum (CET1 + AT1 + Tier 2) : 8.0% des RWA.
+
+3. COUSSINS DE CAPITAL ET SURCHARGES SYSTEMIQUES (MACROPRUDENTIEL)
+Au-dessus du seuil reglementaire strict de 8%, Bale III introduit des coussins en capital CET1 :
+- Coussin de conservation des fonds propres (Capital Conservation Buffer - CCB) : 2.5% de CET1 obligatoire. Son non-respect bloque automatiquement la distribution de dividendes, rachats d'actions et bonus (Combined Buffer Requirement).
+- Coussin de fonds propres contracyclique (Countercyclical Capital Buffer - CCyB) : 0% a 2.5% de CET1 active par le regulateur national lors de surchauffes de credit.
+- Surcharge pour banques d'importance systemique mondiale (G-SIB Buffer) : de 1.0% a 3.5% de CET1 additionnel selon le bucket d'impact systemique.
+- Solvabilite globale cible recommandee : CET1 total requis >= 7.0% (4.5% base + 2.5% CCB), Capital total >= 10.5%.
+
+4. RATIO DE LEVIER NON PONDERE (LEVERAGE RATIO)
+Pour completer l'approche RWA qui depend des methodes de modelisation des risques, Bale III instaure un garde-fou non pondere :
+  Ratio de Levier = Fonds Propres Tier 1 / Exposition Totale Hors et Sur Bilan >= 3.0%
+(Porte a 4% - 5% pour les banques systemiques mondiales G-SIBs).
+L'exposition totale comprend la totalite des actifs au bilan sans aucune ponderation de risque (les obligations d'Etat comptent a 100%), augmentee de l'equivalent risque de credit des engagements hors-bilan et de l'exposition brute aux produits derives.
