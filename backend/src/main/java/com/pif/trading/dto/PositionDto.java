@@ -10,5 +10,16 @@ public record PositionDto(
         BigDecimal currentPrice,
         BigDecimal marketValue,
         BigDecimal unrealizedPnl,
-        BigDecimal unrealizedPnlPercent
-) {}
+        BigDecimal unrealizedPnlPercent,
+        BigDecimal stopLossPrice,
+        BigDecimal takeProfitPrice,
+        BigDecimal trailingStopDistance,
+        BigDecimal highestPriceSeen
+) {
+    public PositionDto(Long id, String symbol, Integer quantity, BigDecimal averageCostPrice,
+                       BigDecimal currentPrice, BigDecimal marketValue, BigDecimal unrealizedPnl,
+                       BigDecimal unrealizedPnlPercent) {
+        this(id, symbol, quantity, averageCostPrice, currentPrice, marketValue, unrealizedPnl,
+             unrealizedPnlPercent, null, null, null, null);
+    }
+}

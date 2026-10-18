@@ -47,7 +47,8 @@ export default function TradingChart({
   onSelectYear: externalOnSelectYear,
   onSelectAsset,
   onOpenCsvInspector,
-  onSimulationUpdate
+  onSimulationUpdate,
+  userPositions = []
 }) {
   const chartContainerRef = useRef(null);
   const chartInstanceRef = useRef(null);
@@ -57,6 +58,10 @@ export default function TradingChart({
   const volumeSeriesRef = useRef(null);
   const sma20SeriesRef = useRef(null);
   const sma50SeriesRef = useRef(null);
+
+  // Lignes de seuils SL & TP sur le graphique
+  const stopLossLineRef = useRef(null);
+  const takeProfitLineRef = useRef(null);
 
   // Séries Multi-Courbes (Mode Performance Relative Normalisée %)
   const multiLineSeriesMapRef = useRef(new Map());
@@ -456,6 +461,49 @@ export default function TradingChart({
         candleSeriesRef.current.setMarkers(markers);
       } catch (e) {
         // Ignorer si version lightweight charts différente
+      }
+
+      // D. Tracé des Lignes Horizontales Stop-Loss (Rouge) et Take-Profit (Vert)
+      const activePosition = userPositions.find(
+        (p) => p.symbol?.toUpperCase() === selectedAsset?.ticker?.toUpperCase()
+      );
+
+      // Nettoyer les anciennes lignes de prix
+      if (stopLossLineRef.current) {
+        try { candleSeriesRef.current.removePriceLine(stopLossLineRef.current); } catch (e) {}
+        stopLossLineRef.current = null;
+      }
+      if (takeProfitLineRef.current) {
+        try { candleSeriesRef.current.removePriceLine(takeProfitLineRef.current); } catch (e) {}
+        takeProfitLineRef.current = null;
+      }
+
+      // Tracer Stop-Loss si défini
+      if (activePosition && activePosition.stopLossPrice != null && activePosition.stopLossPrice > 0) {
+        try {
+          stopLossLineRef.current = candleSeriesRef.current.createPriceLine({
+            price: Number(activePosition.stopLossPrice),
+            color: '#EF4444',
+            lineWidth: 2,
+            lineStyle: 2, // Dashed
+            axisLabelVisible: true,
+            title: `SL: ${Number(activePosition.stopLossPrice).toFixed(precision)}`
+          });
+        } catch (e) {}
+      }
+
+      // Tracer Take-Profit si défini
+      if (activePosition && activePosition.takeProfitPrice != null && activePosition.takeProfitPrice > 0) {
+        try {
+          takeProfitLineRef.current = candleSeriesRef.current.createPriceLine({
+            price: Number(activePosition.takeProfitPrice),
+            color: '#10B981',
+            lineWidth: 2,
+            lineStyle: 2, // Dashed
+            axisLabelVisible: true,
+            title: `TP: ${Number(activePosition.takeProfitPrice).toFixed(precision)}`
+          });
+        } catch (e) {}
       }
     }
 

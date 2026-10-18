@@ -32,7 +32,8 @@ import {
   ensureAuthenticated,
   getPortfolioSummary,
   getCurrentUser,
-  logoutUser
+  logoutUser,
+  checkRiskOrders
 } from './services/realMarketService';
 
 export default function App() {
@@ -182,8 +183,24 @@ export default function App() {
       setPortfolioValue(cashBalance + positionsValuation);
       setDailyPnL(latentPnl);
       setDailyPnLPercent(cashBalance > 0 ? (latentPnl / (cashBalance + positionsValuation)) * 100 : 0);
+
+      // Contrôle continu des déclencheurs Stop-Loss, Take-Profit et Trailing Stop (OCO)
+      if (simState.simulatedDate) {
+        const priceMap = {};
+        Object.keys(simState.marketTick).forEach((k) => {
+          if (simState.marketTick[k]?.close != null) {
+            priceMap[k] = simState.marketTick[k].close;
+          }
+        });
+
+        checkRiskOrders(priceMap, simState.simulatedDate).then((triggered) => {
+          if (triggered && triggered.length > 0) {
+            refreshPortfolio(simState.simulatedDate, activeSym, currentPrice);
+          }
+        }).catch(() => {});
+      }
     }
-  }, [selectedAsset, userPositions, cashBalance]);
+  }, [selectedAsset, userPositions, cashBalance, refreshPortfolio]);
 
   // Synchronisation asynchrone de l'analyse FinGPT & RAG (Uniquement au changement d'actif ou demande explicite, PAS sur chaque tick)
   const triggerAssetAnalysis = useCallback((assetToAnalyze = selectedAsset) => {
@@ -436,6 +453,7 @@ export default function App() {
                   onSelectAsset={handleSelectAsset}
                   onOpenCsvInspector={() => setIsCsvInspectorOpen(true)}
                   onSimulationUpdate={handleSimulationUpdate}
+                  userPositions={userPositions}
                 />
                 <QuickOrderWidget
                   selectedAsset={selectedAsset}

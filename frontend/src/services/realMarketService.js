@@ -199,6 +199,37 @@ export async function executeTradeOrder(orderRequest) {
 }
 
 /**
+ * Modifie à la volée les seuils de risque (Stop-Loss, Take-Profit, Trailing Stop) d'une position ouverte
+ */
+export async function updatePositionRisk(positionId, riskThresholds) {
+  await ensureAuthenticated();
+  const res = await fetch(`${ORDERS_BASE}/positions/${positionId}/risk`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(riskThresholds)
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.message || `Erreur modification des seuils de risque (${res.status})`);
+  }
+  return data;
+}
+
+/**
+ * Déclenche la vérification du moteur de risque sur la bougie courante (SL/TP/TS/OCO)
+ */
+export async function checkRiskOrders(prices, simulatedDate) {
+  await ensureAuthenticated();
+  const res = await fetch(`${ORDERS_BASE}/check-risk`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ prices, simulatedDate })
+  });
+  if (!res.ok) return [];
+  return await res.json();
+}
+
+/**
  * Récupère la synthèse du portefeuille (Cash balance, P&L Latent, Positions)
  */
 export async function getPortfolioSummary(simulatedDate = '', currentSymbol = null, currentPrice = null) {
