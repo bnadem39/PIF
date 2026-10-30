@@ -32,6 +32,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from stress.api import router as stress_router, state as stress_state
+from backtest_signals import router as backtest_router
 
 AI_DIR   = Path(__file__).parent
 LOGS_DIR = AI_DIR / "logs"
@@ -141,6 +142,7 @@ ALLOWED_ORIGINS = [
 ]
 
 app.include_router(stress_router)
+app.include_router(backtest_router)
 
 app.add_middleware(
     CORSMiddleware,

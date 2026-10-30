@@ -174,8 +174,8 @@ def ensure_features(df: pd.DataFrame) -> pd.DataFrame:
     return pd.concat(frames, ignore_index=True)
 
 
-def prepare_data(df: pd.DataFrame, ticker: str = None) -> Tuple[pd.DataFrame, pd.Series]:
-    """Prépare et trie chronologiquement les données multi-classes."""
+def prepare_data(df: pd.DataFrame, ticker: str = None, return_dates: bool = False):
+    """Prépare et trie chronologiquement les données multi-classes (et leurs dates si return_dates)."""
     if ticker:
         df = df[df["ticker"] == ticker].copy()
         log.info(f"[PREP] Ticker ciblé : {ticker} -> {len(df):,} lignes")
@@ -191,6 +191,7 @@ def prepare_data(df: pd.DataFrame, ticker: str = None) -> Tuple[pd.DataFrame, pd
     y = df[TARGET_COL].astype("int8")
 
     valid_mask = X.notna().all(axis=1) & y.notna()
+    dates = df.loc[valid_mask, "date"].reset_index(drop=True)
     X = X[valid_mask].reset_index(drop=True)
     y = y[valid_mask].reset_index(drop=True)
 
@@ -200,6 +201,8 @@ def prepare_data(df: pd.DataFrame, ticker: str = None) -> Tuple[pd.DataFrame, pd
         f"-1 (Vente): {dist.get(-1, 0):.1%} | 0 (Neutre): {dist.get(0, 0):.1%} | +1 (Achat): {dist.get(1, 0):.1%}"
     )
 
+    if return_dates:
+        return X, y, dates
     return X, y
 
 
@@ -335,7 +338,8 @@ def train_final_model(X: pd.DataFrame, y: pd.Series):
     return final_model, scaler, eval_summary
 
 
-def save_model(model, scaler, cv_results: list, feature_cols: list, eval_summary: dict):
+def save_model(model, scaler, cv_results: list, feature_cols: list, eval_summary: dict,
+               validation_start_date: str = None):
     """Sauvegarde le modèle multi-classe aux formats .pkl, .json natif et metadata."""
     pipeline = {
         "model": model,
@@ -363,6 +367,8 @@ def save_model(model, scaler, cv_results: list, feature_cols: list, eval_summary
         "cv_mean_accuracy": float(np.mean([r["accuracy"] for r in cv_results])),
         "cv_mean_f1_macro": float(np.mean([r["f1_macro"] for r in cv_results])),
         "final_evaluation": eval_summary,
+        # Le modèle a vu toutes les données antérieures : un backtest du signal IA n'est honnête qu'après cette date
+        "validation_start_date": validation_start_date,
     }
     with open(METADATA_PATH, "w", encoding="utf-8") as f:
         json.dump(metadata, f, indent=2, ensure_ascii=False)
@@ -444,7 +450,8 @@ def main():
     log.info("=" * 70)
 
     df = load_processed(Path(args.data_path))
-    X, y = prepare_data(df, ticker=args.ticker)
+    X, y, dates = prepare_data(df, ticker=args.ticker, return_dates=True)
+    validation_start = str(pd.Timestamp(dates.iloc[int(len(X) * 0.80)]).date())
 
     # 1. Validation croisée temporelle
     cv_results, _ = cross_validate_timeseries(X, y)
@@ -453,7 +460,7 @@ def main():
     final_model, final_scaler, eval_summary = train_final_model(X, y)
 
     # 3. Sauvegarde multi-format
-    save_model(final_model, final_scaler, cv_results, FEATURE_COLS, eval_summary)
+    save_model(final_model, final_scaler, cv_results, FEATURE_COLS, eval_summary, validation_start)
 
     gc.collect()
     log.info("=" * 70)

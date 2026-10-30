@@ -127,5 +127,7 @@
     ]
   },
   "confidence_threshold": 0.6,
-  "calibration_note": "Signaux Achat (+1) et Vente (-1) filtrés avec confiance >= 60%. Sous ce seuil, les observations sont classées Neutre (0) pour éliminer les faux positifs."
+  "calibration_note": "Signaux Achat (+1) et Vente (-1) filtrés avec confiance >= 60%. Sous ce seuil, les observations sont classées Neutre (0) pour éliminer les faux positifs.",
+  "validation_start_date": "2020-06-19",
+  "validation_start_note": "Calculé a posteriori (2026-10-30) : 80 % chronologiques des 186 572 échantillons du pipeline."
 }

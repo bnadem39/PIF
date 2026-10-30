@@ -50,7 +50,7 @@ jobs:
           cache-dependency-path: ai/requirements_ai.txt
       # Vérification légère : les dépendances complètes (torch, chromadb...) sont trop lourdes pour la CI
       - run: python -m py_compile ai/*.py
-      # Le module de stress testing n'a besoin que d'un sous-ensemble léger des dépendances
+      # Stress testing et signal IA du backtesting : sous-ensemble léger des dépendances
       - run: pip install numpy pandas scikit-learn xgboost-cpu shap joblib fastapi httpx pytest
-      - run: python -m pytest stress/tests -q
+      - run: python -m pytest stress/tests tests -q
         working-directory: ai

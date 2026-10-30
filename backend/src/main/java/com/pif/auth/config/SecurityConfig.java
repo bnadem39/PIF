@@ -91,6 +91,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/market/**").authenticated()
                         .requestMatchers("/api/v1/orders/**").authenticated()
                         .requestMatchers("/api/v1/stress-test/**").authenticated()
+                        .requestMatchers("/api/v1/backtest/**").authenticated()
 
                         // Endpoints de cotation et données publiques du simulateur de marché
                         .requestMatchers("/api/market/**").permitAll()

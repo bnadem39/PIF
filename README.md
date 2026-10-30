@@ -77,6 +77,14 @@ Connexions (réussies et échouées), inscriptions, ordres exécutés, déclench
 
 Les fichiers de données (`ALL_DATA.csv`, `BNB_USD_daily_data.csv`, `frontend/public/data/`) sont cherchés dans le répertoire courant puis le répertoire parent. Pour un autre emplacement, définir `PIF_DATA_DIR`.
 
+### Backtesting (`/api/v1/backtest`)
+Rejoue des stratégies sur l'historique journalier local et compare leurs performances (cahier §3.2) :
+achat-conservation, croisement de moyennes mobiles, RSI, MACD, Bollinger et signal IA, chacune avec ses paramètres.
+
+- **Sans biais d'anticipation** : la décision prise à la clôture d'un jour est exécutée à l'ouverture du jour suivant. Le préchauffage des indicateurs utilise l'historique antérieur à la période ; les jours postérieurs ne sont jamais lus.
+- **Réaliste** : frais (0,4 % par défaut) et slippage (0,1 %) sur chaque transaction, titres entiers, pas de vente à découvert.
+- **Indicateurs** : rendement total et annualisé, volatilité, Sharpe, Sortino, perte maximale, Calmar, bêta, nombre de trades, taux de réussite, profit factor, exposition, frais payés.
+
 ---
 
 ## 🎨 Lancer le **Frontend** (React / Vite)
@@ -123,7 +131,12 @@ py ai_server.py                      # écoute sur http://127.0.0.1:8000 (AI_HOS
 CORS : seules les origines de `AI_ALLOWED_ORIGINS` (par défaut le backend `http://localhost:8080`) sont acceptées.
 Le point d'entrée `/query` accepte un JSON `{"question": "…", "bank_type": "conventional|islamic|all"}` et renvoie le contexte RAG formaté.
 
-### 5️⃣ AI Stress Testing bancaire + SHAP (`ai/stress/`)
+### 5️⃣ Signal IA pour le backtesting (`backtest_signals.py`)
+`POST /api/ai/backtest/signals` recalcule les indicateurs avec `data_pipeline.compute_features` et renvoie, pour chaque jour, les probabilités de hausse et de baisse du modèle XGBoost. Le backend s'en sert pour la stratégie « Signal IA » de la page **Backtesting**.
+
+> ⚠️ Le modèle a été entraîné sur les données antérieures au **2020-06-19** (`validation_start_date` dans `models/model_metadata.json`, écrit automatiquement par `train_model.py`). Un backtest du signal IA commençant avant cette date le teste sur ses propres données d'entraînement ; la page l'indique par un avertissement.
+
+### 6️⃣ AI Stress Testing bancaire + SHAP (`ai/stress/`)
 Module du cahier §3.5 et §3.6, servi par `ai_server.py` sous `/api/ai/stress/*` et exposé au frontend par Spring (`/api/v1/stress-test/*`, page **Stress Testing**).
 
 ```bash

@@ -135,7 +135,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>com.pif.trading.TradingSimulatorApplication</mainClass>
+                    <mainClass>com.pif.PifApplication</mainClass>
                 </configuration>
             </plugin>
         </plugins>

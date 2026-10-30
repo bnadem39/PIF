@@ -2,6 +2,7 @@ package com.pif.stresstest.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.pif.ai.config.AiServiceProperties;
+import com.pif.common.exception.AiServiceUnavailableException;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
