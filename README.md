@@ -85,6 +85,15 @@ achat-conservation, croisement de moyennes mobiles, RSI, MACD, Bollinger et sign
 - **Réaliste** : frais (0,4 % par défaut) et slippage (0,1 %) sur chaque transaction, titres entiers pour les actions (quantités fractionnaires pour les crypto-actifs, divisibles), pas de vente à découvert.
 - **Indicateurs** : rendement total et annualisé, volatilité, Sharpe, Sortino, perte maximale, Calmar, bêta, nombre de trades, taux de réussite, profit factor, exposition, frais payés.
 
+### Formation & gamification (`/api/v1/learning`)
+Parcours d'apprentissage (cahier §3.3), page **Formation** du frontend :
+
+- **Cours** : 7 modules (bases des marchés, classes d'actifs, analyse technique, risque, finance islamique, IA, assurance), 14 leçons et un quiz de 5 questions par module. Le contenu est dans `backend/src/main/resources/learning/catalog.json`, validé au démarrage (identifiants uniques, réponses valides).
+- **Quiz** corrigés côté serveur : les bonnes réponses ne sont envoyées qu'après la soumission, et seul le meilleur score compte.
+- **Scénarios de marché** sur données réelles (krach COVID, record du bitcoin…) : l'apprenant ne voit l'historique que jusqu'à la date de décision, choisit d'acheter, attendre ou vendre, puis découvre les 20 séances suivantes. Une seule réponse par scénario.
+- **Défis** notés par le moteur de backtesting : battre l'achat-conservation, atteindre un ratio de Sharpe ou limiter la perte maximale sur une période imposée.
+- **Points, niveaux** (Débutant → Expert), **badges** et **classement** ; la progression est stockée dans la table `learning_progress` (migration `V4`).
+
 ---
 
 ## 🎨 Lancer le **Frontend** (React / Vite)

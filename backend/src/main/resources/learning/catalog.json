@@ -1,0 +1,1016 @@
+{
+  "version": 1,
+  "modules": [
+    {
+      "id": "bases",
+      "title": "Les bases des marchés financiers",
+      "level": "Débutant",
+      "description": "Comment fonctionne une bourse, qui y intervient et comment passer un ordre.",
+      "lessons": [
+        {
+          "id": "bases-marche",
+          "title": "Qu'est-ce qu'un marché financier ?",
+          "minutes": 6,
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Un marché financier met en relation ceux qui ont besoin de capitaux (entreprises, États) et ceux qui ont de l'épargne à placer. Le marché primaire sert à émettre de nouveaux titres (introduction en bourse, emprunt obligataire) ; le marché secondaire permet ensuite de les échanger entre investisseurs."
+            },
+            {
+              "type": "p",
+              "text": "En Tunisie, le marché actions est la Bourse des Valeurs Mobilières de Tunis (BVMT). Son indice de référence, le TUNINDEX, suit la capitalisation flottante des sociétés cotées. Les banques (BIAT, BT, Attijari, STB…) y pèsent lourd."
+            },
+            {
+              "type": "list",
+              "items": [
+                "Émetteurs : entreprises et État, qui lèvent des fonds.",
+                "Investisseurs : particuliers, OPCVM, assureurs, banques.",
+                "Intermédiaires en bourse : ils transmettent les ordres de leurs clients.",
+                "Régulateur : le Conseil du Marché Financier (CMF) protège l'épargne et contrôle l'information."
+              ]
+            },
+            {
+              "type": "tip",
+              "text": "Le prix d'une action n'est pas fixé par l'entreprise : il résulte de la rencontre de l'offre et de la demande à chaque séance."
+            }
+          ]
+        },
+        {
+          "id": "bases-ordres",
+          "title": "Passer un ordre : marché, limite, stop",
+          "minutes": 7,
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Le carnet d'ordres liste les meilleures offres d'achat (bid) et de vente (ask). L'écart entre les deux est la fourchette (spread) : plus un titre est liquide, plus elle est étroite."
+            },
+            {
+              "type": "list",
+              "items": [
+                "Ordre au marché : exécuté immédiatement au meilleur prix disponible. Rapide, mais le prix n'est pas garanti.",
+                "Ordre à cours limité : exécuté seulement au prix fixé ou mieux. Le prix est garanti, l'exécution ne l'est pas.",
+                "Stop-loss : devient un ordre de vente quand le cours descend sous un seuil, pour limiter la perte.",
+                "Take-profit : vend automatiquement quand un objectif de gain est atteint."
+              ]
+            },
+            {
+              "type": "formula",
+              "text": "Coût total = quantité × prix + commission + impact (slippage)",
+              "legend": "Les frais réduisent directement la performance : c'est pourquoi le backtesting les intègre."
+            },
+            {
+              "type": "tip",
+              "text": "Dans le terminal du simulateur, l'exécution utilise le cours de clôture de la date simulée : vous ne pouvez pas choisir votre prix après coup."
+            },
+            {
+              "type": "link",
+              "label": "Essayer dans le terminal",
+              "to": "/"
+            }
+          ]
+        }
+      ],
+      "quiz": {
+        "id": "quiz-bases",
+        "title": "Quiz : les bases",
+        "passScore": 0.6,
+        "questions": [
+          {
+            "id": "q1",
+            "text": "Sur quel marché une entreprise émet-elle de nouvelles actions lors d'une introduction en bourse ?",
+            "options": [
+              "Le marché secondaire",
+              "Le marché primaire",
+              "Le marché des changes",
+              "Le marché monétaire"
+            ],
+            "answer": 1,
+            "explanation": "Le marché primaire sert à l'émission de titres nouveaux ; le secondaire à leur revente."
+          },
+          {
+            "id": "q2",
+            "text": "Quel ordre garantit le prix d'exécution mais pas l'exécution elle-même ?",
+            "options": [
+              "Ordre au marché",
+              "Ordre à cours limité",
+              "Stop-loss",
+              "Aucun"
+            ],
+            "answer": 1,
+            "explanation": "L'ordre limité ne s'exécute qu'au prix fixé ou mieux : s'il n'y a pas de contrepartie, il reste dans le carnet."
+          },
+          {
+            "id": "q3",
+            "text": "La fourchette (spread) d'un titre est…",
+            "options": [
+              "la variation du jour",
+              "l'écart entre meilleur prix acheteur et meilleur prix vendeur",
+              "le volume échangé",
+              "la commission du courtier"
+            ],
+            "answer": 1,
+            "explanation": "C'est un coût implicite de transaction, plus faible sur les titres liquides."
+          },
+          {
+            "id": "q4",
+            "text": "Quel est le rôle du CMF en Tunisie ?",
+            "options": [
+              "Fixer le cours des actions",
+              "Prêter aux banques",
+              "Réguler le marché et protéger les épargnants",
+              "Gérer le TUNINDEX à la place de la BVMT"
+            ],
+            "answer": 2,
+            "explanation": "Le Conseil du Marché Financier contrôle l'information financière et la régularité des opérations."
+          },
+          {
+            "id": "q5",
+            "text": "Un stop-loss placé à 90 sur une action achetée 100 sert à…",
+            "options": [
+              "acheter davantage si le cours baisse",
+              "limiter la perte à environ 10 %",
+              "garantir un gain de 10 %",
+              "bloquer le titre"
+            ],
+            "answer": 1,
+            "explanation": "Sous 90, l'ordre de vente se déclenche : la perte est limitée (au slippage près)."
+          }
+        ]
+      }
+    },
+    {
+      "id": "actifs",
+      "title": "Les classes d'actifs",
+      "level": "Débutant",
+      "description": "Actions, obligations, sukuk, devises, cryptoactifs et dérivés : rendement, risque et rôle de chacun.",
+      "lessons": [
+        {
+          "id": "actifs-actions-obligations",
+          "title": "Actions, obligations et sukuk",
+          "minutes": 7,
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Une action est une part du capital d'une entreprise : elle donne droit aux dividendes et au vote, mais son prix peut fortement varier. Une obligation est un prêt : l'émetteur verse des intérêts (coupons) puis rembourse le capital à l'échéance."
+            },
+            {
+              "type": "list",
+              "items": [
+                "Quand les taux d'intérêt montent, le prix des obligations existantes baisse : leurs coupons deviennent moins attractifs.",
+                "La duration mesure cette sensibilité : une duration de 5 signifie environ −5 % de prix pour +1 point de taux.",
+                "Les sukuk sont l'équivalent islamique : ils donnent un droit sur des actifs réels ou leurs revenus (loyers d'un ijara par exemple), et non un intérêt."
+              ]
+            },
+            {
+              "type": "formula",
+              "text": "Variation de prix ≈ − duration × variation de taux",
+              "legend": "Approximation valable pour de petites variations de taux."
+            }
+          ]
+        },
+        {
+          "id": "actifs-autres",
+          "title": "Devises, cryptoactifs et dérivés",
+          "minutes": 6,
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Le marché des changes (Forex) échange des devises par paires, comme EUR/TND. Les cryptoactifs (bitcoin, ether) s'échangent 24 h/24 et sont beaucoup plus volatils : des baisses de plus de 50 % en quelques mois s'y sont produites plusieurs fois."
+            },
+            {
+              "type": "p",
+              "text": "Un produit dérivé tire sa valeur d'un sous-jacent. Un contrat à terme engage à acheter ou vendre plus tard à un prix fixé aujourd'hui ; une option d'achat (call) donne le droit, pas l'obligation, d'acheter à un prix fixé."
+            },
+            {
+              "type": "list",
+              "items": [
+                "Actions : rendement espéré élevé, risque élevé.",
+                "Obligations d'État : rendement plus faible, risque plus faible (hors risque de taux).",
+                "Cryptoactifs : volatilité extrême, pas de flux de revenus.",
+                "Dérivés : effet de levier, pertes possibles supérieures à la mise pour certains contrats."
+              ]
+            },
+            {
+              "type": "tip",
+              "text": "Comparez la volatilité de BIAT et de BTC-USD dans le terminal : l'écart de risque se voit immédiatement."
+            }
+          ]
+        }
+      ],
+      "quiz": {
+        "id": "quiz-actifs",
+        "title": "Quiz : les classes d'actifs",
+        "passScore": 0.6,
+        "questions": [
+          {
+            "id": "q1",
+            "text": "Que se passe-t-il pour le prix d'une obligation à taux fixe quand les taux du marché montent ?",
+            "options": [
+              "Il monte",
+              "Il baisse",
+              "Il ne change pas",
+              "Il double"
+            ],
+            "answer": 1,
+            "explanation": "Les nouvelles obligations paient davantage : les anciennes doivent baisser pour rester attractives."
+          },
+          {
+            "id": "q2",
+            "text": "Une obligation a une duration de 6. Les taux montent de 1 point. Variation de prix approximative ?",
+            "options": [
+              "+6 %",
+              "−1 %",
+              "−6 %",
+              "−0,6 %"
+            ],
+            "answer": 2,
+            "explanation": "Variation ≈ − duration × Δtaux = −6 × 1 %."
+          },
+          {
+            "id": "q3",
+            "text": "Un sukuk rémunère l'investisseur…",
+            "options": [
+              "par un intérêt fixe sur un prêt",
+              "par les revenus d'actifs réels sous-jacents",
+              "par une plus-value garantie",
+              "il ne rémunère pas"
+            ],
+            "answer": 1,
+            "explanation": "L'intérêt (riba) est exclu : le sukuk donne droit aux revenus d'actifs (loyers, profits)."
+          },
+          {
+            "id": "q4",
+            "text": "Une option d'achat (call) donne…",
+            "options": [
+              "l'obligation d'acheter",
+              "le droit, sans obligation, d'acheter à un prix fixé",
+              "un dividende garanti",
+              "le droit de vendre"
+            ],
+            "answer": 1,
+            "explanation": "L'acheteur du call paie une prime pour ce droit ; il l'exerce seulement si c'est avantageux."
+          },
+          {
+            "id": "q5",
+            "text": "Quelle classe d'actifs est généralement la plus volatile ?",
+            "options": [
+              "Bons du Trésor",
+              "Obligations d'entreprise notées AAA",
+              "Cryptoactifs",
+              "Dépôts bancaires"
+            ],
+            "answer": 2,
+            "explanation": "Les cryptoactifs connaissent des variations quotidiennes bien supérieures aux autres classes."
+          }
+        ]
+      }
+    },
+    {
+      "id": "technique",
+      "title": "L'analyse technique",
+      "level": "Intermédiaire",
+      "description": "Moyennes mobiles, RSI, MACD et Bollinger : ce qu'ils mesurent et comment les tester.",
+      "lessons": [
+        {
+          "id": "technique-tendance",
+          "title": "Suivre la tendance : moyennes mobiles et MACD",
+          "minutes": 7,
+          "blocks": [
+            {
+              "type": "p",
+              "text": "L'analyse technique étudie l'historique des prix pour en tirer des signaux. Une moyenne mobile simple (SMA) lisse le cours sur N jours ; une moyenne exponentielle (EMA) donne plus de poids aux jours récents."
+            },
+            {
+              "type": "list",
+              "items": [
+                "Croisement de moyennes : être investi tant que la moyenne courte (20 j) est au-dessus de la longue (50 j).",
+                "MACD = EMA 12 − EMA 26 ; on la compare à sa propre moyenne sur 9 jours (ligne de signal).",
+                "Ces stratégies captent les grandes tendances mais perdent souvent dans les marchés sans direction (faux signaux)."
+              ]
+            },
+            {
+              "type": "formula",
+              "text": "SMA_N(t) = (P_t + P_{t−1} + … + P_{t−N+1}) / N",
+              "legend": "P_t : cours de clôture du jour t."
+            }
+          ]
+        },
+        {
+          "id": "technique-oscillateurs",
+          "title": "Oscillateurs : RSI et bandes de Bollinger",
+          "minutes": 7,
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Le RSI (Relative Strength Index) compare les hausses et les baisses récentes sur une échelle de 0 à 100. Sous 30, le titre est dit survendu ; au-dessus de 70, suracheté. Les bandes de Bollinger entourent la moyenne mobile à ± 2 écarts-types."
+            },
+            {
+              "type": "list",
+              "items": [
+                "Stratégie de retour à la moyenne : acheter en survente, revendre en surachat.",
+                "Elle fonctionne dans les marchés qui oscillent, mais peut acheter trop tôt dans une baisse durable."
+              ]
+            },
+            {
+              "type": "tip",
+              "text": "Un indicateur n'a de valeur que s'il résiste à un test honnête : décisions exécutées le lendemain, frais inclus, période non utilisée pour choisir les paramètres."
+            },
+            {
+              "type": "link",
+              "label": "Tester ces stratégies dans le Backtesting",
+              "to": "/backtest"
+            }
+          ]
+        }
+      ],
+      "quiz": {
+        "id": "quiz-technique",
+        "title": "Quiz : analyse technique",
+        "passScore": 0.6,
+        "questions": [
+          {
+            "id": "q1",
+            "text": "Un RSI de 25 indique généralement…",
+            "options": [
+              "un titre suracheté",
+              "un titre survendu",
+              "une tendance haussière confirmée",
+              "une absence de volume"
+            ],
+            "answer": 1,
+            "explanation": "Sous 30, le RSI signale une survente."
+          },
+          {
+            "id": "q2",
+            "text": "La MACD est la différence entre…",
+            "options": [
+              "deux moyennes mobiles exponentielles (12 et 26 jours)",
+              "le plus haut et le plus bas du jour",
+              "le prix et le volume",
+              "deux RSI"
+            ],
+            "answer": 0,
+            "explanation": "MACD = EMA 12 − EMA 26 ; sa moyenne sur 9 jours forme la ligne de signal."
+          },
+          {
+            "id": "q3",
+            "text": "Dans quel type de marché une stratégie de croisement de moyennes perd-elle le plus souvent ?",
+            "options": [
+              "Forte tendance haussière",
+              "Forte tendance baissière",
+              "Marché sans tendance qui oscille",
+              "Marché fermé"
+            ],
+            "answer": 2,
+            "explanation": "Les croisements répétés génèrent des faux signaux et des frais."
+          },
+          {
+            "id": "q4",
+            "text": "Pourquoi exécuter un signal à l'ouverture du lendemain dans un backtest ?",
+            "options": [
+              "Pour réduire les frais",
+              "Parce que le signal n'est connu qu'à la clôture : l'exécuter le jour même serait tricher",
+              "Parce que la bourse l'impose",
+              "Pour augmenter le rendement"
+            ],
+            "answer": 1,
+            "explanation": "Utiliser une information pas encore disponible est un biais d'anticipation (look-ahead bias)."
+          },
+          {
+            "id": "q5",
+            "text": "Les bandes de Bollinger standard sont placées à…",
+            "options": [
+              "± 1 % du cours",
+              "± 2 écarts-types autour d'une moyenne mobile",
+              "au plus haut et au plus bas sur 52 semaines",
+              "± 10 points de RSI"
+            ],
+            "answer": 1,
+            "explanation": "Période 20 jours, ± 2 écarts-types par défaut."
+          }
+        ]
+      }
+    },
+    {
+      "id": "risque",
+      "title": "Risque et gestion de portefeuille",
+      "level": "Intermédiaire",
+      "description": "Mesurer le risque, diversifier, dimensionner ses positions et comparer des performances.",
+      "lessons": [
+        {
+          "id": "risque-mesures",
+          "title": "Mesurer le risque",
+          "minutes": 8,
+          "blocks": [
+            {
+              "type": "p",
+              "text": "La volatilité est l'écart-type des rendements, annualisée. La perte maximale (max drawdown) est la plus forte baisse depuis un plus haut : c'est ce que l'investisseur ressent réellement."
+            },
+            {
+              "type": "formula",
+              "text": "Sharpe = (rendement annualisé − taux sans risque) / volatilité annualisée",
+              "legend": "Rendement obtenu par unité de risque pris. Au-delà de 1, c'est généralement bon."
+            },
+            {
+              "type": "formula",
+              "text": "VaR 95 % à 1 jour : perte qui ne sera dépassée qu'un jour sur vingt",
+              "legend": "Mesure réglementaire courante ; elle ne dit rien de l'ampleur des pertes au-delà."
+            },
+            {
+              "type": "list",
+              "items": [
+                "Le ratio de Sortino ne pénalise que la volatilité à la baisse.",
+                "Le ratio de Calmar divise le rendement annualisé par la perte maximale."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "risque-diversification",
+          "title": "Diversifier et dimensionner ses positions",
+          "minutes": 7,
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Combiner des actifs peu corrélés réduit le risque du portefeuille sans réduire autant le rendement espéré : c'est la diversification, idée centrale de Markowitz (1952)."
+            },
+            {
+              "type": "list",
+              "items": [
+                "Ne pas risquer plus de 1 à 2 % du capital sur une seule position.",
+                "Placer le stop-loss selon la volatilité du titre (par exemple 2 × ATR), pas au hasard.",
+                "Une perte de 50 % exige un gain de 100 % pour revenir au point de départ."
+              ]
+            },
+            {
+              "type": "formula",
+              "text": "Gain nécessaire pour récupérer = 1 / (1 − perte) − 1",
+              "legend": "−20 % → +25 % ; −50 % → +100 % ; −75 % → +300 %."
+            },
+            {
+              "type": "link",
+              "label": "Voir le risque de votre portefeuille",
+              "to": "/portfolio"
+            }
+          ]
+        }
+      ],
+      "quiz": {
+        "id": "quiz-risque",
+        "title": "Quiz : risque",
+        "passScore": 0.6,
+        "questions": [
+          {
+            "id": "q1",
+            "text": "Un portefeuille perd 50 %. Quel gain faut-il pour revenir au niveau initial ?",
+            "options": [
+              "50 %",
+              "75 %",
+              "100 %",
+              "150 %"
+            ],
+            "answer": 2,
+            "explanation": "1 / (1 − 0,5) − 1 = 100 %."
+          },
+          {
+            "id": "q2",
+            "text": "Le ratio de Sharpe mesure…",
+            "options": [
+              "le rendement total",
+              "le rendement excédentaire par unité de volatilité",
+              "la perte maximale",
+              "la liquidité"
+            ],
+            "answer": 1,
+            "explanation": "(rendement − taux sans risque) / volatilité."
+          },
+          {
+            "id": "q3",
+            "text": "Qu'est-ce que le max drawdown ?",
+            "options": [
+              "La plus forte baisse depuis un plus haut",
+              "La volatilité quotidienne",
+              "La perte d'une seule journée",
+              "Le spread moyen"
+            ],
+            "answer": 0,
+            "explanation": "C'est la perte la plus importante qu'un investisseur aurait subie en achetant au pire moment."
+          },
+          {
+            "id": "q4",
+            "text": "La diversification fonctionne d'autant mieux que les actifs sont…",
+            "options": [
+              "fortement corrélés",
+              "peu corrélés",
+              "du même secteur",
+              "plus volatils"
+            ],
+            "answer": 1,
+            "explanation": "Des actifs peu corrélés ne baissent pas tous ensemble."
+          },
+          {
+            "id": "q5",
+            "text": "Une VaR 95 % à 1 jour de 10 000 TND signifie…",
+            "options": [
+              "la perte maximale possible est 10 000 TND",
+              "la perte dépasse 10 000 TND environ un jour sur vingt",
+              "le gain moyen est 10 000 TND",
+              "le portefeuille vaut 10 000 TND"
+            ],
+            "answer": 1,
+            "explanation": "La VaR est un seuil de perte dépassé avec une probabilité de 5 %, pas un maximum."
+          }
+        ]
+      }
+    },
+    {
+      "id": "islamique",
+      "title": "Finance islamique",
+      "level": "Intermédiaire",
+      "description": "Principes, contrats (murabaha, ijara, musharaka, mudaraba), sukuk et différences de risque avec une banque conventionnelle.",
+      "lessons": [
+        {
+          "id": "islamique-principes",
+          "title": "Principes et contrats",
+          "minutes": 8,
+          "blocks": [
+            {
+              "type": "p",
+              "text": "La finance islamique interdit l'intérêt (riba), l'incertitude excessive (gharar) et la spéculation pure (maysir). Le financement doit être adossé à un actif réel et le profit lié à un risque partagé."
+            },
+            {
+              "type": "list",
+              "items": [
+                "Murabaha : la banque achète un bien et le revend au client avec une marge connue, payable à terme.",
+                "Ijara : location d'un bien, éventuellement avec transfert de propriété à la fin.",
+                "Musharaka : partenariat où banque et client apportent le capital et partagent profits et pertes.",
+                "Mudaraba : la banque apporte le capital, le client son travail ; les pertes en capital sont supportées par le bailleur de fonds."
+              ]
+            },
+            {
+              "type": "tip",
+              "text": "En Tunisie, Banque Zitouna, Al Baraka Bank et Wifak International Bank sont des banques islamiques."
+            }
+          ]
+        },
+        {
+          "id": "islamique-risques",
+          "title": "Des risques différents",
+          "minutes": 7,
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Côté passif, une banque islamique collecte des comptes d'investissement participatifs (PSIA) : leurs titulaires partagent les profits et, en principe, les pertes des actifs financés. Cela amortit les chocs sur les fonds propres."
+            },
+            {
+              "type": "list",
+              "items": [
+                "Risque commercial déplacé : pour ne pas perdre ses déposants quand les taux montent, la banque renonce à une partie de ses profits en leur faveur.",
+                "Les financements murabaha à marge fixe rendent la banque moins sensible aux taux à court terme.",
+                "Les financements participatifs (musharaka) exposent la banque comme un actionnaire, sans garantie."
+              ]
+            },
+            {
+              "type": "link",
+              "label": "Comparer banques conventionnelles et islamiques dans le Stress Testing",
+              "to": "/stress-test"
+            }
+          ]
+        }
+      ],
+      "quiz": {
+        "id": "quiz-islamique",
+        "title": "Quiz : finance islamique",
+        "passScore": 0.6,
+        "questions": [
+          {
+            "id": "q1",
+            "text": "Le riba désigne…",
+            "options": [
+              "l'incertitude excessive",
+              "l'intérêt",
+              "la spéculation",
+              "le partage des profits"
+            ],
+            "answer": 1,
+            "explanation": "Le riba, l'intérêt sur un prêt d'argent, est interdit."
+          },
+          {
+            "id": "q2",
+            "text": "Dans une murabaha, la rémunération de la banque est…",
+            "options": [
+              "un intérêt variable",
+              "une marge connue sur la revente d'un bien",
+              "une part des pertes",
+              "un loyer"
+            ],
+            "answer": 1,
+            "explanation": "La banque achète puis revend le bien avec une marge convenue à l'avance."
+          },
+          {
+            "id": "q3",
+            "text": "Dans une musharaka…",
+            "options": [
+              "seule la banque supporte les pertes",
+              "le client garantit le capital",
+              "les partenaires partagent profits et pertes",
+              "il n'y a pas de profit"
+            ],
+            "answer": 2,
+            "explanation": "C'est un véritable partenariat en capital."
+          },
+          {
+            "id": "q4",
+            "text": "Les PSIA permettent à une banque islamique de…",
+            "options": [
+              "garantir un rendement fixe aux déposants",
+              "faire absorber une partie des pertes par les titulaires de comptes d'investissement",
+              "éviter toute régulation",
+              "emprunter à taux zéro"
+            ],
+            "answer": 1,
+            "explanation": "C'est pourquoi le stress test réduit l'impact des pertes sur leurs fonds propres."
+          },
+          {
+            "id": "q5",
+            "text": "Le risque commercial déplacé apparaît quand…",
+            "options": [
+              "la banque partage une partie de ses profits pour retenir ses déposants",
+              "le client ne rembourse pas",
+              "le cours du sukuk baisse",
+              "la banque change de pays"
+            ],
+            "answer": 0,
+            "explanation": "La banque protège la rémunération de ses déposants au détriment de ses propres profits."
+          }
+        ]
+      }
+    },
+    {
+      "id": "ia",
+      "title": "Intelligence artificielle et marchés",
+      "level": "Avancé",
+      "description": "Ce qu'un modèle de machine learning peut et ne peut pas faire, et comment l'évaluer honnêtement.",
+      "lessons": [
+        {
+          "id": "ia-modeles",
+          "title": "Prédire les marchés avec le machine learning",
+          "minutes": 8,
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Le simulateur utilise un modèle XGBoost qui estime, à partir d'indicateurs techniques, la probabilité d'une hausse, d'une baisse ou d'un mouvement neutre sur 5 jours. Ses signaux ne sont émis que si la probabilité dépasse un seuil de confiance."
+            },
+            {
+              "type": "list",
+              "items": [
+                "Surapprentissage : un modèle trop complexe apprend le bruit de l'échantillon et échoue sur de nouvelles données.",
+                "Validation temporelle : on entraîne sur le passé et on teste sur une période postérieure, jamais l'inverse.",
+                "Tester un modèle sur ses données d'entraînement surestime sa performance : la page Backtesting vous en avertit."
+              ]
+            },
+            {
+              "type": "tip",
+              "text": "Sur les données non vues depuis mi-2020, le signal IA du simulateur fait moins bien qu'un simple achat-conservation sur BIAT, avec une perte maximale plus faible. Vérifiez-le vous-même."
+            },
+            {
+              "type": "link",
+              "label": "Évaluer le signal IA dans le Backtesting",
+              "to": "/backtest"
+            }
+          ]
+        },
+        {
+          "id": "ia-xai",
+          "title": "Expliquer les décisions : SHAP",
+          "minutes": 6,
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Un modèle puissant est souvent opaque. Les valeurs SHAP, issues de la théorie des jeux (valeurs de Shapley), répartissent une prédiction entre les variables : chacune reçoit sa contribution, positive ou négative, par rapport à la prédiction moyenne."
+            },
+            {
+              "type": "formula",
+              "text": "Prédiction = valeur de base + Σ contributions SHAP",
+              "legend": "La somme des contributions explique exactement l'écart à la moyenne."
+            },
+            {
+              "type": "link",
+              "label": "Voir les explications SHAP du stress testing",
+              "to": "/stress-test"
+            }
+          ]
+        }
+      ],
+      "quiz": {
+        "id": "quiz-ia",
+        "title": "Quiz : IA et marchés",
+        "passScore": 0.6,
+        "questions": [
+          {
+            "id": "q1",
+            "text": "Le surapprentissage (overfitting) signifie que le modèle…",
+            "options": [
+              "est trop simple",
+              "apprend le bruit des données d'entraînement et généralise mal",
+              "est trop lent",
+              "n'a pas assez de variables"
+            ],
+            "answer": 1,
+            "explanation": "Il excelle sur le passé connu et déçoit sur les nouvelles données."
+          },
+          {
+            "id": "q2",
+            "text": "Pour évaluer un modèle de prévision boursière, on doit tester sur…",
+            "options": [
+              "les mêmes données que l'entraînement",
+              "une période antérieure à l'entraînement",
+              "une période postérieure, non vue à l'entraînement",
+              "des données au hasard"
+            ],
+            "answer": 2,
+            "explanation": "C'est la seule façon de simuler une utilisation réelle."
+          },
+          {
+            "id": "q3",
+            "text": "Que représente une valeur SHAP ?",
+            "options": [
+              "La précision globale du modèle",
+              "La contribution d'une variable à une prédiction donnée",
+              "Le nombre d'arbres",
+              "Le taux d'apprentissage"
+            ],
+            "answer": 1,
+            "explanation": "Les contributions SHAP additionnées à la valeur de base redonnent la prédiction."
+          },
+          {
+            "id": "q4",
+            "text": "Un modèle qui prédit « neutre » 80 % du temps sur un marché neutre 80 % du temps…",
+            "options": [
+              "est forcément excellent",
+              "peut n'apporter aucune information utile",
+              "garantit des profits",
+              "est surappris"
+            ],
+            "answer": 1,
+            "explanation": "La précision brute peut être trompeuse : il faut la comparer à une référence naïve."
+          },
+          {
+            "id": "q5",
+            "text": "Pourquoi fixer un seuil de confiance avant d'émettre un signal d'achat ?",
+            "options": [
+              "Pour trader plus souvent",
+              "Pour ne retenir que les situations où le modèle est assez sûr",
+              "Pour réduire la durée d'entraînement",
+              "C'est obligatoire légalement"
+            ],
+            "answer": 1,
+            "explanation": "Moins de signaux, mais de meilleure qualité attendue."
+          }
+        ]
+      }
+    },
+    {
+      "id": "assurance",
+      "title": "Assurance et actuariat",
+      "level": "Avancé",
+      "description": "Tarifer un risque, mesurer la rentabilité d'un portefeuille et provisionner les sinistres.",
+      "lessons": [
+        {
+          "id": "assurance-tarif",
+          "title": "Tarifer un contrat : fréquence × sévérité",
+          "minutes": 8,
+          "blocks": [
+            {
+              "type": "p",
+              "text": "L'assureur encaisse la prime avant de connaître le coût des sinistres : c'est l'inversion du cycle de production. Pour tarifer, il estime séparément combien de sinistres surviendront (fréquence) et combien coûtera chacun (sévérité)."
+            },
+            {
+              "type": "formula",
+              "text": "Prime pure = fréquence × coût moyen",
+              "legend": "Prime commerciale = prime pure / (1 − taux de frais − marge)."
+            },
+            {
+              "type": "list",
+              "items": [
+                "Fréquence : GLM de Poisson avec l'exposition (durée couverte) en offset.",
+                "Sévérité : GLM Gamma sur les contrats sinistrés.",
+                "Chaque coefficient exp(β) est un multiplicateur : × 2,3 pour un conducteur de moins de 25 ans par exemple."
+              ]
+            },
+            {
+              "type": "link",
+              "label": "Tarifer un contrat dans le module d'actuariat",
+              "to": "/actuarial"
+            }
+          ]
+        },
+        {
+          "id": "assurance-provisions",
+          "title": "Marges et provisions",
+          "minutes": 7,
+          "blocks": [
+            {
+              "type": "p",
+              "text": "Le ratio sinistres/primes (S/P) mesure la rentabilité technique. Avec 25 % de frais, un S/P au-dessus de 75 % fait perdre de l'argent avant même les produits financiers."
+            },
+            {
+              "type": "p",
+              "text": "Beaucoup de sinistres sont payés des années après leur survenance. La méthode Chain Ladder projette les paiements futurs à partir d'un triangle de développement ; la différence entre la charge ultime estimée et ce qui a déjà été payé est la provision."
+            },
+            {
+              "type": "formula",
+              "text": "Facteur de développement f_k = Σ C(i, k+1) / Σ C(i, k)",
+              "legend": "C(i, k) : paiements cumulés de l'année de survenance i après k années de développement."
+            },
+            {
+              "type": "tip",
+              "text": "En takaful, les cotisations alimentent un fonds des participants : l'opérateur est rémunéré par une commission (wakala) et l'excédent du fonds peut être redistribué."
+            }
+          ]
+        }
+      ],
+      "quiz": {
+        "id": "quiz-assurance",
+        "title": "Quiz : assurance",
+        "passScore": 0.6,
+        "questions": [
+          {
+            "id": "q1",
+            "text": "Fréquence 0,10 sinistre par an, coût moyen 2 500 TND. Prime pure annuelle ?",
+            "options": [
+              "25 TND",
+              "250 TND",
+              "2 500 TND",
+              "25 000 TND"
+            ],
+            "answer": 1,
+            "explanation": "0,10 × 2 500 = 250 TND."
+          },
+          {
+            "id": "q2",
+            "text": "Avec une prime pure de 280 TND, 25 % de frais et 5 % de marge, la prime commerciale est…",
+            "options": [
+              "294 TND",
+              "350 TND",
+              "364 TND",
+              "400 TND"
+            ],
+            "answer": 3,
+            "explanation": "280 / (1 − 0,25 − 0,05) = 280 / 0,70 = 400 TND."
+          },
+          {
+            "id": "q3",
+            "text": "Quelle loi modélise habituellement le nombre de sinistres ?",
+            "options": [
+              "Normale",
+              "Poisson",
+              "Gamma",
+              "Uniforme"
+            ],
+            "answer": 1,
+            "explanation": "Le nombre de sinistres est un comptage : loi de Poisson (ou binomiale négative)."
+          },
+          {
+            "id": "q4",
+            "text": "Un S/P de 90 % avec 25 % de frais signifie…",
+            "options": [
+              "une perte technique",
+              "un profit de 65 %",
+              "un équilibre parfait",
+              "aucun sinistre"
+            ],
+            "answer": 0,
+            "explanation": "90 % + 25 % = 115 % des primes dépensées : perte technique de 15 %."
+          },
+          {
+            "id": "q5",
+            "text": "La méthode Chain Ladder sert à…",
+            "options": [
+              "fixer la prime d'un contrat",
+              "estimer les paiements futurs des sinistres déjà survenus",
+              "calculer le Sharpe",
+              "choisir les assurés"
+            ],
+            "answer": 1,
+            "explanation": "Elle projette le triangle de développement pour calculer les provisions."
+          }
+        ]
+      }
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "sc-covid-btc",
+      "title": "Le jeudi noir du bitcoin",
+      "symbol": "BTC-USD",
+      "decisionDate": "2020-03-12",
+      "horizonDays": 20,
+      "historyDays": 120,
+      "context": "12 mars 2020. La pandémie de COVID-19 vient d'être déclarée et les marchés mondiaux s'effondrent. Le bitcoin a perdu près de 40 % en une seule journée et la panique domine les réseaux sociaux."
+    },
+    {
+      "id": "sc-btc-ath-2021",
+      "title": "Record historique et inflation",
+      "symbol": "BTC-USD",
+      "decisionDate": "2021-11-10",
+      "horizonDays": 20,
+      "historyDays": 120,
+      "context": "10 novembre 2021. Le bitcoin vient de battre son record historique, au-dessus de 64 000 dollars, après une hausse de plus de 40 % en deux mois. Le même jour, l'inflation américaine est annoncée à 6,2 %, son plus haut depuis 30 ans."
+    },
+    {
+      "id": "sc-eth-mai-2021",
+      "title": "Euphorie sur l'ether",
+      "symbol": "ETH-USD",
+      "decisionDate": "2021-05-12",
+      "horizonDays": 20,
+      "historyDays": 120,
+      "context": "12 mai 2021. L'ether a doublé en deux mois et approche son record. Ce soir, Tesla annonce suspendre les paiements en bitcoin pour des raisons environnementales."
+    },
+    {
+      "id": "sc-biat-covid",
+      "title": "Premier cas de COVID-19 en Tunisie",
+      "symbol": "BIAT",
+      "decisionDate": "2020-03-02",
+      "horizonDays": 20,
+      "historyDays": 120,
+      "context": "2 mars 2020. La Tunisie confirme son premier cas de COVID-19. L'action BIAT a progressé d'environ 8 % en trois mois et les marchés européens ont déjà commencé à chuter."
+    },
+    {
+      "id": "sc-btc-2017-record",
+      "title": "Retour sur les sommets de 2017",
+      "symbol": "BTC-USD",
+      "decisionDate": "2020-12-01",
+      "horizonDays": 20,
+      "historyDays": 120,
+      "context": "1er décembre 2020. Le bitcoin revient sur son record de décembre 2017, autour de 19 000 dollars, après une hausse de plus de 75 % en deux mois. Des entreprises cotées annoncent en détenir dans leur trésorerie."
+    },
+    {
+      "id": "sc-tpr-2018",
+      "title": "Après une forte hausse",
+      "symbol": "TPR",
+      "decisionDate": "2018-02-07",
+      "horizonDays": 20,
+      "historyDays": 120,
+      "context": "7 février 2018. L'action TPR a gagné plus de 30 % en trois mois. Le TUNINDEX progresse lui aussi, dans des volumes modérés."
+    }
+  ],
+  "challenges": [
+    {
+      "id": "ch-bear-sfbt",
+      "title": "Traverser un marché baissier",
+      "symbol": "SFBT",
+      "startDate": "2020-07-01",
+      "endDate": "2022-12-30",
+      "description": "SFBT a perdu près de 40 % entre mi-2020 et fin 2022. Trouvez une stratégie qui perd moins que l'achat-conservation.",
+      "criterion": {
+        "type": "BEAT_BUY_AND_HOLD_RETURN"
+      },
+      "points": 100,
+      "hint": "Une stratégie souvent hors du marché limite les dégâts en tendance baissière."
+    },
+    {
+      "id": "ch-ia-biat",
+      "title": "Battre l'IA sur BIAT",
+      "symbol": "BIAT",
+      "startDate": "2020-07-01",
+      "endDate": "2022-12-30",
+      "description": "Sur la période non vue par le modèle, le signal IA (seuil 0,5) atteint un ratio de Sharpe de 0,86. Faites mieux avec une stratégie technique.",
+      "criterion": {
+        "type": "MIN_SHARPE",
+        "value": 0.86
+      },
+      "points": 100,
+      "hint": "Les stratégies de tendance profitent de la hausse régulière de BIAT sur cette période."
+    },
+    {
+      "id": "ch-protect-btc",
+      "title": "Protéger le capital pendant le krach crypto",
+      "symbol": "BTC-USD",
+      "startDate": "2021-11-01",
+      "endDate": "2022-12-31",
+      "description": "Le bitcoin a perdu plus de 70 % entre novembre 2021 et fin 2022. Gardez la perte maximale au-dessus de −30 % tout en restant investi au moins 20 % du temps.",
+      "criterion": {
+        "type": "MAX_DRAWDOWN_ABOVE",
+        "value": -0.3,
+        "minExposure": 0.2
+      },
+      "points": 150,
+      "hint": "Les croisements de moyennes réagissent trop tard ici. Une stratégie de retour à la moyenne qui revend dès le rebond (seuil de vente du RSI abaissé, bandes de Bollinger plus larges) limite le temps passé dans la chute."
+    },
+    {
+      "id": "ch-sharpe-btc",
+      "title": "Le rendement ajusté du risque",
+      "symbol": "BTC-USD",
+      "startDate": "2020-07-01",
+      "endDate": "2024-07-29",
+      "description": "Obtenez un ratio de Sharpe d'au moins 1,0 sur le bitcoin entre mi-2020 et mi-2024, sans simple achat-conservation.",
+      "criterion": {
+        "type": "MIN_SHARPE",
+        "value": 1.0
+      },
+      "points": 200,
+      "hint": "Essayez plusieurs réglages : durée des moyennes, seuils du RSI, paramètres MACD."
+    }
+  ]
+}
