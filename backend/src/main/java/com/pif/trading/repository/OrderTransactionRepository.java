@@ -1,6 +1,6 @@
 package com.pif.trading.repository;
 
-import com.pif.market.model.User;
+import com.pif.auth.model.User;
 import com.pif.trading.model.OrderTransaction;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

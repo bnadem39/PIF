@@ -1,8 +1,10 @@
 package com.pif.trading.service;
 
-import com.pif.market.model.Role;
-import com.pif.market.model.User;
-import com.pif.market.repository.UserRepository;
+import com.pif.marketdata.service.MarketPriceService;
+
+import com.pif.auth.model.Role;
+import com.pif.auth.model.User;
+import com.pif.auth.repository.UserRepository;
 import com.pif.trading.dto.OrderExecutionResponse;
 import com.pif.trading.dto.OrderRequest;
 import com.pif.trading.exception.InsufficientFundsException;

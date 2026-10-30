@@ -1,8 +1,16 @@
 package com.pif.trading.service;
 
-import com.pif.market.model.User;
-import com.pif.market.repository.UserRepository;
-import com.pif.trading.dto.*;
+import com.pif.marketdata.service.MarketPriceService;
+
+import com.pif.auth.model.User;
+import com.pif.auth.repository.UserRepository;
+import com.pif.trading.dto.AccountPerformanceDto;
+import com.pif.trading.dto.OrderExecutionResponse;
+import com.pif.trading.dto.OrderRequest;
+import com.pif.trading.dto.OrderTransactionDto;
+import com.pif.trading.dto.PortfolioSummaryDto;
+import com.pif.trading.dto.PositionDto;
+import com.pif.trading.dto.UpdateRiskThresholdsRequest;
 import com.pif.trading.exception.InsufficientFundsException;
 import com.pif.trading.exception.InsufficientPositionException;
 import com.pif.trading.model.ExecutionType;
