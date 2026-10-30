@@ -1,5 +1,7 @@
 package com.pif.auth.service;
 
+import com.pif.audit.model.AuditAction;
+import com.pif.audit.service.AuditService;
 import com.pif.auth.dto.AuthRequest;
 import com.pif.auth.dto.AuthResponse;
 import com.pif.auth.dto.RegisterRequest;
@@ -40,6 +42,9 @@ class AuthServiceTest {
 
     @Mock
     private AuthenticationManager authenticationManager;
+
+    @Mock
+    private AuditService auditService;
 
     @InjectMocks
     private AuthService authService;
@@ -114,6 +119,7 @@ class AuthServiceTest {
                 .thenThrow(new BadCredentialsException("Bad credentials"));
 
         assertThrows(BadCredentialsException.class, () -> authService.login(request));
+        verify(auditService).record(null, "trader@test.com", AuditAction.LOGIN_FAILURE, false, "BadCredentialsException");
     }
 
     @Test

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -57,5 +58,37 @@ class OrderControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"question\":\"test\"}"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/admin/audit-logs - Sans JWT : 401")
+    void shouldRejectUnauthenticatedAuditLogAccess() throws Exception {
+        mockMvc.perform(get("/api/v1/admin/audit-logs"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(roles = "TRADER")
+    @DisplayName("GET /api/v1/admin/audit-logs - Rôle TRADER : 403")
+    void shouldForbidTraderAuditLogAccess() throws Exception {
+        mockMvc.perform(get("/api/v1/admin/audit-logs"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    @DisplayName("GET /api/v1/admin/audit-logs - Rôle ADMIN : 200")
+    void shouldAllowAdminAuditLogAccess() throws Exception {
+        mockMvc.perform(get("/api/v1/admin/audit-logs"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray());
+    }
+
+    @Test
+    @DisplayName("GET /v3/api-docs - Documentation OpenAPI publique")
+    void shouldExposeOpenApiDocs() throws Exception {
+        mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.info.title").exists());
     }
 }

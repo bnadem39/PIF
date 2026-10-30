@@ -1,5 +1,7 @@
 package com.pif.auth.service;
 
+import com.pif.audit.model.AuditAction;
+import com.pif.audit.service.AuditService;
 import com.pif.auth.dto.AuthRequest;
 import com.pif.auth.dto.AuthResponse;
 import com.pif.auth.dto.RegisterRequest;
@@ -12,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,15 +33,18 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final AuditService auditService;
 
     public AuthService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
                        JwtService jwtService,
-                       AuthenticationManager authenticationManager) {
+                       AuthenticationManager authenticationManager,
+                       AuditService auditService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
+        this.auditService = auditService;
     }
 
     /**
@@ -49,18 +54,24 @@ public class AuthService {
         String email = normalizeEmail(request.getEmail());
         log.info("Tentative de connexion pour l'email : {}", email);
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        email,
-                        request.getPassword()
-                )
-        );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            email,
+                            request.getPassword()
+                    )
+            );
+        } catch (AuthenticationException e) {
+            auditService.record(null, email, AuditAction.LOGIN_FAILURE, false, e.getClass().getSimpleName());
+            throw e;
+        }
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BadCredentialsException("Identifiants de connexion invalides."));
 
         String token = jwtService.generateToken(user);
         log.info("Connexion réussie pour l'utilisateur : {} [Rôle : {}]", user.getEmail(), user.getRole());
+        auditService.record(user, AuditAction.LOGIN_SUCCESS, true, null);
 
         return AuthResponse.builder()
                 .token(token)
@@ -95,6 +106,7 @@ public class AuthService {
         log.info("Nouveau trader enregistré avec succès : id={}, email={}", savedUser.getId(), savedUser.getEmail());
 
         String token = jwtService.generateToken(savedUser);
+        auditService.record(savedUser, AuditAction.REGISTER, true, null);
 
         return AuthResponse.builder()
                 .token(token)

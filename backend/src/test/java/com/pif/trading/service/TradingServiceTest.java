@@ -2,6 +2,8 @@ package com.pif.trading.service;
 
 import com.pif.marketdata.service.MarketPriceService;
 
+import com.pif.audit.model.AuditAction;
+import com.pif.audit.service.AuditService;
 import com.pif.auth.model.Role;
 import com.pif.auth.model.User;
 import com.pif.auth.repository.UserRepository;
@@ -33,6 +35,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -49,6 +53,9 @@ class TradingServiceTest {
 
     @Mock
     private MarketPriceService marketPriceService;
+
+    @Mock
+    private AuditService auditService;
 
     @InjectMocks
     private TradingService tradingService;
@@ -314,5 +321,17 @@ class TradingServiceTest {
         // Point actuel : 89 985 + 5 000 = 94 985 ; drawdown depuis 100 000 = 5.02 %
         assertThat(perf.currentValue()).isEqualByComparingTo("94985.000");
         assertThat(perf.maxDrawdownPercent()).isEqualByComparingTo("5.02");
+    }
+
+    @Test
+    @DisplayName("Audit : chaque ordre exécuté est tracé dans le journal")
+    void testExecutedOrderIsAudited() {
+        when(positionRepository.findByUserAndSymbol(testUser, "BIAT")).thenReturn(Optional.empty());
+        serverPrice("BIAT", "2022-04-15", "92.500");
+
+        tradingService.executeOrder(testUser, new OrderRequest("BIAT", OrderType.BUY, 10, null, "2022-04-15"));
+
+        verify(auditService).record(eq(testUser), eq(AuditAction.ORDER_EXECUTED), eq(true),
+                argThat((String d) -> d.contains("BUY 10 BIAT @ 92.500")));
     }
 }
