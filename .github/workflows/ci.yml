@@ -47,6 +47,7 @@ jobs:
         with:
           python-version: '3.11'
           cache: pip
+          cache-dependency-path: ai/requirements_ai.txt
       # Vérification légère : les dépendances complètes (torch, chromadb...) sont trop lourdes pour la CI
       - run: python -m py_compile ai/*.py
       # Le module de stress testing n'a besoin que d'un sous-ensemble léger des dépendances
