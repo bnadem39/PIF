@@ -24,10 +24,10 @@ public class AdminInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Value("${application.security.admin.email:${DEFAULT_ADMIN_EMAIL:admin@gmail.com}}")
+    @Value("${application.security.admin.email:${DEFAULT_ADMIN_EMAIL:}}")
     private String adminEmail;
 
-    @Value("${application.security.admin.password:${DEFAULT_ADMIN_PASSWORD:admin@26}}")
+    @Value("${application.security.admin.password:${DEFAULT_ADMIN_PASSWORD:}}")
     private String adminPassword;
 
     public AdminInitializer(UserRepository userRepository, PasswordEncoder passwordEncoder) {
@@ -37,6 +37,16 @@ public class AdminInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        if (adminEmail == null || adminEmail.isBlank() || adminPassword == null || adminPassword.isBlank()) {
+            log.warn("DEFAULT_ADMIN_EMAIL / DEFAULT_ADMIN_PASSWORD non définis : aucun compte administrateur créé au démarrage.");
+            return;
+        }
+        if (adminPassword.length() < 12) {
+            log.warn("DEFAULT_ADMIN_PASSWORD trop court (12 caractères minimum) : compte administrateur non créé.");
+            return;
+        }
+        adminEmail = adminEmail.trim().toLowerCase();
+
         log.info("Vérification de l'existence du compte Administrateur initial [{}]...", adminEmail);
 
         if (userRepository.findByEmail(adminEmail).isEmpty()) {

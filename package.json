@@ -9,7 +9,7 @@
     "preview": "npm --prefix frontend run preview",
     "frontend": "npm --prefix frontend run dev",
     "backend": "cd backend && .\\mvnw.cmd spring-boot:run",
-    "docker:up": "docker compose up -d postgres",
+    "docker:up": "docker compose --env-file backend/.env up -d postgres",
     "docker:down": "docker compose down"
   }
 }

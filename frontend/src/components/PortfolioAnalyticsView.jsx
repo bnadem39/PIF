@@ -77,9 +77,9 @@ export default function PortfolioAnalyticsView({
     setIsLoading(true);
     try {
       const [port, txs, perf] = await Promise.all([
-        getPortfolioSummary(simulatedDate, currentSymbol, currentPrice),
+        getPortfolioSummary(simulatedDate),
         getTransactionsHistory(),
-        getAccountPerformance(currentSymbol, currentPrice)
+        getAccountPerformance(simulatedDate)
       ]);
       setPortfolio(port);
       setTransactions(txs || []);

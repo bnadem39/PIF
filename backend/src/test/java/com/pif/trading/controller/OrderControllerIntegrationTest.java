@@ -49,4 +49,13 @@ class OrderControllerIntegrationTest {
                 .andExpect(jsonPath("$.status").value(401))
                 .andExpect(jsonPath("$.error").value("Unauthorized"));
     }
+
+    @Test
+    @DisplayName("POST /api/ai/chat/ask - Sans JWT, doit être rejeté avec 401 (endpoints IA protégés)")
+    void shouldRejectUnauthenticatedAiCall() throws Exception {
+        mockMvc.perform(post("/api/ai/chat/ask")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"question\":\"test\"}"))
+                .andExpect(status().isUnauthorized());
+    }
 }

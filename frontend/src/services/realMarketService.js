@@ -86,12 +86,13 @@ export function getCurrentUser() {
 }
 
 /**
- * Assure la présence d'un token JWT valide
+ * Assure la présence d'un token JWT : l'utilisateur doit s'être connecté lui-même.
+ * (Aucune connexion automatique avec un compte par défaut.)
  */
 export async function ensureAuthenticated() {
   const user = getCurrentUser();
   if (!user) {
-    return await loginUser('admin@gmail.com', 'admin@26');
+    throw new Error('Authentification requise : veuillez vous connecter.');
   }
   return user;
 }
@@ -218,12 +219,13 @@ export async function updatePositionRisk(positionId, riskThresholds) {
 /**
  * Déclenche la vérification du moteur de risque sur la bougie courante (SL/TP/TS/OCO)
  */
-export async function checkRiskOrders(prices, simulatedDate) {
+export async function checkRiskOrders(simulatedDate) {
   await ensureAuthenticated();
+  // Les cours sont lus côté serveur à la date simulée
   const res = await fetch(`${ORDERS_BASE}/check-risk`, {
     method: 'POST',
     headers: getAuthHeaders(),
-    body: JSON.stringify({ prices, simulatedDate })
+    body: JSON.stringify({ simulatedDate })
   });
   if (!res.ok) return [];
   return await res.json();
@@ -232,12 +234,10 @@ export async function checkRiskOrders(prices, simulatedDate) {
 /**
  * Récupère la synthèse du portefeuille (Cash balance, P&L Latent, Positions)
  */
-export async function getPortfolioSummary(simulatedDate = '', currentSymbol = null, currentPrice = null) {
+export async function getPortfolioSummary(simulatedDate = '') {
   await ensureAuthenticated();
-  let url = `${ORDERS_BASE}/portfolio?simulatedDate=${encodeURIComponent(simulatedDate)}`;
-  if (currentSymbol && currentPrice != null) {
-    url += `&currentSymbol=${encodeURIComponent(currentSymbol)}&currentPrice=${encodeURIComponent(currentPrice)}`;
-  }
+  // Valorisation au cours serveur de la date simulée
+  const url = `${ORDERS_BASE}/portfolio?simulatedDate=${encodeURIComponent(simulatedDate || '')}`;
   const res = await fetch(url, {
     headers: getAuthHeaders()
   });
@@ -260,12 +260,9 @@ export async function getTransactionsHistory() {
 /**
  * Récupère les indicateurs de performance (Win Rate, Max Drawdown, Equity Curve)
  */
-export async function getAccountPerformance(currentSymbol = null, currentPrice = null) {
+export async function getAccountPerformance(simulatedDate = '') {
   await ensureAuthenticated();
-  let url = `${ORDERS_BASE}/performance`;
-  if (currentSymbol && currentPrice != null) {
-    url += `?currentSymbol=${encodeURIComponent(currentSymbol)}&currentPrice=${encodeURIComponent(currentPrice)}`;
-  }
+  const url = `${ORDERS_BASE}/performance?simulatedDate=${encodeURIComponent(simulatedDate || '')}`;
   const res = await fetch(url, {
     headers: getAuthHeaders()
   });

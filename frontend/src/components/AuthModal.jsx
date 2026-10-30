@@ -10,7 +10,6 @@ import {
   CheckCircle2,
   AlertCircle,
   X,
-  Sparkles,
   ShieldCheck,
   ArrowRight,
   Loader2
@@ -37,12 +36,6 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
   const [successMessage, setSuccessMessage] = useState(null);
 
   if (!isOpen) return null;
-
-  const handleFillDemoAdmin = () => {
-    setLoginEmail('admin@gmail.com');
-    setLoginPassword('admin@26');
-    setErrorMessage(null);
-  };
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
@@ -207,7 +200,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
                 <input
                   type="email"
                   required
-                  placeholder="admin@gmail.com"
+                  placeholder="vous@exemple.com"
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
                   className="bg-transparent text-white w-full outline-none font-medium text-xs placeholder:text-slate-600"
@@ -240,18 +233,6 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
                   {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
-            </div>
-
-            {/* Raccourci Compte Administrateur */}
-            <div className="pt-1">
-              <button
-                type="button"
-                onClick={handleFillDemoAdmin}
-                className="w-full py-2 bg-[#1E293B]/60 hover:bg-[#1E293B] border border-[#334155] text-slate-300 rounded-xl text-[11px] flex items-center justify-center gap-1.5 transition-all font-semibold"
-              >
-                <Sparkles size={13} className="text-amber-400" />
-                <span>Remplir avec le compte Admin par défaut (admin@gmail.com)</span>
-              </button>
             </div>
 
             {/* Bouton de Soumission */}

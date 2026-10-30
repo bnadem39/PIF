@@ -60,7 +60,7 @@ public class MarketDataService {
     /**
      * Récupère l'historique complet d'un actif par année choisie (routage intelligent CSV local vs Alpha Vantage avec fallback)
      */
-    @Cacheable(value = "alphaVantageHistory", key = "#symbol + '-' + #interval + '-' + (#year != null ? #year : 'ALL')")
+    @Cacheable(value = "alphaVantageHistory", key = "#symbol + '-' + #interval + '-' + (#year != null ? #year : 'ALL') + '-' + #limit")
     public MarketHistoryResponse getHistory(String symbol, String interval, String year, int limit) {
         String sym = symbol.toUpperCase();
         List<CandleDto> candles = new ArrayList<>();
@@ -90,7 +90,7 @@ public class MarketDataService {
                 // Fallback de haute fidélité pour continuité de marché (résilience clé demo / quotas)
                 log.info("Activation du fallback haute fidélité de continuité de marché pour {}", sym);
                 candles = generateFallbackMarketCandles(sym, interval, limit);
-                source = "Alpha Vantage API (Fallback Continuité Marché)";
+                source = "Données simulées (Alpha Vantage indisponible)";
             }
 
             // Filtrage par année pour les actifs Alpha Vantage si demandé

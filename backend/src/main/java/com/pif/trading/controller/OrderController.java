@@ -1,42 +1,35 @@
 package com.pif.trading.controller;
 
 import com.pif.market.model.User;
-import com.pif.market.repository.UserRepository;
 import com.pif.trading.dto.*;
+import com.pif.trading.service.AiClientService;
 import com.pif.trading.service.TradingService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Endpoints de trading. Toutes les routes exigent un JWT valide (voir SecurityConfig) :
+ * l'utilisateur est toujours celui du token, jamais un compte de repli.
+ *
+ * Les cours utilisés (exécution, valorisation, déclenchement SL/TP) sont lus côté serveur
+ * à partir de la date simulée : aucun prix fourni par le client n'est pris en compte.
+ */
 @RestController
 @RequestMapping("/api/v1/orders")
 public class OrderController {
 
     private final TradingService tradingService;
-    private final UserRepository userRepository;
-    private final com.pif.trading.service.AiClientService aiClientService;
+    private final AiClientService aiClientService;
 
-    public OrderController(TradingService tradingService,
-                           UserRepository userRepository,
-                           com.pif.trading.service.AiClientService aiClientService) {
+    public OrderController(TradingService tradingService, AiClientService aiClientService) {
         this.tradingService = tradingService;
-        this.userRepository = userRepository;
         this.aiClientService = aiClientService;
-    }
-
-    private User resolveUser(User principal) {
-        if (principal != null) {
-            return principal;
-        }
-        // Fallback pour environnement de test : premier compte admin disponible
-        return userRepository.findAll().stream().findFirst()
-                .orElseThrow(() -> new IllegalStateException("Aucun utilisateur disponible pour exécuter l'ordre."));
     }
 
     /**
@@ -45,32 +38,20 @@ public class OrderController {
      */
     @PostMapping("/execute")
     public ResponseEntity<OrderExecutionResponse> executeOrder(
-            @AuthenticationPrincipal User principal,
+            @AuthenticationPrincipal User user,
             @Valid @RequestBody OrderRequest request) {
-        User user = resolveUser(principal);
-        OrderExecutionResponse response = tradingService.executeOrder(user, request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(tradingService.executeOrder(user, request));
     }
 
     /**
-     * Récupère la synthèse du portefeuille (Cash, Valeur Marché, P&L Latent)
-     * GET /api/v1/orders/portfolio?simulatedDate=2022-04-15&currentSymbol=BIAT&currentPrice=92.500
+     * Récupère la synthèse du portefeuille (Cash, Valeur Marché, P&L Latent) valorisée à la date simulée
+     * GET /api/v1/orders/portfolio?simulatedDate=2022-04-15
      */
     @GetMapping("/portfolio")
     public ResponseEntity<PortfolioSummaryDto> getPortfolio(
-            @AuthenticationPrincipal User principal,
-            @RequestParam(required = false, defaultValue = "") String simulatedDate,
-            @RequestParam(required = false) String currentSymbol,
-            @RequestParam(required = false) BigDecimal currentPrice) {
-        User user = resolveUser(principal);
-
-        Map<String, BigDecimal> priceMap = new HashMap<>();
-        if (currentSymbol != null && currentPrice != null) {
-            priceMap.put(currentSymbol.toUpperCase(), currentPrice);
-        }
-
-        PortfolioSummaryDto summary = tradingService.getPortfolioSummary(user, priceMap, simulatedDate);
-        return ResponseEntity.ok(summary);
+            @AuthenticationPrincipal User user,
+            @RequestParam(required = false, defaultValue = "") String simulatedDate) {
+        return ResponseEntity.ok(tradingService.getPortfolioSummary(user, simulatedDate));
     }
 
     /**
@@ -78,29 +59,19 @@ public class OrderController {
      * GET /api/v1/orders/transactions
      */
     @GetMapping("/transactions")
-    public ResponseEntity<List<OrderTransactionDto>> getTransactions(
-            @AuthenticationPrincipal User principal) {
-        User user = resolveUser(principal);
+    public ResponseEntity<List<OrderTransactionDto>> getTransactions(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(tradingService.getTransactions(user));
     }
 
     /**
      * Récupère les métriques de performance et la courbe d'équité
-     * GET /api/v1/orders/performance?currentSymbol=BIAT&currentPrice=92.500
+     * GET /api/v1/orders/performance?simulatedDate=2022-04-15
      */
     @GetMapping("/performance")
     public ResponseEntity<AccountPerformanceDto> getPerformance(
-            @AuthenticationPrincipal User principal,
-            @RequestParam(required = false) String currentSymbol,
-            @RequestParam(required = false) BigDecimal currentPrice) {
-        User user = resolveUser(principal);
-
-        Map<String, BigDecimal> priceMap = new HashMap<>();
-        if (currentSymbol != null && currentPrice != null) {
-            priceMap.put(currentSymbol.toUpperCase(), currentPrice);
-        }
-
-        return ResponseEntity.ok(tradingService.getPerformance(user, priceMap));
+            @AuthenticationPrincipal User user,
+            @RequestParam(required = false, defaultValue = "") String simulatedDate) {
+        return ResponseEntity.ok(tradingService.getPerformance(user, simulatedDate));
     }
 
     /**
@@ -108,9 +79,7 @@ public class OrderController {
      * POST /api/v1/orders/reset
      */
     @PostMapping("/reset")
-    public ResponseEntity<Map<String, Object>> resetAccount(
-            @AuthenticationPrincipal User principal) {
-        User user = resolveUser(principal);
+    public ResponseEntity<Map<String, Object>> resetAccount(@AuthenticationPrincipal User user) {
         tradingService.resetAccount(user);
         return ResponseEntity.ok(Map.of(
                 "success", true,
@@ -125,25 +94,21 @@ public class OrderController {
      */
     @PostMapping("/portfolio/explain")
     public ResponseEntity<Map<String, Object>> explainPortfolio(
-            @AuthenticationPrincipal User principal,
+            @AuthenticationPrincipal User user,
             @RequestBody(required = false) Map<String, Object> requestPayload) {
-        User user = resolveUser(principal);
-
         Map<String, Object> payload = new HashMap<>(requestPayload != null ? requestPayload : Map.of());
-        String simulatedDate = (String) payload.getOrDefault("simulated_date", "2022-01-03");
+        Object rawDate = payload.get("simulated_date");
+        String simulatedDate = rawDate != null ? rawDate.toString() : "2022-01-03";
 
-        // Si non renseigné par le client, extraire l'état réel actuel du portefeuille
-        if (!payload.containsKey("cash_disponible") || !payload.containsKey("positions")) {
-            PortfolioSummaryDto summary = tradingService.getPortfolioSummary(user, Map.of(), simulatedDate);
-            payload.put("simulated_date", simulatedDate);
-            payload.put("cash_disponible", summary.cashBalance());
-            payload.put("valeur_totale", summary.totalPortfolioValue());
-            payload.put("pnl_jour", summary.totalUnrealizedPnl());
-            payload.put("positions", summary.positions());
-        }
+        // L'état du portefeuille est toujours lu côté serveur (le client ne peut pas le falsifier)
+        PortfolioSummaryDto summary = tradingService.getPortfolioSummary(user, simulatedDate);
+        payload.put("simulated_date", simulatedDate);
+        payload.put("cash_disponible", summary.cashBalance());
+        payload.put("valeur_totale", summary.totalPortfolioValue());
+        payload.put("pnl_jour", summary.totalUnrealizedPnl());
+        payload.put("positions", summary.positions());
 
-        Map<String, Object> analysis = aiClientService.explainPortfolio(payload);
-        return ResponseEntity.ok(analysis);
+        return ResponseEntity.ok(aiClientService.explainPortfolio(payload));
     }
 
     /**
@@ -152,36 +117,23 @@ public class OrderController {
      */
     @PatchMapping("/positions/{id}/risk")
     public ResponseEntity<PositionDto> updatePositionRisk(
-            @AuthenticationPrincipal User principal,
+            @AuthenticationPrincipal User user,
             @PathVariable Long id,
             @RequestBody UpdateRiskThresholdsRequest req) {
-        User user = resolveUser(principal);
-        PositionDto updated = tradingService.updatePositionRiskThresholds(user, id, req);
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(tradingService.updatePositionRiskThresholds(user, id, req));
     }
 
     /**
-     * Moteur de surveillance continue : vérifie si le cours de la bougie franchit un seuil SL/TP/TS
+     * Moteur de surveillance continue : vérifie si le cours serveur de la date simulée franchit un seuil SL/TP/TS
      * et exécute automatiquement la liquidation OCO correspondante.
-     * POST /api/v1/orders/check-risk
+     * POST /api/v1/orders/check-risk  body: {"simulatedDate": "2022-04-15"}
      */
     @PostMapping("/check-risk")
     public ResponseEntity<List<OrderExecutionResponse>> checkRisk(
-            @AuthenticationPrincipal User principal,
+            @AuthenticationPrincipal User user,
             @RequestBody Map<String, Object> body) {
-        User user = resolveUser(principal);
-        String simDate = (String) body.getOrDefault("simulatedDate", "");
-        Map<String, BigDecimal> currentPrices = new HashMap<>();
-
-        if (body.containsKey("prices") && body.get("prices") instanceof Map<?, ?> rawPrices) {
-            rawPrices.forEach((k, v) -> {
-                if (k != null && v != null) {
-                    currentPrices.put(k.toString().toUpperCase(), new BigDecimal(v.toString()));
-                }
-            });
-        }
-
-        List<OrderExecutionResponse> triggered = tradingService.checkAndTriggerRiskOrders(user, currentPrices, simDate);
-        return ResponseEntity.ok(triggered);
+        Object rawDate = body.get("simulatedDate");
+        String simDate = rawDate != null ? rawDate.toString() : "";
+        return ResponseEntity.ok(tradingService.checkAndTriggerRiskOrders(user, simDate));
     }
 }

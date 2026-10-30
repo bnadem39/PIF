@@ -29,7 +29,6 @@ import AiCopilotWidget from './components/AiCopilotWidget';
 import { getAiAgentAnalysis, getAiSignal } from './services/aiService';
 import {
   getRealSymbols,
-  ensureAuthenticated,
   getPortfolioSummary,
   getCurrentUser,
   logoutUser,
@@ -77,7 +76,8 @@ export default function App() {
   // 1. Initialisation & Rafraîchissement du Portefeuille
   const refreshPortfolio = useCallback(async (dateToUse = simulatedDate, symbolToUse = selectedAsset?.ticker, priceToUse = currentSimulatedPrice) => {
     try {
-      const summary = await getPortfolioSummary(dateToUse, symbolToUse, priceToUse);
+      if (!getCurrentUser()) return;
+      const summary = await getPortfolioSummary(dateToUse);
       if (summary) {
         setCashBalance(summary.cashBalance != null ? Number(summary.cashBalance) : 100000);
         setPortfolioValue(summary.totalPortfolioValue != null ? Number(summary.totalPortfolioValue) : 100000);
@@ -92,13 +92,12 @@ export default function App() {
 
   useEffect(() => {
     setIsLoadingAssets(true);
-    ensureAuthenticated()
-      .then((user) => {
-        if (user) {
-          setCurrentUser(getCurrentUser());
-        }
-        return getRealSymbols('ALL');
-      })
+    // Les données de marché sont publiques ; le portefeuille exige une connexion explicite
+    if (!getCurrentUser()) {
+      setAuthModalMode('LOGIN');
+      setIsAuthModalOpen(true);
+    }
+    getRealSymbols('ALL')
       .then((data) => {
         setAssets(data);
         setIsLoadingAssets(false);
@@ -185,15 +184,8 @@ export default function App() {
       setDailyPnLPercent(cashBalance > 0 ? (latentPnl / (cashBalance + positionsValuation)) * 100 : 0);
 
       // Contrôle continu des déclencheurs Stop-Loss, Take-Profit et Trailing Stop (OCO)
-      if (simState.simulatedDate) {
-        const priceMap = {};
-        Object.keys(simState.marketTick).forEach((k) => {
-          if (simState.marketTick[k]?.close != null) {
-            priceMap[k] = simState.marketTick[k].close;
-          }
-        });
-
-        checkRiskOrders(priceMap, simState.simulatedDate).then((triggered) => {
+      if (simState.simulatedDate && getCurrentUser()) {
+        checkRiskOrders(simState.simulatedDate).then((triggered) => {
           if (triggered && triggered.length > 0) {
             refreshPortfolio(simState.simulatedDate, activeSym, currentPrice);
           }

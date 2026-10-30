@@ -5,6 +5,7 @@ import com.pif.market.repository.UserRepository;
 import com.pif.trading.dto.*;
 import com.pif.trading.exception.InsufficientFundsException;
 import com.pif.trading.exception.InsufficientPositionException;
+import com.pif.trading.model.ExecutionType;
 import com.pif.trading.model.OrderTransaction;
 import com.pif.trading.model.OrderType;
 import com.pif.trading.model.Position;
@@ -36,13 +37,25 @@ public class TradingService {
     private final UserRepository userRepository;
     private final PositionRepository positionRepository;
     private final OrderTransactionRepository transactionRepository;
+    private final MarketPriceService marketPriceService;
 
     public TradingService(UserRepository userRepository,
                           PositionRepository positionRepository,
-                          OrderTransactionRepository transactionRepository) {
+                          OrderTransactionRepository transactionRepository,
+                          MarketPriceService marketPriceService) {
         this.userRepository = userRepository;
         this.positionRepository = positionRepository;
         this.transactionRepository = transactionRepository;
+        this.marketPriceService = marketPriceService;
+    }
+
+    /**
+     * Charge l'utilisateur avec un verrou pessimiste en écriture (SELECT ... FOR UPDATE) :
+     * deux ordres simultanés du même compte sont sérialisés, ce qui empêche un double débit du cash.
+     */
+    private User lockUser(Long userId) {
+        return userRepository.findByIdForUpdate(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + userId));
     }
 
     /**
@@ -50,30 +63,77 @@ public class TradingService {
      */
     @Transactional
     public OrderExecutionResponse executeOrder(User user, OrderRequest request) {
-        // Recharger l'utilisateur pour garantir le solde transactionnel à jour
-        User persistentUser = userRepository.findById(user.getId())
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + user.getId()));
+        if (request.type() != OrderType.BUY && request.type() != OrderType.SELL) {
+            throw new IllegalArgumentException(
+                    "Sens d'ordre invalide : " + request.type() + ". Utilisez BUY ou SELL, et orderType=MARKET|LIMIT pour le mode d'exécution.");
+        }
 
         String symbol = request.symbol().toUpperCase().trim();
         Integer quantity = request.quantity();
-        BigDecimal price = request.executionPrice().setScale(3, RoundingMode.HALF_UP);
         String simDate = request.simulatedDate();
 
-        if (quantity <= 0) {
+        if (quantity == null || quantity <= 0) {
             throw new IllegalArgumentException("La quantité commandée doit être strictement positive.");
         }
-        if (price.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Le cours d'exécution doit être strictement positif.");
+
+        // Cours d'exécution déterminé côté serveur : le prix envoyé par le client est ignoré
+        BigDecimal price = marketPriceService.getClosePrice(symbol, simDate);
+
+        ExecutionType execType = request.executionTypeOrDefault();
+        if (execType == ExecutionType.LIMIT) {
+            BigDecimal limit = request.limitPrice();
+            if (limit == null) {
+                throw new IllegalArgumentException("Un ordre LIMIT exige un prix limite (limitPrice).");
+            }
+            boolean marketable = request.type() == OrderType.BUY
+                    ? price.compareTo(limit) <= 0
+                    : price.compareTo(limit) >= 0;
+            if (!marketable) {
+                // Pas encore de carnet d'ordres en attente : un ordre LIMIT non exécutable est rejeté explicitement
+                throw new IllegalArgumentException(String.format(
+                        "Ordre LIMIT non exécutable : cours %s TND %s limite %s TND. Les ordres en attente ne sont pas encore supportés.",
+                        price, request.type() == OrderType.BUY ? ">" : "<", limit));
+            }
         }
 
-        if (request.type() == OrderType.BUY || request.type() == OrderType.LIMIT || request.type() == OrderType.MARKET) {
+        // Recharger et verrouiller l'utilisateur pour garantir un solde transactionnel à jour
+        User persistentUser = lockUser(user.getId());
+
+        if (request.type() == OrderType.BUY) {
+            validateProtectiveLevels(price, request.stopLossPrice(), request.takeProfitPrice(), request.trailingStopDistance());
             return executeBuyOrder(persistentUser, symbol, quantity, price, simDate,
                     request.stopLossPrice(), request.takeProfitPrice(), request.trailingStopDistance());
-        } else if (request.type() == OrderType.SELL) {
-            return executeSellOrder(persistentUser, symbol, quantity, price, simDate);
-        } else {
-            throw new IllegalArgumentException("Type d'ordre non supporté : " + request.type());
         }
+        return executeSellOrder(persistentUser, symbol, quantity, price, simDate);
+    }
+
+    /**
+     * Cohérence des seuils de protection d'un achat : SL < cours < TP, distance trailing > 0.
+     */
+    private void validateProtectiveLevels(BigDecimal price, BigDecimal stopLoss, BigDecimal takeProfit, BigDecimal trailingDistance) {
+        if (stopLoss != null && stopLoss.compareTo(price) >= 0) {
+            throw new IllegalArgumentException(String.format(
+                    "Stop-Loss (%s TND) doit être inférieur au cours d'exécution (%s TND).", stopLoss, price));
+        }
+        if (takeProfit != null && takeProfit.compareTo(price) <= 0) {
+            throw new IllegalArgumentException(String.format(
+                    "Take-Profit (%s TND) doit être supérieur au cours d'exécution (%s TND).", takeProfit, price));
+        }
+        if (trailingDistance != null && trailingDistance.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("La distance du Trailing Stop doit être strictement positive.");
+        }
+    }
+
+    /**
+     * Cours serveur de chaque position à la date simulée (repli sur le PRU si aucun cours n'est disponible).
+     */
+    private Map<String, BigDecimal> serverPrices(List<Position> positions, String simulatedDate) {
+        Map<String, BigDecimal> prices = new HashMap<>();
+        for (Position pos : positions) {
+            String sym = pos.getSymbol().toUpperCase();
+            marketPriceService.findClosePrice(sym, simulatedDate).ifPresent(p -> prices.put(sym, p));
+        }
+        return prices;
     }
 
     /**
@@ -254,11 +314,13 @@ public class TradingService {
      * Synthèse complète du portefeuille pour un utilisateur avec calcul du P&L Latent.
      */
     @Transactional(readOnly = true)
-    public PortfolioSummaryDto getPortfolioSummary(User user, Map<String, BigDecimal> currentPrices, String simulatedDate) {
+    public PortfolioSummaryDto getPortfolioSummary(User user, String simulatedDate) {
         User persistentUser = userRepository.findById(user.getId())
                 .orElse(user);
 
         List<Position> positions = positionRepository.findByUser(persistentUser);
+        // Valorisation au cours serveur de la date simulée (jamais au cours fourni par le client)
+        Map<String, BigDecimal> currentPrices = serverPrices(positions, simulatedDate);
         List<PositionDto> positionDtos = new ArrayList<>();
 
         BigDecimal totalPositionsMarketValue = BigDecimal.ZERO;
@@ -359,10 +421,13 @@ public class TradingService {
 
     /**
      * Métriques de performance : Max Drawdown, Win Rate, Courbe d'équité.
+     *
+     * La courbe d'équité rejoue les transactions dans l'ordre chronologique en reconstruisant
+     * cash et positions à chaque étape, valorisées au cours serveur de la date simulée de la transaction.
      */
     @Transactional(readOnly = true)
-    public AccountPerformanceDto getPerformance(User user, Map<String, BigDecimal> currentPrices) {
-        PortfolioSummaryDto summary = getPortfolioSummary(user, currentPrices, "");
+    public AccountPerformanceDto getPerformance(User user, String simulatedDate) {
+        PortfolioSummaryDto summary = getPortfolioSummary(user, simulatedDate);
         List<OrderTransaction> txs = transactionRepository.findByUserOrderByCreatedAtDesc(user);
 
         List<OrderTransaction> sells = txs.stream()
@@ -396,34 +461,38 @@ public class TradingService {
         List<Map<String, Object>> equityCurve = new ArrayList<>();
         equityCurve.add(Map.of("date", "Départ", "value", initialCash.doubleValue()));
 
-        BigDecimal runningCash = initialCash;
-        BigDecimal peak = initialCash;
-        BigDecimal maxDrawdown = BigDecimal.ZERO;
-
         // Tri chronologique des transactions
         List<OrderTransaction> chronoTxs = new ArrayList<>(txs);
         chronoTxs.sort(Comparator.comparing(OrderTransaction::getId));
 
+        BigDecimal runningCash = initialCash;
+        Map<String, Integer> holdings = new HashMap<>();
+        Map<String, BigDecimal> lastTradePrice = new HashMap<>();
+        List<BigDecimal> values = new ArrayList<>();
+        values.add(initialCash);
+
         for (OrderTransaction tx : chronoTxs) {
+            String sym = tx.getSymbol().toUpperCase();
+            BigDecimal gross = tx.getExecutionPrice().multiply(new BigDecimal(tx.getQuantity()));
             if (tx.getType() == OrderType.BUY) {
-                BigDecimal cost = tx.getExecutionPrice().multiply(new BigDecimal(tx.getQuantity())).add(tx.getFees());
-                runningCash = runningCash.subtract(cost);
+                runningCash = runningCash.subtract(gross.add(tx.getFees()));
+                holdings.merge(sym, tx.getQuantity(), Integer::sum);
             } else {
-                BigDecimal proceeds = tx.getExecutionPrice().multiply(new BigDecimal(tx.getQuantity())).subtract(tx.getFees());
-                runningCash = runningCash.add(proceeds);
+                runningCash = runningCash.add(gross.subtract(tx.getFees()));
+                holdings.merge(sym, -tx.getQuantity(), Integer::sum);
+            }
+            lastTradePrice.put(sym, tx.getExecutionPrice());
+
+            BigDecimal holdingsValue = BigDecimal.ZERO;
+            for (Map.Entry<String, Integer> h : holdings.entrySet()) {
+                if (h.getValue() <= 0) continue;
+                BigDecimal px = marketPriceService.findClosePrice(h.getKey(), tx.getSimulatedDate())
+                        .orElse(lastTradePrice.get(h.getKey()));
+                holdingsValue = holdingsValue.add(px.multiply(new BigDecimal(h.getValue())));
             }
 
-            BigDecimal totalVal = runningCash.add(summary.positionsMarketValue());
-            if (totalVal.compareTo(peak) > 0) {
-                peak = totalVal;
-            } else if (peak.compareTo(BigDecimal.ZERO) > 0) {
-                BigDecimal dd = peak.subtract(totalVal).divide(peak, 4, RoundingMode.HALF_UP)
-                        .multiply(new BigDecimal("100")).setScale(2, RoundingMode.HALF_UP);
-                if (dd.compareTo(maxDrawdown) > 0) {
-                    maxDrawdown = dd;
-                }
-            }
-
+            BigDecimal totalVal = runningCash.add(holdingsValue).setScale(3, RoundingMode.HALF_UP);
+            values.add(totalVal);
             equityCurve.add(Map.of(
                     "date", tx.getSimulatedDate() != null ? tx.getSimulatedDate() : "Tx #" + tx.getId(),
                     "value", totalVal.setScale(2, RoundingMode.HALF_UP).doubleValue()
@@ -431,7 +500,10 @@ public class TradingService {
         }
 
         // Point actuel
+        values.add(currentValue);
         equityCurve.add(Map.of("date", "Actuel", "value", currentValue.setScale(2, RoundingMode.HALF_UP).doubleValue()));
+
+        BigDecimal maxDrawdown = computeMaxDrawdownPercent(values);
 
         return new AccountPerformanceDto(
                 initialCash,
@@ -448,12 +520,31 @@ public class TradingService {
     }
 
     /**
+     * Max Drawdown (%) = plus forte baisse relative depuis un plus haut de la série de valeurs.
+     */
+    static BigDecimal computeMaxDrawdownPercent(List<BigDecimal> values) {
+        BigDecimal peak = null;
+        BigDecimal maxDrawdown = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
+        for (BigDecimal v : values) {
+            if (peak == null || v.compareTo(peak) > 0) {
+                peak = v;
+            } else if (peak.compareTo(BigDecimal.ZERO) > 0) {
+                BigDecimal dd = peak.subtract(v).divide(peak, 4, RoundingMode.HALF_UP)
+                        .multiply(new BigDecimal("100")).setScale(2, RoundingMode.HALF_UP);
+                if (dd.compareTo(maxDrawdown) > 0) {
+                    maxDrawdown = dd;
+                }
+            }
+        }
+        return maxDrawdown;
+    }
+
+    /**
      * Réinitialise le compte utilisateur (Positions remises à zéro, solde remis à 100 000.000 TND).
      */
     @Transactional
     public void resetAccount(User user) {
-        User persistentUser = userRepository.findById(user.getId())
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable : " + user.getId()));
+        User persistentUser = lockUser(user.getId());
 
         transactionRepository.deleteByUser(persistentUser);
         positionRepository.deleteByUser(persistentUser);
@@ -519,14 +610,17 @@ public class TradingService {
      * En cas de franchissement, liquide automatiquement la position au cours du marché avec OCO.
      */
     @Transactional
-    public List<OrderExecutionResponse> checkAndTriggerRiskOrders(User user, Map<String, BigDecimal> currentPrices, String simulatedDate) {
-        User persistentUser = userRepository.findById(user.getId()).orElse(user);
+    public List<OrderExecutionResponse> checkAndTriggerRiskOrders(User user, String simulatedDate) {
+        User persistentUser = lockUser(user.getId());
         List<Position> positions = positionRepository.findByUser(persistentUser);
         List<OrderExecutionResponse> triggeredOrders = new ArrayList<>();
 
-        if (currentPrices == null || currentPrices.isEmpty()) {
+        if (simulatedDate == null || simulatedDate.isBlank() || positions.isEmpty()) {
             return triggeredOrders;
         }
+
+        // Cours serveur à la date simulée : un client ne peut pas forcer un déclenchement avec un faux prix
+        Map<String, BigDecimal> currentPrices = serverPrices(positions, simulatedDate);
 
         for (Position pos : positions) {
             String sym = pos.getSymbol().toUpperCase();

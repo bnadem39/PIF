@@ -9,14 +9,15 @@ spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:${DB_URL:jdbc:postgresql://localhost:5432/pif_trading_db}}
     username: ${SPRING_DATASOURCE_USERNAME:${DB_USERNAME:postgres}}
-    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:Adem2026!}}
+    # Aucun mot de passe par défaut : à définir dans backend/.env (voir backend/.env.example)
+    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD}}
     driver-class-name: org.postgresql.Driver
 
   # Hibernate & Spring Data JPA
   jpa:
     hibernate:
       ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
-    show-sql: ${SPRING_JPA_SHOW_SQL:true}
+    show-sql: ${SPRING_JPA_SHOW_SQL:false}
     open-in-view: false
     properties:
       hibernate:
@@ -48,14 +49,16 @@ ai:
     cache-ttl-minutes: 30
 
 # Sécurité, JWT & Initialisation Admin
+# Aucun secret par défaut : l'application refuse de démarrer si JWT_SECRET est absent,
+# et le compte admin n'est créé que si DEFAULT_ADMIN_EMAIL et DEFAULT_ADMIN_PASSWORD sont définis.
 application:
   security:
     jwt:
-      secret: ${JWT_SECRET:une_cle_secrete_tres_longue_et_securisee_d_au_moins_256_bits_ici}
+      secret: ${JWT_SECRET}
       expiration-ms: ${JWT_EXPIRATION_MS:86400000}
     admin:
-      email: ${DEFAULT_ADMIN_EMAIL:admin@gmail.com}
-      password: ${DEFAULT_ADMIN_PASSWORD:admin@26}
+      email: ${DEFAULT_ADMIN_EMAIL:}
+      password: ${DEFAULT_ADMIN_PASSWORD:}
 
 logging:
   level:

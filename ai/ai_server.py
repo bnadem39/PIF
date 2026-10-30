@@ -127,12 +127,20 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Le service IA est appele par le backend Spring Boot (serveur a serveur) :
+# seules les origines listees dans AI_ALLOWED_ORIGINS (separees par des virgules) sont autorisees en CORS.
+ALLOWED_ORIGINS = [
+    o.strip()
+    for o in os.getenv("AI_ALLOWED_ORIGINS", "http://localhost:8080,http://127.0.0.1:8080").split(",")
+    if o.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Restreindre en production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 
@@ -889,9 +897,10 @@ if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
         "ai_server:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True,
+        # Ecoute en local uniquement par defaut : definir AI_HOST=0.0.0.0 pour l'exposer (ex. Docker)
+        host=os.getenv("AI_HOST", "127.0.0.1"),
+        port=int(os.getenv("AI_PORT", "8000")),
+        reload=os.getenv("AI_RELOAD", "false").lower() == "true",
         log_level="info",
         workers=1,   # 1 seul worker pour economiser la RAM sur laptop
     )

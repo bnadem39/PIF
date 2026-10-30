@@ -24,6 +24,8 @@ backend/target/
 .env
 .env.*
 *.env
+!.env.example
+!backend/.env.example
 backend/.env
 
 # Large CSV Datasets (>100MB, rejected by GitHub)

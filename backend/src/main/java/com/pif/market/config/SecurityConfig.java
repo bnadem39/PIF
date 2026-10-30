@@ -93,7 +93,10 @@ public class SecurityConfig {
 
                         // Endpoints de cotation et données publiques du simulateur de marché
                         .requestMatchers("/api/market/**").permitAll()
-                        .requestMatchers("/api/ai/**").permitAll()
+
+                        // IA : seul le health-check est public. Les appels au modèle et au LLM exigent un JWT
+                        .requestMatchers(HttpMethod.GET, "/api/ai/health").permitAll()
+                        .requestMatchers("/api/ai/**").authenticated()
 
                         // Toute autre requête nécessite d'être authentifié
                         .anyRequest().authenticated()
