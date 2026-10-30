@@ -90,6 +90,7 @@ public class SecurityConfig {
                         // Endpoints v1 protégés : requièrent obligatoirement un token JWT
                         .requestMatchers("/api/v1/market/**").authenticated()
                         .requestMatchers("/api/v1/orders/**").authenticated()
+                        .requestMatchers("/api/v1/stress-test/**").authenticated()
 
                         // Endpoints de cotation et données publiques du simulateur de marché
                         .requestMatchers("/api/market/**").permitAll()

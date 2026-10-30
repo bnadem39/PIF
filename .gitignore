@@ -40,3 +40,5 @@ __pycache__/
 ai/chroma_db/
 ai/vector_db/
 ai/processed_data.parquet
+# Modèles de stress testing ré-entraînés localement (python -m stress.models)
+ai/stress/models/

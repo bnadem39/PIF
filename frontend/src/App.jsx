@@ -23,6 +23,7 @@ import {
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import ModulePlaceholder from './pages/ModulePlaceholder';
 import AdminAuditPage from './pages/AdminAuditPage';
+import StressTestPage from './pages/StressTestPage';
 import TickerTape from './components/TickerTape';
 import MarketWatch from './components/MarketWatch';
 import TradingChart from './components/TradingChart';
@@ -67,12 +68,6 @@ const PLACEHOLDER_MODULES = [
     title: 'Formation & apprentissage',
     section: '§3.3',
     items: ['Modules de cours par classe d\'actifs', 'Quiz et exercices', 'Scénarios de marché, concours, suivi de progression']
-  },
-  {
-    path: '/stress-test',
-    title: 'AI Stress Testing bancaire',
-    section: '§3.5 et §3.6',
-    items: ['Scénarios de stress (taux, marchés, défauts, récession)', 'Banques conventionnelles vs islamiques', 'Explications XAI (SHAP)']
   },
   {
     path: '/actuarial',
@@ -600,6 +595,7 @@ export default function App() {
           />
         } />
         <Route path="/admin/audit" element={<AdminAuditPage currentUser={currentUser} />} />
+        <Route path="/stress-test" element={<StressTestPage currentUser={currentUser} />} />
         {PLACEHOLDER_MODULES.map((m) => (
           <Route key={m.path} path={m.path} element={<ModulePlaceholder {...m} />} />
         ))}
