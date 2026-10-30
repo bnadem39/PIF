@@ -153,10 +153,24 @@ python -m pytest stress/tests -q     # tests du module
 
 > ⚠️ **Données illustratives.** Les profils de `ai/stress/data/bank_profiles.csv` sont anonymisés et les modèles sont entraînés sur un jeu **synthétique** dont le processus générateur est documenté dans `ai/stress/dataset.py`. Pour des résultats réels, remplacez le CSV par les chiffres des rapports annuels et ré-entraînez sur des données historiques (BCT, FMI) avec les mêmes colonnes.
 
+### 7️⃣ Actuariat (`ai/actuarial/`)
+Module du cahier §3.7, servi sous `/api/ai/actuarial/*`, exposé par Spring (`/api/v1/actuarial/*`) et par la page **Actuariat**.
+
+```bash
+cd ai
+python -m pytest actuarial/tests -q
+```
+
+- **Tarification** : GLM de Poisson (fréquence, offset log(exposition)) et GLM Gamma (coût moyen) sur un portefeuille automobile. Coefficients multiplicateurs avec intervalles de confiance et p-values, comparaison avec un gradient boosting (déviance, Gini, prédit/observé). Le devis d'un contrat donne la fréquence, la probabilité d'au moins un sinistre, le coût moyen, la prime pure et la prime commerciale (frais et marge), avec la décomposition facteur par facteur.
+- **Marges de prime** : primes encaissées comparées aux sinistres attendus par le modèle, par segment (âge, région, puissance…) : S/P attendu et observé, prime technique, ajustement tarifaire nécessaire, marge. Mode **takaful** (modèle wakala) : commission de l'opérateur, résultat du fonds des participants, excédent redistribué ou qard hassan.
+- **Provisionnement** : Chain Ladder et erreur de prédiction de Mack sur un triangle collé depuis un tableur. Le triangle d'exemple (Taylor & Ashe 1983) redonne exactement les chiffres publiés par Mack (1993) : provision 18 680 856, erreur 2 447 095.
+
+> ⚠️ Le portefeuille est **synthétique** (`ai/actuarial/portfolio.py`) : il est généré à partir de paramètres connus, que la page affiche à côté des coefficients estimés pour vérifier que le GLM les retrouve. Pour des données réelles (par exemple le jeu public freMTPL2), fournir un DataFrame avec les mêmes colonnes.
+
 ---
 
 ## 🔁 Intégration continue
-Chaque pull request (et chaque push sur `main`) lance `.github/workflows/ci.yml` : tests backend, build frontend, vérification syntaxique du service IA et tests du module de stress testing. Ne fusionnez pas une PR dont la CI est rouge.
+Chaque pull request (et chaque push sur `main`) lance `.github/workflows/ci.yml` : tests backend, build frontend, vérification syntaxique du service IA et tests Python (stress testing, actuariat, signal IA). Ne fusionnez pas une PR dont la CI est rouge.
 
 ---
 

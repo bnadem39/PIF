@@ -33,6 +33,7 @@ from pydantic import BaseModel, Field
 
 from stress.api import router as stress_router, state as stress_state
 from backtest_signals import router as backtest_router
+from actuarial.api import router as actuarial_router, state as actuarial_state
 
 AI_DIR   = Path(__file__).parent
 LOGS_DIR = AI_DIR / "logs"
@@ -114,6 +115,7 @@ async def lifespan(app: FastAPI):
     # Modèles de stress testing : chargement / entraînement en arrière-plan (ne bloque pas le démarrage)
     import threading
     threading.Thread(target=stress_state.ready, name="stress-warmup", daemon=True).start()
+    threading.Thread(target=actuarial_state.ready, name="actuarial-warmup", daemon=True).start()
     yield
     # Nettoyage memoire au shutdown
     if state.fingpt_agent:
@@ -143,6 +145,7 @@ ALLOWED_ORIGINS = [
 
 app.include_router(stress_router)
 app.include_router(backtest_router)
+app.include_router(actuarial_router)
 
 app.add_middleware(
     CORSMiddleware,
