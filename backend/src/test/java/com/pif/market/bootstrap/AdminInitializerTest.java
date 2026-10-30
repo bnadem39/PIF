@@ -35,14 +35,14 @@ class AdminInitializerTest {
     @BeforeEach
     void setUp() {
         ReflectionTestUtils.setField(adminInitializer, "adminEmail", "admin@gmail.com");
-        ReflectionTestUtils.setField(adminInitializer, "adminPassword", "admin@26");
+        ReflectionTestUtils.setField(adminInitializer, "adminPassword", "Str0ng-Admin-Pass!");
     }
 
     @Test
     @DisplayName("Devrait créer le compte admin avec mot de passe hashé et solde 100 000 TND si inexistant")
     void shouldSeedAdminWhenNotPresent() {
         when(userRepository.findByEmail("admin@gmail.com")).thenReturn(Optional.empty());
-        when(passwordEncoder.encode("admin@26")).thenReturn("bcryptHashedPassword");
+        when(passwordEncoder.encode("Str0ng-Admin-Pass!")).thenReturn("bcryptHashedPassword");
 
         adminInitializer.run();
 
@@ -67,5 +67,26 @@ class AdminInitializerTest {
 
         verify(userRepository, never()).save(any(User.class));
         verify(passwordEncoder, never()).encode(anyString());
+    }
+
+    @Test
+    @DisplayName("Ne crée aucun admin si les variables d'environnement ne sont pas définies")
+    void shouldSkipSeedingWhenNotConfigured() {
+        ReflectionTestUtils.setField(adminInitializer, "adminEmail", "");
+        ReflectionTestUtils.setField(adminInitializer, "adminPassword", "");
+
+        adminInitializer.run();
+
+        verifyNoInteractions(userRepository);
+    }
+
+    @Test
+    @DisplayName("Ne crée aucun admin si le mot de passe fait moins de 12 caractères")
+    void shouldSkipSeedingWhenPasswordTooShort() {
+        ReflectionTestUtils.setField(adminInitializer, "adminPassword", "admin@26");
+
+        adminInitializer.run();
+
+        verifyNoInteractions(userRepository);
     }
 }

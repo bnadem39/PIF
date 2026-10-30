@@ -115,4 +115,19 @@ class AuthServiceTest {
 
         assertThrows(BadCredentialsException.class, () -> authService.login(request));
     }
+
+    @Test
+    @DisplayName("L'email est normalisé (minuscules, sans espaces) à l'inscription comme à la connexion")
+    void shouldNormalizeEmailCase() {
+        when(userRepository.existsByEmail("trader@test.com")).thenReturn(true);
+        RegisterRequest dup = new RegisterRequest("  Trader@Test.COM ", "secret123", "Trader");
+        assertThrows(IllegalArgumentException.class, () -> authService.register(dup));
+
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(null);
+        when(userRepository.findByEmail("trader@test.com")).thenReturn(Optional.of(sampleUser));
+        when(jwtService.generateToken(sampleUser)).thenReturn("jwt");
+
+        AuthResponse response = authService.login(new AuthRequest("TRADER@test.com", "password123"));
+        assertEquals("trader@test.com", response.getEmail());
+    }
 }

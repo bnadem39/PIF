@@ -46,16 +46,17 @@ public class AuthService {
      * Authentifie un utilisateur via l'AuthenticationManager et émet un JWT.
      */
     public AuthResponse login(AuthRequest request) {
-        log.info("Tentative de connexion pour l'email : {}", request.getEmail());
+        String email = normalizeEmail(request.getEmail());
+        log.info("Tentative de connexion pour l'email : {}", email);
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
+                        email,
                         request.getPassword()
                 )
         );
 
-        User user = userRepository.findByEmail(request.getEmail())
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BadCredentialsException("Identifiants de connexion invalides."));
 
         String token = jwtService.generateToken(user);
@@ -76,14 +77,15 @@ public class AuthService {
      */
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        log.info("Demande de création de compte trader pour : {}", request.getEmail());
+        String email = normalizeEmail(request.getEmail());
+        log.info("Demande de création de compte trader pour : {}", email);
 
-        if (userRepository.existsByEmail(request.getEmail())) {
+        if (userRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("Un compte avec cette adresse email existe déjà.");
         }
 
         User newUser = new User();
-        newUser.setEmail(request.getEmail().toLowerCase().trim());
+        newUser.setEmail(email);
         newUser.setPassword(passwordEncoder.encode(request.getPassword()));
         newUser.setFullName(request.getFullName() != null ? request.getFullName().trim() : "");
         newUser.setRole(Role.ROLE_TRADER);
@@ -102,5 +104,12 @@ public class AuthService {
                 .fullName(savedUser.getFullName())
                 .virtualBalance(savedUser.getVirtualBalance())
                 .build();
+    }
+
+    /**
+     * Les emails sont stockés et comparés en minuscules, sans espaces.
+     */
+    static String normalizeEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase(java.util.Locale.ROOT);
     }
 }

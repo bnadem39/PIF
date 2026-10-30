@@ -5,6 +5,7 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,11 +31,23 @@ public class JwtService {
 
     private static final Logger log = LoggerFactory.getLogger(JwtService.class);
 
-    @Value("${application.security.jwt.secret:${JWT_SECRET:une_cle_secrete_tres_longue_et_securisee_d_au_moins_256_bits_ici}}")
+    @Value("${application.security.jwt.secret:${JWT_SECRET:}}")
     private String jwtSecret;
 
     @Value("${application.security.jwt.expiration-ms:${JWT_EXPIRATION_MS:86400000}}")
     private long jwtExpirationMs;
+
+    /**
+     * Refuse de démarrer sans secret JWT robuste : un secret par défaut publié sur GitHub
+     * permettrait à n'importe qui de forger un token administrateur.
+     */
+    @PostConstruct
+    void validateSecret() {
+        if (jwtSecret == null || jwtSecret.isBlank() || jwtSecret.length() < 32) {
+            throw new IllegalStateException(
+                    "JWT_SECRET absent ou trop court (32 caractères minimum). Définissez-le dans backend/.env (voir backend/.env.example).");
+        }
+    }
 
     /**
      * Extrait l'email (subject) contenu dans le token JWT.

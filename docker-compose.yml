@@ -1,35 +1,37 @@
+# Lancer avec les variables de backend/.env (copier backend/.env.example) :
+#   docker compose --env-file backend/.env up -d postgres
+#   docker compose --env-file backend/.env --profile tools up -d pgadmin
 services:
   postgres:
     image: postgres:16-alpine
     container_name: pif-postgres
     restart: unless-stopped
-    env_file:
-      - backend/.env
     environment:
       POSTGRES_DB: ${DB_NAME:-pif_trading_db}
-      POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-Adem2026!}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      # Aucun mot de passe par défaut : DB_PASSWORD doit être défini dans backend/.env
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD manquant - copier backend/.env.example vers backend/.env}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres} -d market_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres} -d ${DB_NAME:-pif_trading_db}"]
       interval: 5s
       timeout: 5s
       retries: 5
       start_period: 10s
 
-  # Interface graphique d'administration pgAdmin (optionnel : docker compose --profile tools up -d)
+  # Interface graphique d'administration pgAdmin (optionnel : --profile tools)
   pgadmin:
-    image: dpage/pgadmin4:latest
+    image: dpage/pgadmin4:8.12
     container_name: pif-pgadmin
     restart: unless-stopped
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@gmail.com
-      PGADMIN_DEFAULT_PASSWORD: admin@26
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-}
     ports:
-      - "5050:80"
+      - "127.0.0.1:5050:80"
     depends_on:
       postgres:
         condition: service_healthy

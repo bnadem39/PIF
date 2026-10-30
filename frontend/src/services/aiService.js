@@ -2,6 +2,8 @@
 // SERVICE CONNECTEUR IA : FASTAPI & SPRING BOOT (XGBOOST, RAG, FINGPT)
 // ============================================================================
 
+import { getAuthHeaders } from './realMarketService';
+
 const AI_BASE_URL = '/api/ai';
 
 // Cache mémoire local côté client pour ne pas recalculer les mêmes bougies
@@ -14,7 +16,7 @@ export async function getAiSignal(ticker, features) {
   try {
     const res = await fetch(`${AI_BASE_URL}/predict-signal`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         ticker,
         ...features
@@ -51,7 +53,7 @@ export async function getAiAgentAnalysis(payload) {
   try {
     const res = await fetch(`${AI_BASE_URL}/agent-analysis`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify(payload)
     });
     if (!res.ok) {
@@ -88,7 +90,7 @@ export async function askAiChatbot(question, ticker = 'BIAT', domain = 'market',
   try {
     const res = await fetch(`${AI_BASE_URL}/chat/ask`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         question,
         ticker,
@@ -132,7 +134,7 @@ export async function fetchMarketPauseAudit(payload) {
   try {
     const res = await fetch(`${AI_BASE_URL}/market-pause-audit`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify(payload)
     });
     if (!res.ok) {

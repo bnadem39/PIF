@@ -7,6 +7,7 @@ import com.pif.trading.dto.WatchlistAssetDto;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -22,6 +23,10 @@ public class LocalCsvMarketDataService {
     private static final Logger log = LoggerFactory.getLogger(LocalCsvMarketDataService.class);
 
     private final ObjectMapper objectMapper;
+
+    // Racine des fichiers de données (ALL_DATA.csv, frontend/public/data, ...). Vide = auto-détection.
+    @Value("${pif.data-dir:${PIF_DATA_DIR:}}")
+    private String dataDir;
 
     // Stockage en mémoire des séries de chandeliers par ticker
     private final Map<String, List<CandleDto>> candlesByTicker = new ConcurrentHashMap<>();
@@ -407,7 +412,7 @@ public class LocalCsvMarketDataService {
         long bvmtCandlesCount = candlesByTicker.values().stream().mapToInt(List::size).sum();
         Map<String, Object> m1 = new LinkedHashMap<>();
         m1.put("fileName", "ALL_DATA.csv");
-        m1.put("folder", "d:/PIF/ALL_DATA.csv/ALL_DATA.csv");
+        m1.put("folder", displayPath(bvmtFile));
         m1.put("market", "Bourse des Valeurs Mobilières de Tunis (BVMT)");
         m1.put("category", "BVMT");
         m1.put("fileSizeFormatted", String.format("%.2f MB", bvmtSize / (1024.0 * 1024.0)));
@@ -426,7 +431,7 @@ public class LocalCsvMarketDataService {
         int bnbCount = candlesByTicker.getOrDefault("BNB-USD", Collections.emptyList()).size();
         Map<String, Object> m2 = new LinkedHashMap<>();
         m2.put("fileName", "BNB_USD_daily_data.csv");
-        m2.put("folder", "d:/PIF/BNB_USD_daily_data.csv");
+        m2.put("folder", displayPath(bnbFile));
         m2.put("market", "Binance / Crypto Currency Market");
         m2.put("category", "CRYPTO");
         m2.put("fileSizeFormatted", String.format("%.1f KB", bnbSize / 1024.0));
@@ -445,7 +450,7 @@ public class LocalCsvMarketDataService {
         int btcCount = candlesByTicker.getOrDefault("BTC-USD", Collections.emptyList()).size();
         Map<String, Object> m3 = new LinkedHashMap<>();
         m3.put("fileName", "coinbaseUSD_1-min_data.csv");
-        m3.put("folder", "d:/PIF/coinbaseUSD_1-min_data.csv/coinbaseUSD_1-min_data.csv");
+        m3.put("folder", displayPath(btcFile));
         m3.put("market", "Coinbase BTC/USD High-Frequency Intraday");
         m3.put("category", "CRYPTO");
         m3.put("fileSizeFormatted", String.format("%.1f MB", btcSize / (1024.0 * 1024.0)));
@@ -464,7 +469,7 @@ public class LocalCsvMarketDataService {
         int ethCount = candlesByTicker.getOrDefault("ETH-USD", Collections.emptyList()).size();
         Map<String, Object> m4 = new LinkedHashMap<>();
         m4.put("fileName", "ETH_1min.csv");
-        m4.put("folder", "d:/PIF/ETH_1min.csv/ETH_1min.csv");
+        m4.put("folder", displayPath(ethFile));
         m4.put("market", "Ethereum 1-Minute Tick Stream");
         m4.put("category", "CRYPTO");
         m4.put("fileSizeFormatted", String.format("%.1f MB", ethSize / (1024.0 * 1024.0)));
@@ -729,13 +734,35 @@ public class LocalCsvMarketDataService {
         return response;
     }
 
+    /**
+     * Cherche un fichier de données dans : PIF_DATA_DIR (si défini), le répertoire courant,
+     * puis le répertoire parent (cas du lancement depuis backend/).
+     */
     private File resolveFile(String path1, String path2) {
-        File f1 = new File("d:/PIF", path1);
-        if (f1.exists()) return f1;
-        File f2 = new File("d:/PIF", path2);
-        if (f2.exists()) return f2;
-        File f3 = new File(path1);
-        if (f3.exists()) return f3;
-        return new File(path2);
+        List<File> roots = new ArrayList<>();
+        if (dataDir != null && !dataDir.isBlank()) {
+            roots.add(new File(dataDir));
+        }
+        roots.add(new File("."));
+        roots.add(new File(".."));
+
+        for (File root : roots) {
+            for (String path : new String[]{path1, path2}) {
+                File candidate = new File(root, path);
+                if (candidate.isFile()) {
+                    return candidate;
+                }
+            }
+        }
+        return new File(path1);
+    }
+
+    private static String displayPath(File f) {
+        if (f == null) return "";
+        try {
+            return f.getCanonicalPath();
+        } catch (java.io.IOException e) {
+            return f.getAbsolutePath();
+        }
     }
 }
