@@ -341,3 +341,21 @@ export async function getRealIndices() {
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return await res.json();
 }
+
+/**
+ * Journal d'audit (ROLE_ADMIN uniquement)
+ */
+export async function getAuditLogs({ page = 0, size = 50, action, userId } = {}) {
+  await ensureAuthenticated();
+  const params = new URLSearchParams({ page: String(page), size: String(size) });
+  if (action) params.set('action', action);
+  if (userId != null) params.set('userId', String(userId));
+  const res = await fetch(`/api/v1/admin/audit-logs?${params.toString()}`, {
+    headers: getAuthHeaders()
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.message || `Erreur chargement du journal d'audit (${res.status})`);
+  }
+  return data;
+}

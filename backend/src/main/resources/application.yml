@@ -16,13 +16,21 @@ spring:
   # Hibernate & Spring Data JPA
   jpa:
     hibernate:
-      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+      # Le schéma est géré par Flyway (db/migration) ; Hibernate vérifie seulement la cohérence des entités
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:validate}
     show-sql: ${SPRING_JPA_SHOW_SQL:false}
     open-in-view: false
     properties:
       hibernate:
         format_sql: true
         dialect: ${SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT:org.hibernate.dialect.PostgreSQLDialect}
+
+  # Migrations Flyway. baseline-on-migrate : une base existante (créée par l'ancien ddl-auto=update)
+  # est marquée en version 1 et seules les migrations suivantes (V2+) y sont appliquées.
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 1
 
   # Cache Caffeine pour optimiser les quotas API externes
   cache:

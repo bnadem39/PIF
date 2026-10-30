@@ -13,8 +13,16 @@ import {
   Trophy,
   Layers,
   Sparkles,
-  BrainCircuit
+  BrainCircuit,
+  History,
+  GraduationCap,
+  Landmark,
+  Umbrella,
+  ShieldCheck
 } from 'lucide-react';
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import ModulePlaceholder from './pages/ModulePlaceholder';
+import AdminAuditPage from './pages/AdminAuditPage';
 import TickerTape from './components/TickerTape';
 import MarketWatch from './components/MarketWatch';
 import TradingChart from './components/TradingChart';
@@ -34,6 +42,45 @@ import {
   logoutUser,
   checkRiskOrders
 } from './services/realMarketService';
+
+// Onglets principaux : une route par module du cahier des charges
+const NAV_ITEMS = [
+  { path: '/', label: 'Terminal Time-Lapse', icon: BarChart2 },
+  { path: '/portfolio', label: 'Portefeuille & Risque', icon: PieChart },
+  { path: '/backtest', label: 'Backtesting', icon: History },
+  { path: '/learn', label: 'Formation', icon: GraduationCap },
+  { path: '/stress-test', label: 'Stress Testing', icon: Landmark },
+  { path: '/actuarial', label: 'Actuariat', icon: Umbrella },
+  { path: '/admin/audit', label: 'Audit', icon: ShieldCheck, adminOnly: true }
+];
+
+// Modules à venir (voir le plan d'audit) : remplacer chaque entrée par sa vraie page
+const PLACEHOLDER_MODULES = [
+  {
+    path: '/backtest',
+    title: 'Backtesting & comparaison de stratégies',
+    section: '§3.2 Analyse financière',
+    items: ['Définition de stratégies (SMA, RSI, signal IA, buy-and-hold)', 'Rejeu sur données historiques', 'Comparaison des performances']
+  },
+  {
+    path: '/learn',
+    title: 'Formation & apprentissage',
+    section: '§3.3',
+    items: ['Modules de cours par classe d\'actifs', 'Quiz et exercices', 'Scénarios de marché, concours, suivi de progression']
+  },
+  {
+    path: '/stress-test',
+    title: 'AI Stress Testing bancaire',
+    section: '§3.5 et §3.6',
+    items: ['Scénarios de stress (taux, marchés, défauts, récession)', 'Banques conventionnelles vs islamiques', 'Explications XAI (SHAP)']
+  },
+  {
+    path: '/actuarial',
+    title: 'Module d\'actuariat',
+    section: '§3.7',
+    items: ['Tarification (GLM fréquence / sévérité)', 'Marges de prime', 'Provisionnement (Chain Ladder)']
+  }
+];
 
 export default function App() {
   const [assets, setAssets] = useState([]);
@@ -71,7 +118,9 @@ export default function App() {
   const [assetSignals, setAssetSignals] = useState({});
 
   // Navigation principale
-  const [activeNav, setActiveNav] = useState('TRADING'); // 'TRADING', 'PORTFOLIO'
+  // Navigation principale : l'onglet actif est dérivé de l'URL (React Router)
+  const location = useLocation();
+  const navigate = useNavigate();
 
   // 1. Initialisation & Rafraîchissement du Portefeuille
   const refreshPortfolio = useCallback(async (dateToUse = simulatedDate, symbolToUse = selectedAsset?.ticker, priceToUse = currentSimulatedPrice) => {
@@ -316,33 +365,33 @@ export default function App() {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 bg-[#0284C7]/20 text-[#38BDF8] border border-[#0284C7]/40 px-2.5 py-1 rounded-lg">
             <Terminal size={17} />
-            <span className="font-extrabold tracking-wider text-sm">PIF MARKET TIME-LAPSE</span>
+            <span className="font-extrabold tracking-wider text-sm whitespace-nowrap">PIF MARKET TIME-LAPSE</span>
           </div>
-          <div className="hidden md:flex items-center gap-1.5 text-[11px] text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 px-2.5 py-0.5 rounded-full font-mono font-semibold">
+          <div className="hidden 2xl:flex items-center gap-1.5 text-[11px] text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 px-2.5 py-0.5 rounded-full font-mono font-semibold">
             <Globe size={11} /> Moteur Multi-Actifs Synchronisé + Leaderboard
           </div>
         </div>
 
         {/* Onglets de navigation */}
         <nav className="flex items-center gap-1">
-          {[
-            { id: 'TRADING', label: 'Terminal Time-Lapse Multi-Actifs', icon: BarChart2 },
-            { id: 'PORTFOLIO', label: 'Espace Portefeuille & Risque', icon: PieChart }
-          ].map((item) => {
+          {NAV_ITEMS.filter((item) => !item.adminOnly || currentUser?.role === 'ROLE_ADMIN').map((item) => {
             const Icon = item.icon;
-            const isActive = activeNav === item.id;
+            const isActive = item.path === '/'
+              ? location.pathname === '/'
+              : location.pathname.startsWith(item.path);
             return (
               <button
-                key={item.id}
-                onClick={() => setActiveNav(item.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                key={item.path}
+                onClick={() => navigate(item.path)}
+                title={item.label}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
                   isActive
                     ? 'bg-[#1E293B] text-[#38BDF8] border border-[#334155] shadow-sm'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-[#1E293B]/50'
                 }`}
               >
                 <Icon size={14} />
-                <span>{item.label}</span>
+                <span className="hidden xl:inline">{item.label}</span>
               </button>
             );
           })}
@@ -423,7 +472,8 @@ export default function App() {
       <TickerTape />
 
       {/* 3. VUE PRINCIPALE DYNAMIQUE */}
-      {activeNav === 'TRADING' ? (
+      <Routes>
+        <Route path="/" element={
         <main className="flex-1 flex overflow-hidden">
           {/* Watchlist à gauche */}
           <MarketWatch
@@ -540,14 +590,21 @@ export default function App() {
             )}
           </div>
         </main>
-      ) : (
-        /* Vue Dédiée Espace Portefeuille & Risque */
-        <PortfolioAnalyticsView
-          simulatedDate={simulatedDate}
-          selectedAsset={selectedAsset}
-          onNavigateToTrading={() => setActiveNav('TRADING')}
-        />
-      )}
+        } />
+        {/* Vue Dédiée Espace Portefeuille & Risque */}
+        <Route path="/portfolio" element={
+          <PortfolioAnalyticsView
+            simulatedDate={simulatedDate}
+            selectedAsset={selectedAsset}
+            onNavigateToTrading={() => navigate('/')}
+          />
+        } />
+        <Route path="/admin/audit" element={<AdminAuditPage currentUser={currentUser} />} />
+        {PLACEHOLDER_MODULES.map((m) => (
+          <Route key={m.path} path={m.path} element={<ModulePlaceholder {...m} />} />
+        ))}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
 
       {/* 4. FOOTER RÉSUMÉ DE COMPTE ET STATUT DU BROKER */}
       <AccountSummaryFooter

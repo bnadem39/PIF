@@ -1,6 +1,6 @@
 package com.pif.trading.model;
 
-import com.pif.market.model.User;
+import com.pif.auth.model.User;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;

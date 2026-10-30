@@ -1,8 +1,14 @@
 package com.pif.trading.controller;
 
-import com.pif.market.model.User;
-import com.pif.trading.dto.*;
-import com.pif.trading.service.AiClientService;
+import com.pif.auth.model.User;
+import com.pif.trading.dto.AccountPerformanceDto;
+import com.pif.trading.dto.OrderExecutionResponse;
+import com.pif.trading.dto.OrderRequest;
+import com.pif.trading.dto.OrderTransactionDto;
+import com.pif.trading.dto.PortfolioSummaryDto;
+import com.pif.trading.dto.PositionDto;
+import com.pif.trading.dto.UpdateRiskThresholdsRequest;
+import com.pif.ai.service.AiClientService;
 import com.pif.trading.service.TradingService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;

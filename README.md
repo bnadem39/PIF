@@ -63,6 +63,18 @@ mvnw.cmd spring-boot:run          # sous Windows
 ```
 Le serveur démarre par défaut sur le port **8080**.
 
+### Structure du backend
+Un package par module sous `com.pif` : `auth` (comptes, JWT), `marketdata` (données CSV / Alpha Vantage, cours serveur), `trading` (ordres, positions, portefeuille), `ai` (client du service FastAPI), `audit` (journal d'audit), `common` (configuration, erreurs). Un nouveau module (stress test, backtest, formation, actuariat, admin) = un nouveau package.
+
+### Base de données et migrations
+Le schéma est géré par **Flyway** (`backend/src/main/resources/db/migration`) ; Hibernate se contente de le valider. Pour modifier le schéma, ajouter un fichier `V3__description.sql` (ne jamais modifier une migration déjà appliquée). Une base existante créée par l'ancienne configuration est automatiquement « baselinée » en version 1 au premier démarrage.
+
+### Documentation de l'API
+Swagger UI : http://localhost:8080/swagger-ui.html (bouton *Authorize* : coller le token renvoyé par `POST /api/v1/auth/login`).
+
+### Journal d'audit
+Connexions (réussies et échouées), inscriptions, ordres exécutés, déclenchements SL/TP, modifications de seuils et réinitialisations sont tracés dans `audit_logs`. Consultation réservée aux administrateurs : page **Audit** du frontend ou `GET /api/v1/admin/audit-logs`.
+
 Les fichiers de données (`ALL_DATA.csv`, `BNB_USD_daily_data.csv`, `frontend/public/data/`) sont cherchés dans le répertoire courant puis le répertoire parent. Pour un autre emplacement, définir `PIF_DATA_DIR`.
 
 ---
@@ -110,6 +122,11 @@ py ai_server.py                      # écoute sur http://127.0.0.1:8000 (AI_HOS
 ```
 CORS : seules les origines de `AI_ALLOWED_ORIGINS` (par défaut le backend `http://localhost:8080`) sont acceptées.
 Le point d'entrée `/query` accepte un JSON `{"question": "…", "bank_type": "conventional|islamic|all"}` et renvoie le contexte RAG formaté.
+
+---
+
+## 🔁 Intégration continue
+Chaque pull request (et chaque push sur `main`) lance `.github/workflows/ci.yml` : tests backend, build frontend et vérification syntaxique du service IA. Ne fusionnez pas une PR dont la CI est rouge.
 
 ---
 

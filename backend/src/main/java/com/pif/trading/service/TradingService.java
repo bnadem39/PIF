@@ -1,8 +1,18 @@
 package com.pif.trading.service;
 
-import com.pif.market.model.User;
-import com.pif.market.repository.UserRepository;
-import com.pif.trading.dto.*;
+import com.pif.marketdata.service.MarketPriceService;
+
+import com.pif.audit.model.AuditAction;
+import com.pif.audit.service.AuditService;
+import com.pif.auth.model.User;
+import com.pif.auth.repository.UserRepository;
+import com.pif.trading.dto.AccountPerformanceDto;
+import com.pif.trading.dto.OrderExecutionResponse;
+import com.pif.trading.dto.OrderRequest;
+import com.pif.trading.dto.OrderTransactionDto;
+import com.pif.trading.dto.PortfolioSummaryDto;
+import com.pif.trading.dto.PositionDto;
+import com.pif.trading.dto.UpdateRiskThresholdsRequest;
 import com.pif.trading.exception.InsufficientFundsException;
 import com.pif.trading.exception.InsufficientPositionException;
 import com.pif.trading.model.ExecutionType;
@@ -38,15 +48,24 @@ public class TradingService {
     private final PositionRepository positionRepository;
     private final OrderTransactionRepository transactionRepository;
     private final MarketPriceService marketPriceService;
+    private final AuditService auditService;
 
     public TradingService(UserRepository userRepository,
                           PositionRepository positionRepository,
                           OrderTransactionRepository transactionRepository,
-                          MarketPriceService marketPriceService) {
+                          MarketPriceService marketPriceService,
+                          AuditService auditService) {
         this.userRepository = userRepository;
         this.positionRepository = positionRepository;
         this.transactionRepository = transactionRepository;
         this.marketPriceService = marketPriceService;
+        this.auditService = auditService;
+    }
+
+    private void auditOrder(User user, AuditAction action, OrderExecutionResponse resp, String extra) {
+        auditService.record(user, action, true, String.format("%s %d %s @ %s TND, frais %s, date simulée %s%s",
+                resp.type(), resp.quantity(), resp.symbol(), resp.executionPrice(), resp.fees(), resp.simulatedDate(),
+                extra != null ? " (" + extra + ")" : ""));
     }
 
     /**
@@ -101,10 +120,14 @@ public class TradingService {
 
         if (request.type() == OrderType.BUY) {
             validateProtectiveLevels(price, request.stopLossPrice(), request.takeProfitPrice(), request.trailingStopDistance());
-            return executeBuyOrder(persistentUser, symbol, quantity, price, simDate,
+            OrderExecutionResponse buy = executeBuyOrder(persistentUser, symbol, quantity, price, simDate,
                     request.stopLossPrice(), request.takeProfitPrice(), request.trailingStopDistance());
+            auditOrder(persistentUser, AuditAction.ORDER_EXECUTED, buy, execType.name());
+            return buy;
         }
-        return executeSellOrder(persistentUser, symbol, quantity, price, simDate);
+        OrderExecutionResponse sell = executeSellOrder(persistentUser, symbol, quantity, price, simDate);
+        auditOrder(persistentUser, AuditAction.ORDER_EXECUTED, sell, execType.name());
+        return sell;
     }
 
     /**
@@ -553,6 +576,7 @@ public class TradingService {
         persistentUser.setBlockedCash(BigDecimal.ZERO.setScale(3, RoundingMode.HALF_UP));
         userRepository.save(persistentUser);
 
+        auditService.record(persistentUser, AuditAction.ACCOUNT_RESET, true, null);
         log.info("Compte réinitialisé pour l'utilisateur {} : Solde restauré à {} TND.",
                 user.getEmail(), INITIAL_CAPITAL);
     }
@@ -585,6 +609,9 @@ public class TradingService {
                 ? unrealized.divide(costBasis, 4, RoundingMode.HALF_UP).multiply(new BigDecimal("100")).setScale(2, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
 
+        auditService.record(user, AuditAction.RISK_THRESHOLDS_UPDATED, true, String.format(
+                "Position #%d %s : SL=%s, TP=%s, TS=%s", positionId, saved.getSymbol(),
+                saved.getStopLossPrice(), saved.getTakeProfitPrice(), saved.getTrailingStopDistance()));
         log.info("Seuils de risque mis à jour pour position #{} ({}): SL={}, TP={}, TS={}",
                 positionId, saved.getSymbol(), saved.getStopLossPrice(), saved.getTakeProfitPrice(), saved.getTrailingStopDistance());
 
@@ -663,6 +690,7 @@ public class TradingService {
                         currentPrice,
                         simulatedDate
                 );
+                auditOrder(persistentUser, AuditAction.RISK_ORDER_TRIGGERED, sellResp, reason);
                 triggeredOrders.add(sellResp);
             }
         }
