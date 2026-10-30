@@ -4,7 +4,6 @@ import com.pif.marketdata.exception.PriceUnavailableException;
 import com.pif.trading.exception.InsufficientPositionException;
 import com.pif.trading.exception.InsufficientFundsException;
 
-import com.pif.stresstest.service.AiServiceUnavailableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.PessimisticLockingFailureException;

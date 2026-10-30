@@ -24,6 +24,7 @@ import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-
 import ModulePlaceholder from './pages/ModulePlaceholder';
 import AdminAuditPage from './pages/AdminAuditPage';
 import StressTestPage from './pages/StressTestPage';
+import BacktestPage from './pages/BacktestPage';
 import TickerTape from './components/TickerTape';
 import MarketWatch from './components/MarketWatch';
 import TradingChart from './components/TradingChart';
@@ -57,12 +58,6 @@ const NAV_ITEMS = [
 
 // Modules à venir (voir le plan d'audit) : remplacer chaque entrée par sa vraie page
 const PLACEHOLDER_MODULES = [
-  {
-    path: '/backtest',
-    title: 'Backtesting & comparaison de stratégies',
-    section: '§3.2 Analyse financière',
-    items: ['Définition de stratégies (SMA, RSI, signal IA, buy-and-hold)', 'Rejeu sur données historiques', 'Comparaison des performances']
-  },
   {
     path: '/learn',
     title: 'Formation & apprentissage',
@@ -596,6 +591,7 @@ export default function App() {
         } />
         <Route path="/admin/audit" element={<AdminAuditPage currentUser={currentUser} />} />
         <Route path="/stress-test" element={<StressTestPage currentUser={currentUser} />} />
+        <Route path="/backtest" element={<BacktestPage currentUser={currentUser} />} />
         {PLACEHOLDER_MODULES.map((m) => (
           <Route key={m.path} path={m.path} element={<ModulePlaceholder {...m} />} />
         ))}

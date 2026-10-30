@@ -1,7 +1,7 @@
 package com.pif.stresstest.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pif.stresstest.service.AiServiceUnavailableException;
+import com.pif.common.exception.AiServiceUnavailableException;
 import com.pif.stresstest.service.StressTestAiClient;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
