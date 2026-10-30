@@ -4,6 +4,7 @@ import com.pif.marketdata.exception.PriceUnavailableException;
 import com.pif.trading.exception.InsufficientPositionException;
 import com.pif.trading.exception.InsufficientFundsException;
 
+import com.pif.stresstest.service.AiServiceUnavailableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.PessimisticLockingFailureException;
@@ -48,6 +49,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Map<String, Object>> handleUnreadable(HttpMessageNotReadableException ex) {
         return body(HttpStatus.BAD_REQUEST, "Requête JSON invalide ou valeur non reconnue.");
+    }
+
+    @ExceptionHandler(AiServiceUnavailableException.class)
+    public ResponseEntity<Map<String, Object>> handleAiUnavailable(AiServiceUnavailableException ex) {
+        log.warn("{} ({})", ex.getMessage(), ex.getCause() != null ? ex.getCause().getMessage() : "");
+        return body(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage());
     }
 
     @ExceptionHandler(PessimisticLockingFailureException.class)

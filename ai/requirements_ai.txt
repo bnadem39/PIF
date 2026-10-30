@@ -32,3 +32,6 @@ pydantic>=2.0.0
 # ─── Utilitaires ─────────────────────────────────────────────
 tqdm>=4.65.0
 python-dotenv>=1.0.0
+
+# ─── Stress testing & XAI ────────────────────────────────────
+shap>=0.44.0             # Explications SHAP (TreeExplainer / LinearExplainer)

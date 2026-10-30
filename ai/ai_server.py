@@ -31,6 +31,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
+from stress.api import router as stress_router, state as stress_state
+
 AI_DIR   = Path(__file__).parent
 LOGS_DIR = AI_DIR / "logs"
 
@@ -108,6 +110,9 @@ async def load_components():
 async def lifespan(app: FastAPI):
     """Cycle de vie de l application FastAPI."""
     await load_components()
+    # Modèles de stress testing : chargement / entraînement en arrière-plan (ne bloque pas le démarrage)
+    import threading
+    threading.Thread(target=stress_state.ready, name="stress-warmup", daemon=True).start()
     yield
     # Nettoyage memoire au shutdown
     if state.fingpt_agent:
@@ -134,6 +139,8 @@ ALLOWED_ORIGINS = [
     for o in os.getenv("AI_ALLOWED_ORIGINS", "http://localhost:8080,http://127.0.0.1:8080").split(",")
     if o.strip()
 ]
+
+app.include_router(stress_router)
 
 app.add_middleware(
     CORSMiddleware,

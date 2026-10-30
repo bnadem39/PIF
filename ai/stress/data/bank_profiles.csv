@@ -1,0 +1,9 @@
+bank_id,name,bank_type,total_assets,loans,real_estate_share,equity_financing_share,sovereign_securities,equity_holdings,hqla,deposits,psia,net_outflows_30d,cet1,rwa,npl_ratio,pre_tax_profit,non_interest_income,rate_gap,bond_duration,cost_income
+CONV_A,Banque conventionnelle A (grande),conventional,20000,14000,0.25,0,3500,400,2500,15000,0,1800,1650,13500,0.11,380,450,-0.08,3.5,0.48
+CONV_B,Banque conventionnelle B (publique),conventional,15000,11500,0.30,0,2200,250,1500,11000,0,1500,1100,11000,0.17,150,300,-0.12,4.0,0.58
+CONV_C,Banque conventionnelle C (moyenne),conventional,9000,6300,0.22,0,1500,200,1200,6800,0,900,900,6600,0.09,190,220,-0.05,3.0,0.45
+CONV_D,Banque conventionnelle D (petite),conventional,4000,3000,0.35,0,500,120,450,3000,0,420,380,3200,0.14,60,80,-0.10,3.5,0.55
+CONV_E,Banque conventionnelle E (moyenne fragile),conventional,7000,5400,0.28,0,900,300,700,5200,0,800,640,6000,0.15,90,150,-0.09,3.8,0.57
+ISLM_A,Banque islamique A (grande),islamic,6000,4500,0.40,0.10,600,150,800,2800,2400,500,560,4300,0.07,110,130,-0.02,2.5,0.50
+ISLM_B,Banque islamique B (petite),islamic,2500,1900,0.45,0.15,200,80,300,1100,1000,230,260,2100,0.09,35,45,-0.01,2.0,0.56
+ISLM_C,Banque islamique C (moyenne),islamic,3500,2600,0.35,0.20,350,140,400,1700,1300,320,330,2900,0.11,40,60,-0.03,2.2,0.58

@@ -39,12 +39,17 @@ jobs:
       - run: npm run build
 
   ai:
-    name: AI service (Python syntax check)
+    name: AI service (syntax check + stress tests)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: pip
       # Vérification légère : les dépendances complètes (torch, chromadb...) sont trop lourdes pour la CI
       - run: python -m py_compile ai/*.py
+      # Le module de stress testing n'a besoin que d'un sous-ensemble léger des dépendances
+      - run: pip install numpy pandas scikit-learn xgboost-cpu shap joblib fastapi httpx pytest
+      - run: python -m pytest stress/tests -q
+        working-directory: ai

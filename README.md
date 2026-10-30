@@ -123,10 +123,27 @@ py ai_server.py                      # écoute sur http://127.0.0.1:8000 (AI_HOS
 CORS : seules les origines de `AI_ALLOWED_ORIGINS` (par défaut le backend `http://localhost:8080`) sont acceptées.
 Le point d'entrée `/query` accepte un JSON `{"question": "…", "bank_type": "conventional|islamic|all"}` et renvoie le contexte RAG formaté.
 
+### 5️⃣ AI Stress Testing bancaire + SHAP (`ai/stress/`)
+Module du cahier §3.5 et §3.6, servi par `ai_server.py` sous `/api/ai/stress/*` et exposé au frontend par Spring (`/api/v1/stress-test/*`, page **Stress Testing**).
+
+```bash
+cd ai
+python -m stress.models              # pré-entraîne les modèles (~1 min) ; sinon fait au 1er appel
+python -m pytest stress/tests -q     # tests du module
+```
+
+- **Scénarios** : 6 scénarios prédéfinis (référence, hausse des taux, krach, récession, crise de crédit, choc combiné) stockés en base (migration `V3`) ; l'admin peut en créer d'autres (`/api/v1/admin/stress-test/scenarios`) et chaque utilisateur peut lancer un scénario personnalisé.
+- **Modèles** : Ridge, Random Forest et XGBoost sont comparés en validation croisée à 5 plis pour prédire la hausse des créances douteuses et le taux de perte de crédit ; le meilleur R² est retenu.
+- **Projection** : pertes de crédit, de marché (actions, obligations × duration), marge d'intérêt (gap de taux), revenus, puis CET1, LCR, NPL, ROA et besoin en capital. Statut `CRITIQUE` (< 7 %), `VULNERABLE` (< minimum réglementaire, 10 % par défaut, ou LCR < 1) ou `RESILIENTE`.
+- **Spécificités islamiques** : les PSIA absorbent 80 % des pertes sur les actifs qu'ils financent, risque commercial déplacé (DCR) quand les taux montent, Murabaha moins sensible aux taux, Musharaka/Mudaraba exposées comme des fonds propres.
+- **XAI** : contributions SHAP par banque, écart SHAP entre la banque conventionnelle et la banque islamique les plus touchées, importance globale.
+
+> ⚠️ **Données illustratives.** Les profils de `ai/stress/data/bank_profiles.csv` sont anonymisés et les modèles sont entraînés sur un jeu **synthétique** dont le processus générateur est documenté dans `ai/stress/dataset.py`. Pour des résultats réels, remplacez le CSV par les chiffres des rapports annuels et ré-entraînez sur des données historiques (BCT, FMI) avec les mêmes colonnes.
+
 ---
 
 ## 🔁 Intégration continue
-Chaque pull request (et chaque push sur `main`) lance `.github/workflows/ci.yml` : tests backend, build frontend et vérification syntaxique du service IA. Ne fusionnez pas une PR dont la CI est rouge.
+Chaque pull request (et chaque push sur `main`) lance `.github/workflows/ci.yml` : tests backend, build frontend, vérification syntaxique du service IA et tests du module de stress testing. Ne fusionnez pas une PR dont la CI est rouge.
 
 ---
 
