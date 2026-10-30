@@ -82,7 +82,7 @@ Rejoue des stratégies sur l'historique journalier local et compare leurs perfor
 achat-conservation, croisement de moyennes mobiles, RSI, MACD, Bollinger et signal IA, chacune avec ses paramètres.
 
 - **Sans biais d'anticipation** : la décision prise à la clôture d'un jour est exécutée à l'ouverture du jour suivant. Le préchauffage des indicateurs utilise l'historique antérieur à la période ; les jours postérieurs ne sont jamais lus.
-- **Réaliste** : frais (0,4 % par défaut) et slippage (0,1 %) sur chaque transaction, titres entiers, pas de vente à découvert.
+- **Réaliste** : frais (0,4 % par défaut) et slippage (0,1 %) sur chaque transaction, titres entiers pour les actions (quantités fractionnaires pour les crypto-actifs, divisibles), pas de vente à découvert.
 - **Indicateurs** : rendement total et annualisé, volatilité, Sharpe, Sortino, perte maximale, Calmar, bêta, nombre de trades, taux de réussite, profit factor, exposition, frais payés.
 
 ---

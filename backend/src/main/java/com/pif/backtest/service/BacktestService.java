@@ -90,7 +90,7 @@ public class BacktestService {
             }
 
             int[] targets = SignalGenerator.targets(spec.type(), params, close, ai);
-            BacktestEngine.Run run = BacktestEngine.run(bars, targets, from, to, capital, costs, rf);
+            BacktestEngine.Run run = BacktestEngine.run(bars, targets, from, to, capital, costs, rf, !isCrypto(symbol));
             int idx = seen.merge(spec.type(), 1, Integer::sum);
             List<TradeDto> trades = run.trades();
             if (trades.size() > MAX_TRADES_RETURNED) {
@@ -125,7 +125,12 @@ public class BacktestService {
         return out;
     }
 
-    List<Bar> loadBars(String symbol) {
+    /** Les crypto-actifs (cotés en paire « XXX-USD ») sont divisibles, contrairement aux actions. */
+    static boolean isCrypto(String symbol) {
+        return symbol.endsWith("-USD");
+    }
+
+    public List<Bar> loadBars(String symbol) {
         List<CandleDto> candles = marketData.getCandles(symbol, "1d", "ALL", 0);
         List<Bar> bars = new ArrayList<>(candles.size());
         String last = "";

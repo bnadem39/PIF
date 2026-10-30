@@ -6,7 +6,7 @@ public record TradeDto(
         double entryPrice,
         String exitDate,
         double exitPrice,
-        long quantity,
+        double quantity,
         double pnl,
         double returnPct,
         boolean open

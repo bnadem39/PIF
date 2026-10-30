@@ -13,7 +13,8 @@ import java.util.List;
  * Simulation « long ou liquide » d'une série de positions souhaitées, sans biais d'anticipation :
  * la décision prise à la clôture du jour i est exécutée au cours d'ouverture du jour i + 1,
  * corrigé du slippage, et chaque transaction paie une commission proportionnelle.
- * Le portefeuille démarre liquide au premier jour de la période et n'achète que des titres entiers.
+ * Le portefeuille démarre liquide au premier jour de la période. Les actions s'achètent par titres entiers,
+ * les crypto-actifs, divisibles, en quantité fractionnaire.
  */
 public final class BacktestEngine {
 
@@ -31,10 +32,12 @@ public final class BacktestEngine {
      * @param targets position souhaitée à la clôture de chaque jour
      * @param from    premier jour simulé (inclus)
      * @param to      dernier jour simulé (inclus)
+     * @param wholeUnits true pour n'acheter que des titres entiers (actions), false pour un actif divisible
      */
-    public static Run run(List<Bar> bars, int[] targets, int from, int to, double initialCapital, Costs costs, double riskFreeRate) {
+    public static Run run(List<Bar> bars, int[] targets, int from, int to, double initialCapital, Costs costs,
+                          double riskFreeRate, boolean wholeUnits) {
         double cash = initialCapital;
-        long qty = 0;
+        double qty = 0;
         double totalCosts = 0;
         String entryDate = null;
         double entryCost = 0;     // montant décaissé à l'achat, frais compris
@@ -52,7 +55,8 @@ public final class BacktestEngine {
 
             if (desired == 1 && qty == 0) {
                 double price = open * (1 + costs.slippage());
-                long n = (long) Math.floor(cash / (price * (1 + costs.commission())));
+                double affordable = cash / (price * (1 + costs.commission()));
+                double n = wholeUnits ? Math.floor(affordable) : affordable;
                 if (n > 0) {
                     double notional = n * price;
                     double fee = notional * costs.commission();
