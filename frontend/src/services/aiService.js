@@ -172,3 +172,42 @@ export async function fetchMarketPauseAudit(payload) {
     };
   }
 }
+
+async function getJson(url) {
+  const res = await fetch(url, { headers: getAuthHeaders() });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || `Erreur IA (HTTP ${res.status})`);
+  return data;
+}
+
+/**
+ * Signal XGBoost de chaque actif à la date simulée, calculé côté serveur sur l'historique réel
+ * (cours de clôture, variation du jour, volume, probabilités d'achat et de vente).
+ * @returns {Promise<{symbol: string, date: string, close: number, changePct: number, volume: number,
+ *                    signal: -1|0|1, pBuy: number, pSell: number}[]>}
+ */
+export const getMarketSignals = (date, symbols) =>
+  getJson(`/api/v1/ai/signals?date=${encodeURIComponent(date)}&symbols=${encodeURIComponent(symbols.join(','))}`);
+
+/** Indicateurs réels, probabilités et contributions de Shapley du signal d'un actif à la date simulée. */
+export const explainSignal = (symbol, date) =>
+  getJson(`/api/v1/ai/explain?symbol=${encodeURIComponent(symbol)}&date=${encodeURIComponent(date)}`);
+
+/** Séances anormales (rendement, volume, amplitude) de l'actif jusqu'à la date simulée. */
+export const getAnomalies = (symbol, date) =>
+  getJson(`/api/v1/ai/anomalies?symbol=${encodeURIComponent(symbol)}&date=${encodeURIComponent(date)}`);
+
+/**
+ * Optimisation de Markowitz à la date simulée : variance minimale, Sharpe maximal, équipondéré et portefeuille actuel,
+ * avec la frontière efficiente. Sans actifs fournis, le serveur prend les positions détenues.
+ */
+export async function optimizePortfolio({ date, symbols, lookbackDays, maxWeight, riskFree }) {
+  const res = await fetch('/api/v1/ai/optimize', {
+    method: 'POST',
+    headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ date, symbols, lookbackDays, maxWeight, riskFree })
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || `Erreur IA (HTTP ${res.status})`);
+  return data;
+}

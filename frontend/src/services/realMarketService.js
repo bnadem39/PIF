@@ -323,8 +323,9 @@ export async function getRawCsvData(symbol, year = 'ALL', page = 0, size = 50, s
 /**
  * Récupère le carnet d'ordres L2 depuis Spring Boot
  */
-export async function getRealOrderBook(symbol) {
-  const res = await fetch(`${API_BASE}/orderbook?symbol=${encodeURIComponent(symbol)}`, {
+export async function getRealOrderBook(symbol, price) {
+  const priceParam = price ? `&price=${encodeURIComponent(price)}` : '';
+  const res = await fetch(`${API_BASE}/orderbook?symbol=${encodeURIComponent(symbol)}${priceParam}`, {
     headers: getAuthHeaders()
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -334,8 +335,8 @@ export async function getRealOrderBook(symbol) {
 /**
  * Récupère les indices majeurs pour le Ticker Tape
  */
-export async function getRealIndices() {
-  const res = await fetch(`${API_BASE}/indices`, {
+export async function getRealIndices(date) {
+  const res = await fetch(`${API_BASE}/indices${date ? `?date=${encodeURIComponent(date)}` : ''}`, {
     headers: getAuthHeaders()
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);

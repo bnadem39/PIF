@@ -1,6 +1,7 @@
 package com.pif.marketdata.service;
 
 import com.pif.marketdata.client.AlphaVantageClient;
+import com.pif.marketdata.config.AlphaVantageProperties;
 import com.pif.marketdata.dto.CandleDto;
 import com.pif.marketdata.dto.IndicatorPointDto;
 import com.pif.marketdata.dto.MarketHistoryResponse;
@@ -31,9 +32,19 @@ public class MarketDataService {
             new WatchlistAssetDto("SPY", "SPDR S&P 500 ETF Trust", "INDEX", "Indice US S&P 500", "USD", 575.20, 0.35, 577.10, 573.50, "52.0M USD")
     );
 
-    public MarketDataService(AlphaVantageClient alphaVantageClient, LocalCsvMarketDataService localCsvService) {
+    private final AlphaVantageProperties alphaVantageProperties;
+
+    public MarketDataService(AlphaVantageClient alphaVantageClient, LocalCsvMarketDataService localCsvService,
+                             AlphaVantageProperties alphaVantageProperties) {
         this.alphaVantageClient = alphaVantageClient;
         this.localCsvService = localCsvService;
+        this.alphaVantageProperties = alphaVantageProperties;
+    }
+
+    /** Les titres internationaux ne sont proposés qu'avec une vraie clé Alpha Vantage (« demo » ne sert que IBM). */
+    boolean alphaVantageConfigured() {
+        String key = alphaVantageProperties.getApiKey();
+        return key != null && !key.isBlank() && !key.equalsIgnoreCase("demo") && !key.startsWith("votre_");
     }
 
     /**
@@ -46,7 +57,8 @@ public class MarketDataService {
         combined.addAll(localCsvService.getAllAssets(category));
 
         // 2. Actifs internationaux Alpha Vantage
-        if (category == null || category.equalsIgnoreCase("ALL") || category.equalsIgnoreCase("US_EQUITY") || category.equalsIgnoreCase("INDEX")) {
+        if (alphaVantageConfigured() && (category == null || category.equalsIgnoreCase("ALL")
+                || category.equalsIgnoreCase("US_EQUITY") || category.equalsIgnoreCase("INDEX"))) {
             for (var us : ALPHA_VANTAGE_ASSETS) {
                 if (category == null || category.equalsIgnoreCase("ALL") || us.category().equalsIgnoreCase(category)) {
                     combined.add(us);
@@ -91,10 +103,9 @@ public class MarketDataService {
             if (candles != null && !candles.isEmpty()) {
                 source = "Alpha Vantage Financial API (Live)";
             } else {
-                // Fallback de haute fidélité pour continuité de marché (résilience clé demo / quotas)
-                log.info("Activation du fallback haute fidélité de continuité de marché pour {}", sym);
-                candles = generateFallbackMarketCandles(sym, interval, limit);
-                source = "Données simulées (Alpha Vantage indisponible)";
+                // Pas de série inventée : sans réponse d'Alpha Vantage, l'historique est vide
+                candles = new ArrayList<>();
+                source = "Alpha Vantage indisponible (clé API absente ou quota atteint)";
             }
 
             // Filtrage par année pour les actifs Alpha Vantage si demandé
@@ -183,84 +194,10 @@ public class MarketDataService {
     }
 
     /**
-     * Génère une série de chandeliers réaliste et continue pour les actifs internationaux
-     * en cas d'indisponibilité ou d'épuisement des quotas Alpha Vantage (25 req/jour).
+     * Génère un carnet d'ordres L2 simulé autour du cours à la date simulée (la BVMT ne publie pas le carnet
+     * historique) ; sans cours fourni, autour du dernier cours connu.
      */
-    private List<CandleDto> generateFallbackMarketCandles(String symbol, String interval, int limit) {
-        String sym = symbol.toUpperCase();
-        WatchlistAssetDto asset = ALPHA_VANTAGE_ASSETS.stream()
-                .filter(a -> a.ticker().equalsIgnoreCase(sym))
-                .findFirst()
-                .orElse(new WatchlistAssetDto(sym, sym + " Corporation", "US_EQUITY", "International Stock", "USD", 150.0, 0.5, 152.0, 148.0, "5.0M USD"));
-
-        double targetClose = asset.price();
-        int points = Math.min(Math.max(limit, 100), 200);
-        List<CandleDto> list = new ArrayList<>(points);
-
-        Random random = new Random(sym.hashCode() * 41L);
-        double[] prices = new double[points];
-        prices[points - 1] = targetClose;
-
-        // Marche aléatoire financière (Geometric Brownian Motion) rétrograde
-        double current = targetClose;
-        for (int i = points - 2; i >= 0; i--) {
-            double vol = "INDEX".equalsIgnoreCase(asset.category()) ? 0.009 : 0.016;
-            double shock = (random.nextGaussian() * vol) + 0.0002;
-            current = current / (1.0 + shock);
-            if (current <= 1.0) current = targetClose * 0.8;
-            prices[i] = current;
-        }
-
-        int stepSeconds = switch (interval.toLowerCase()) {
-            case "1m" -> 60;
-            case "5m" -> 300;
-            case "15m" -> 900;
-            case "1h", "60m" -> 3600;
-            default -> 0;
-        };
-
-        if (stepSeconds > 0) {
-            long nowSec = (System.currentTimeMillis() / 1000L) - ((long) points * stepSeconds);
-            for (int i = 0; i < points; i++) {
-                double c = Math.round(prices[i] * 100.0) / 100.0;
-                double o = i == 0 ? c : Math.round(prices[i - 1] * 100.0) / 100.0;
-                double spread = Math.max(0.1, c * 0.003);
-                double h = Math.round((Math.max(o, c) + Math.abs(random.nextGaussian()) * spread) * 100.0) / 100.0;
-                double l = Math.round((Math.min(o, c) - Math.abs(random.nextGaussian()) * spread) * 100.0) / 100.0;
-                long vol = 5000 + (long) (Math.abs(random.nextGaussian()) * 25000);
-                list.add(new CandleDto(String.valueOf(nowSec + ((long) i * stepSeconds)), o, h, l, c, vol));
-            }
-        } else {
-            // Daily : jours de trading réels ouvrés (lundi au vendredi)
-            List<java.time.LocalDate> tradingDays = new ArrayList<>();
-            java.time.LocalDate curDate = java.time.LocalDate.now();
-            while (tradingDays.size() < points) {
-                if (curDate.getDayOfWeek() != java.time.DayOfWeek.SATURDAY && curDate.getDayOfWeek() != java.time.DayOfWeek.SUNDAY) {
-                    tradingDays.add(curDate);
-                }
-                curDate = curDate.minusDays(1);
-            }
-            Collections.reverse(tradingDays);
-
-            java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
-            for (int i = 0; i < points; i++) {
-                double c = Math.round(prices[i] * 100.0) / 100.0;
-                double o = i == 0 ? c : Math.round(prices[i - 1] * 100.0) / 100.0;
-                double spread = Math.max(0.2, c * 0.012);
-                double h = Math.round((Math.max(o, c) + Math.abs(random.nextGaussian()) * spread) * 100.0) / 100.0;
-                double l = Math.round((Math.min(o, c) - Math.abs(random.nextGaussian()) * spread) * 100.0) / 100.0;
-                long vol = 1_000_000L + (long) (Math.abs(random.nextGaussian()) * 5_000_000L);
-                list.add(new CandleDto(tradingDays.get(i).format(fmt), o, h, l, c, vol));
-            }
-        }
-
-        return list;
-    }
-
-    /**
-     * Génère un carnet d'ordres L2 adossé au cours réel
-     */
-    public OrderBookDto getOrderBook(String symbol) {
+    public OrderBookDto getOrderBook(String symbol, Double price) {
         String sym = symbol.toUpperCase();
         WatchlistAssetDto asset = localCsvService.getAsset(sym)
                 .orElseGet(() -> ALPHA_VANTAGE_ASSETS.stream()
@@ -268,7 +205,7 @@ public class MarketDataService {
                         .findFirst()
                         .orElse(ALPHA_VANTAGE_ASSETS.get(0)));
 
-        double midPrice = asset.price();
+        double midPrice = price != null && price > 0 ? price : asset.price();
         boolean isCrypto = "CRYPTO".equalsIgnoreCase(asset.category());
         double tickSize = isCrypto ? (midPrice > 1000 ? 0.5 : 0.05) : 0.050;
 

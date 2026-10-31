@@ -23,11 +23,13 @@ import {
   resetAccountPortfolio,
   explainPortfolioAudit
 } from '../services/realMarketService';
+import PortfolioOptimizerPanel from './PortfolioOptimizerPanel';
 
 export default function PortfolioAnalyticsView({
   simulatedDate,
   selectedAsset,
-  onNavigateToTrading
+  onNavigateToTrading,
+  allSymbols = []
 }) {
   const [portfolio, setPortfolio] = useState(null);
   const [transactions, setTransactions] = useState([]);
@@ -569,7 +571,14 @@ export default function PortfolioAnalyticsView({
         </div>
       </div>
 
-      {/* 5. JOURNAL DES TRANSACTIONS (AUDIT TRAIL) */}
+      {/* 5. OPTIMISATION DE PORTEFEUILLE (MARKOWITZ) */}
+      <PortfolioOptimizerPanel
+        simulatedDate={simulatedDate}
+        heldSymbols={(portfolio?.positions || []).map((p) => p.symbol)}
+        allSymbols={allSymbols}
+      />
+
+      {/* 6. JOURNAL DES TRANSACTIONS (AUDIT TRAIL) */}
       <div className="bg-[#0F172A] border border-[#1E293B] rounded-xl overflow-hidden">
         <div className="px-4 py-3 bg-[#0A0E17] border-b border-[#1E293B] flex items-center justify-between">
           <div className="flex items-center gap-2">

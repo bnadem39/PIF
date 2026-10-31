@@ -14,38 +14,45 @@ export default function MarketWatch({ assets = [], selectedAsset, onSelectAsset,
     return matchesSearch && matchesCategory;
   });
 
+  // Signal XGBoost à la date simulée (calculé côté serveur) : achat ou vente au seuil de 60 %, sinon attente
   const getSignalBadge = (sig) => {
-    if (!sig) {
+    if (!sig || sig.pBuy == null) {
       return (
-        <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700/60">
-          NEUTRE
+        <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-500 border border-slate-700/60">
+          IA —
         </span>
       );
     }
-    const action = sig.action || (sig.prediction === 1 ? 'BUY' : (sig.prediction === -1 ? 'SELL' : 'HOLD'));
-    const prob = Math.round((sig.probabilities?.buy || sig.probability_up || 0.33) * 100);
-    const probSell = Math.round((sig.probabilities?.sell || 0.33) * 100);
-
-    if (action === 'BUY' || (sig.probabilities?.buy >= 0.60)) {
+    if (sig.signal === 1) {
       return (
-        <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-950/90 text-emerald-400 border border-emerald-700/80 shadow-sm animate-pulse">
-          ACHAT {prob}%
+        <span title={`P(hausse) ${Math.round(sig.pBuy * 100)} %`} className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-950/90 text-emerald-400 border border-emerald-700/80">
+          ACHAT {Math.round(sig.pBuy * 100)}%
         </span>
       );
     }
-    if (action === 'SELL' || (sig.probabilities?.sell >= 0.60)) {
+    if (sig.signal === -1) {
       return (
-        <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-rose-950/90 text-rose-400 border border-rose-700/80 shadow-sm">
-          VENTE {probSell}%
+        <span title={`P(baisse) ${Math.round(sig.pSell * 100)} %`} className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-rose-950/90 text-rose-400 border border-rose-700/80">
+          VENTE {Math.round(sig.pSell * 100)}%
         </span>
       );
     }
     return (
-      <span className="text-[9px] font-mono font-medium px-1.5 py-0.5 rounded bg-slate-800/80 text-slate-400 border border-slate-700/50">
+      <span
+        title={`P(hausse) ${Math.round(sig.pBuy * 100)} % · P(baisse) ${Math.round(sig.pSell * 100)} % : sous le seuil de 60 %`}
+        className="text-[9px] font-mono font-medium px-1.5 py-0.5 rounded bg-slate-800/80 text-slate-400 border border-slate-700/50"
+      >
         ATTENTE
       </span>
     );
   };
+
+  const categories = [
+    { id: 'ALL', label: 'Tous' },
+    { id: 'BVMT', label: 'BVMT' },
+    { id: 'CRYPTO', label: 'Crypto' },
+    ...(assets.some((a) => a.category === 'US_EQUITY') ? [{ id: 'US_EQUITY', label: 'US' }] : [])
+  ];
 
   return (
     <aside className="w-80 bg-[#0F172A] border-r border-[#1E293B] flex flex-col h-full select-none">
@@ -66,7 +73,7 @@ export default function MarketWatch({ assets = [], selectedAsset, onSelectAsset,
           <Search size={14} className="absolute left-2.5 top-2.5 text-slate-400" />
           <input
             type="text"
-            placeholder="Rechercher (ex: IBM, AAPL, BTC, BIAT)..."
+            placeholder="Rechercher (ex : BIAT, SFBT, BTC)..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full bg-[#1E293B] border border-[#334155] rounded-md pl-8 pr-3 py-1.5 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:border-[#38BDF8] transition-colors"
@@ -74,13 +81,8 @@ export default function MarketWatch({ assets = [], selectedAsset, onSelectAsset,
         </div>
 
         {/* Filtres par classe d'actifs */}
-        <div className="grid grid-cols-4 gap-1 mt-2">
-          {[
-            { id: 'ALL', label: 'Tous' },
-            { id: 'US_EQUITY', label: 'Actions' },
-            { id: 'CRYPTO', label: 'Crypto' },
-            { id: 'BVMT', label: 'BVMT' }
-          ].map((cat) => (
+        <div className="grid gap-1 mt-2" style={{ gridTemplateColumns: `repeat(${categories.length}, minmax(0, 1fr))` }}>
+          {categories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setFilterCategory(cat.id)}
@@ -110,8 +112,13 @@ export default function MarketWatch({ assets = [], selectedAsset, onSelectAsset,
         ) : (
           filteredAssets.map((asset) => {
             const isSelected = selectedAsset && selectedAsset.ticker === asset.ticker;
-            const isPositive = asset.change24h >= 0;
             const signalData = assetSignals[asset.ticker];
+            // Cours, variation et volume de la dernière séance connue à la date simulée (sinon, dernières valeurs du fichier)
+            const pricesLoading = Object.keys(assetSignals).length === 0;
+            const notListed = !signalData && !pricesLoading;
+            const price = signalData ? signalData.close : asset.price;
+            const changePct = signalData?.changePct != null ? signalData.changePct * 100 : asset.change24h;
+            const isPositive = changePct >= 0;
 
             return (
               <div
@@ -147,13 +154,21 @@ export default function MarketWatch({ assets = [], selectedAsset, onSelectAsset,
                     {asset.name}
                   </div>
                   <div className="text-[10px] font-mono text-slate-400 mt-0.5">
-                    Vol: {asset.volume24h}
+                    {signalData ? `Vol : ${Math.round(signalData.volume).toLocaleString('fr-FR')} · ${signalData.date}` : pricesLoading ? 'Vol : …' : 'Vol : -'}
                   </div>
                 </div>
 
+                {pricesLoading ? (
+                  <div className="text-right shrink-0 space-y-1">
+                    <div className="h-3 w-16 rounded bg-[#1E293B] animate-pulse ml-auto" />
+                    <div className="h-3 w-10 rounded bg-[#1E293B] animate-pulse ml-auto" />
+                  </div>
+                ) : notListed ? (
+                  <div className="text-right shrink-0 text-[10px] text-slate-500">Pas encore coté<br />à cette date</div>
+                ) : (
                 <div className="text-right shrink-0">
                   <div className="font-mono text-xs font-semibold text-slate-100">
-                    {Number(asset.price).toLocaleString(undefined, {
+                    {Number(price).toLocaleString(undefined, {
                       minimumFractionDigits: asset.currency === 'TND' ? 3 : 2,
                       maximumFractionDigits: asset.currency === 'TND' ? 3 : 2
                     })}{' '}
@@ -166,9 +181,10 @@ export default function MarketWatch({ assets = [], selectedAsset, onSelectAsset,
                         : 'bg-rose-950/80 text-[#EF4444] border border-rose-800/50'
                     }`}
                   >
-                    {isPositive ? '+' : ''}{Number(asset.change24h).toFixed(2)}%
+                    {isPositive ? '+' : ''}{Number(changePct).toFixed(2)}%
                   </div>
                 </div>
+                )}
               </div>
             );
           })

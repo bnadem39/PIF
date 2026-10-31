@@ -5,6 +5,7 @@ import com.pif.ai.config.AiServiceProperties;
 import com.pif.common.exception.AiServiceUnavailableException;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -36,11 +37,15 @@ public class AiSignalClient {
 
     public AiSignals fetch(String symbol, List<Bar> bars) {
         List<Map<String, Object>> candles = bars.stream().map(b -> Map.<String, Object>of(
-                "time", b.date(), "open", b.open(), "high", b.high(), "low", b.low(), "close", b.close())).toList();
+                "time", b.date(), "open", b.open(), "high", b.high(), "low", b.low(), "close", b.close(),
+                "volume", b.volume())).toList();
         JsonNode body;
         try {
             body = restTemplate.postForObject(properties.getBaseUrl() + "/api/ai/backtest/signals",
                     Map.of("ticker", symbol, "candles", candles), JsonNode.class);
+        } catch (HttpClientErrorException e) {
+            // 4xx : la requête est refusée (historique trop court pour les indicateurs), le service lui-même répond
+            throw new IllegalArgumentException("Historique de " + symbol + " insuffisant pour calculer les signaux du modèle.", e);
         } catch (RestClientException e) {
             throw new AiServiceUnavailableException("Service IA indisponible pour le signal XGBoost (" + properties.getBaseUrl() + ").", e);
         }

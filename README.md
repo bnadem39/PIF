@@ -11,13 +11,13 @@ Une plateforme où l'on trade avec de l'argent virtuel sur des données de march
 | Module | Ce que l'on peut faire | Page |
 |---|---|---|
 | **Trading** | Acheter et vendre 87 actions de la Bourse de Tunis et des cryptos avec 100 000 TND virtuels, à une date simulée | Salle de marché |
-| **Gestion du risque** | Stop-Loss, Take-Profit, Trailing Stop, suivi de la performance du portefeuille | Portefeuille |
-| **IA de marché** | Signal Achat / Vente / Neutre (XGBoost), agent d'analyse, assistant financier documenté (RAG) | Salle de marché |
+| **Gestion du risque** | Stop-Loss, Take-Profit, Trailing Stop, suivi de la performance, optimiseur de Markowitz | Portefeuille |
+| **IA de marché** | Signal Achat / Vente / Neutre (XGBoost) expliqué par SHAP, actualités et sentiment, séances anormales, agent d'analyse, assistant documenté (RAG) | Salle de marché |
 | **Backtesting** | Rejouer 6 stratégies sur l'historique et comparer leurs résultats (Sharpe, perte maximale…) | Backtesting |
 | **Stress testing** | Simuler une crise sur des banques conventionnelles et islamiques, avec explications SHAP | Stress Testing |
 | **Actuariat** | Tarifer une assurance auto (GLM), analyser les marges, calculer les provisions (Chain Ladder) | Actuariat |
 | **Formation** | Cours, quiz, scénarios de marché réels, défis, points, badges et classement | Formation |
-| **Administration** | Journal d'audit, gestion des scénarios de stress | Audit (admin) |
+| **Administration** | Statistiques de la plateforme, gestion des comptes, saisie des actualités, suivi de la formation, journal d'audit | Administration (admin) |
 
 ---
 
@@ -163,11 +163,17 @@ Les fichiers de données sont cherchés dans le répertoire courant puis le rép
 - `type` = sens (`BUY` ou `SELL`) ; `orderType` = `MARKET` (défaut) ou `LIMIT` avec `limitPrice`. Un ordre LIMIT non exécutable au cours du jour est rejeté (pas encore de carnet d'ordres en attente).
 - Frais de 0,15 %. Contrôle du solde avant achat et de la quantité avant vente (pas de vente à découvert).
 - Pour un achat : Stop-Loss < cours < Take-Profit. SL, TP et Trailing Stop sont déclenchés automatiquement au cours de la date simulée.
+- Le bandeau de marché (indice équipondéré PIF-BVMT, cryptos, hausses et baisses du jour) est calculé sur les cours réels à la date simulée. Le carnet d'ordres L2 est **illustratif** : il est généré autour du cours réel, faute de données de profondeur.
 
 ### IA de marché (`/api/ai`)
 - **Signal XGBoost** : 20 indicateurs techniques (RSI, MACD, Bollinger, ATR…), prédiction d'une hausse ou d'une baisse nette à 5 jours. Achat ou Vente seulement si la probabilité dépasse 60 %.
 - **Performance** (5 plis TimeSeriesSplit) : accuracy 0,50, F1 macro 0,42. La classe Neutre représente ~67 % des cas : juger le modèle sur le F1 macro et par backtest, pas sur l'accuracy.
 - **RAG** : les documents de `ai/rag_docs/` sont indexés (all-MiniLM-L6-v2 + ChromaDB, FAISS en secours) et filtrables par type de banque (`conventional`, `islamic`, `all`).
+- **Signaux à la date simulée** (`GET /api/v1/ai/signals`) : la watchlist affiche le signal, le cours, la variation et le volume de la dernière séance connue à la date. Les signaux de tous les actifs sont précalculés au démarrage du backend (désactivable avec `ai.signals.warm-up=false`).
+- **Pourquoi ce signal ?** (`GET /api/v1/ai/explain`, onglet *Signal IA*) : probabilités des trois classes et contribution de chaque indicateur (valeurs de Shapley exactes de l'arbre XGBoost), avec un avertissement si la date est dans la période d'entraînement.
+- **Actualités et sentiment** (`/api/v1/news`) : l'administrateur saisit des actualités datées ; un lexique financier français/anglais (avec négation et intensifieurs) leur attribue un score de -1 à +1 et montre les mots retenus. Une actualité n'apparaît qu'à partir de sa date de publication, et le sentiment agrégé des 30 derniers jours (demi-vie 7 jours) alimente l'agent d'analyse.
+- **Séances anormales** (`GET /api/v1/ai/anomalies`) : rendement, volume ou amplitude à plus de 4 écarts-types de la médiane des 60 séances précédentes.
+- **Optimiseur de portefeuille** (`POST /api/v1/ai/optimize`, page Portefeuille) : variance minimale, Sharpe maximal, équipondéré et portefeuille actuel, frontière efficiente, part de chaque actif dans le risque. Markowitz sans vente à découvert, poids maximal par actif, covariance de Ledoit-Wolf, sur l'historique connu à la date simulée.
 - Les endpoints `/api/ai/**` du backend exigent un JWT (sauf `/api/ai/health`). Le service Python n'accepte que les origines de `AI_ALLOWED_ORIGINS` (par défaut le backend).
 
 ### Backtesting (`/api/v1/backtest`)
@@ -196,14 +202,18 @@ Les fichiers de données sont cherchés dans le répertoire courant puis le rép
 - 4 défis notés par le moteur de backtesting.
 - Points, 6 niveaux (Débutant → Expert), 7 badges et classement.
 
-### Audit (`/api/v1/admin/audit-logs`)
-Connexions (réussies et échouées), inscriptions, ordres, déclenchements SL/TP, modifications de seuils et réinitialisations sont tracés. Consultation réservée aux administrateurs.
+### Administration (`/api/v1/admin`, rôle ADMIN)
+- **Vue d'ensemble** : utilisateurs, ordres, montants échangés, connexions, backtests, activité des 30 derniers jours, progression de la formation, état du service IA.
+- **Utilisateurs** : recherche, changement de rôle, désactivation (le compte ne peut plus se connecter et ses jetons sont refusés), réinitialisation du portefeuille. Un administrateur ne peut ni se désactiver ni retirer son propre rôle.
+- **Actualités** : saisie, aperçu du sentiment avant publication, modification et suppression.
+- **Formation** : taux de réussite par quiz, scénario et défi.
+- **Journal d'audit** (`/api/v1/admin/audit-logs`) : connexions (réussies et échouées), inscriptions, ordres, déclenchements SL/TP, modifications de seuils, réinitialisations, actions des administrateurs.
 
 ---
 
 ## 🗄️ Base de données
 
-Le schéma est géré par **Flyway** (`backend/src/main/resources/db/migration`, versions V1 à V4) ; Hibernate se contente de le valider. Pour modifier le schéma, ajouter un nouveau fichier `V5__description.sql`, sans jamais modifier une migration déjà appliquée.
+Le schéma est géré par **Flyway** (`backend/src/main/resources/db/migration`, versions V1 à V5) ; Hibernate se contente de le valider. Pour modifier le schéma, ajouter un nouveau fichier `V6__description.sql`, sans jamais modifier une migration déjà appliquée.
 
 ---
 

@@ -34,6 +34,9 @@ from pydantic import BaseModel, Field
 from stress.api import router as stress_router, state as stress_state
 from backtest_signals import router as backtest_router
 from actuarial.api import router as actuarial_router, state as actuarial_state
+from market_insight import router as insight_router
+from sentiment import router as sentiment_router
+from portfolio_lab import router as portfolio_lab_router
 
 AI_DIR   = Path(__file__).parent
 LOGS_DIR = AI_DIR / "logs"
@@ -146,6 +149,9 @@ ALLOWED_ORIGINS = [
 app.include_router(stress_router)
 app.include_router(backtest_router)
 app.include_router(actuarial_router)
+app.include_router(insight_router)
+app.include_router(sentiment_router)
+app.include_router(portfolio_lab_router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -233,6 +239,8 @@ class AnalyzeRequest(BaseModel):
     unrealized_pnl:     float = 0.0
     include_rag:        bool  = True
     rag_top_k:          int   = 3
+    # Indicateurs complets recalculés sur l'historique réel (/api/ai/insight/explain) : prioritaires sur les champs ci-dessus
+    features:           Optional[Dict[str, float]] = None
 
 
 class AnalyzeResponse(BaseModel):
@@ -379,6 +387,8 @@ async def predict(req: PredictRequest):
         "price_to_sma20": req.price_to_sma20, "candle_range_pct": req.candle_range_pct,
         "volume_zscore": req.volume_zscore,
     }
+    if req.features:
+        feature_values.update(req.features)
 
     # Inférence calibrée via la fonction standardisée
     from train_model import predict as ml_predict_calibrated
@@ -785,18 +795,20 @@ async def market_pause_audit(req: MarketPauseAuditRequest):
         price = float(c.get("price", 0.0))
         conf_pct = round(float(c.get("confidence", 0.5)) * 100, 1)
 
+        p_buy = c.get("p_buy")
+        p_sell = c.get("p_sell")
+        probs = (f"P(hausse) {float(p_buy):.0%} · P(baisse) {float(p_sell):.0%}"
+                 if p_buy is not None and p_sell is not None else f"confiance {conf_pct}%")
         if sig == 1:
             action = "BUY"
-            reason = f"Signal haussier confirmé (seuil XGBoost {conf_pct}%). Momentum positif avec ratio de gain potentiel favorable."
-            risk_rew = "Favorable (1:2.5)"
+            reason = f"Le modèle XGBoost donne un signal d'achat au seuil de 60 % ({probs})."
         elif sig == -1:
             action = "TRIM"
-            reason = f"Pression vendeuse identifiée (confiance {conf_pct}%). Risque de consolidation technique sous résistance."
-            risk_rew = "Défensif"
+            reason = f"Le modèle XGBoost donne un signal de vente au seuil de 60 % ({probs})."
         else:
             action = "HOLD"
-            reason = f"Bruit statistique ou indécision sur le cours ({price:.3f} TND). Patience recommandée."
-            risk_rew = "Neutre"
+            reason = f"Aucune probabilité n'atteint le seuil de 60 % ({probs}) : pas de signal exploitable."
+        risk_rew = probs
 
         opportunities.append(
             OpportunityItem(
@@ -847,8 +859,17 @@ SECTION 2 - IMPACT SUR LE PORTEFEUILLE :"""
         portfolio_impact = llm_text[len(llm_text)//2:].strip()
     else:
         # Fallback analytique structuré
-        market_summary = f"Le marché évolue en régime {market_regime} avec une moyenne de {avg_change:+.2f}%. Les modèles XGBoost identifient {bulls} signal(aux) d'achat et {bears} signal(aux) de vente. La dynamique des volumes reste cohérente avec les orientations macroéconomiques BCT/BVMT."
-        portfolio_impact = f"Votre trésorerie disponible de {cash:,.2f} TND ({(cash/total_val)*100:.1f}% du capital) offre une marge de manœuvre substantielle pour arbitrer les titres en rupture de tendance sans surexposition au risque de baisse."
+        market_summary = (f"Régime {market_regime} : variation moyenne de {avg_change:+.2f} % sur les {len(market_snapshot)} actifs analysés. "
+                          f"Le modèle XGBoost donne {bulls} signal(aux) d'achat, {bears} de vente et {neutrals} sans signal au seuil de 60 %. "
+                          "Note générée sans LLM : elle ne contient que ces chiffres.")
+        invested = max(total_val - cash, 0.0)
+        largest = max(positions, key=lambda p: float(p.get("marketValue") or 0.0), default=None) if positions else None
+        largest_txt = ""
+        if largest and total_val > 0:
+            largest_txt = (f" La plus grosse ligne, {largest.get('symbol')}, pèse "
+                           f"{float(largest.get('marketValue') or 0.0) / total_val:.1%} du portefeuille.")
+        portfolio_impact = (f"Liquidités : {cash:,.2f} TND ({(cash / total_val) * 100 if total_val else 0:.1f} % du capital), "
+                            f"investi : {invested:,.2f} TND sur {len(positions)} position(s).{largest_txt}")
 
     latency_ms = (time.perf_counter() - t0) * 1000
 
