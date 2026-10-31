@@ -4,6 +4,7 @@ import com.pif.marketdata.dto.MarketHistoryResponse;
 import com.pif.marketdata.dto.OrderBookDto;
 import com.pif.marketdata.dto.WatchlistAssetDto;
 import com.pif.marketdata.service.MarketDataService;
+import com.pif.marketdata.service.MarketOverviewService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,9 +16,11 @@ import java.util.Map;
 public class MarketDataController {
 
     private final MarketDataService marketDataService;
+    private final MarketOverviewService marketOverviewService;
 
-    public MarketDataController(MarketDataService marketDataService) {
+    public MarketDataController(MarketDataService marketDataService, MarketOverviewService marketOverviewService) {
         this.marketDataService = marketDataService;
+        this.marketOverviewService = marketOverviewService;
     }
 
     /**
@@ -80,23 +83,17 @@ public class MarketDataController {
      * GET /api/market/orderbook?symbol=IBM
      */
     @GetMapping("/orderbook")
-    public ResponseEntity<OrderBookDto> getOrderBook(@RequestParam String symbol) {
-        return ResponseEntity.ok(marketDataService.getOrderBook(symbol));
+    public ResponseEntity<OrderBookDto> getOrderBook(@RequestParam String symbol, @RequestParam(required = false) Double price) {
+        return ResponseEntity.ok(marketDataService.getOrderBook(symbol, price));
     }
 
     /**
-     * Indices boursiers majeurs pour le Ticker Tape
-     * GET /api/market/indices
+     * Vue de marché pour le bandeau : indice BVMT équipondéré, crypto-actifs et étendue du marché à la date simulée.
+     * GET /api/market/indices?date=2022-01-25
      */
     @GetMapping("/indices")
-    public ResponseEntity<List<Map<String, Object>>> getIndices() {
-        return ResponseEntity.ok(List.of(
-                Map.of("symbol", "S&P 500", "name", "US Index", "value", 5780.40, "change", 17.80, "changePercent", 0.31, "currency", "USD"),
-                Map.of("symbol", "TUNINDEX", "name", "Bourse de Tunis", "value", 9845.20, "change", 41.35, "changePercent", 0.42, "currency", "PTS"),
-                Map.of("symbol", "BTC/USD", "name", "Bitcoin Real", "value", 64500.00, "change", 1360.00, "changePercent", 2.15, "currency", "USD"),
-                Map.of("symbol", "EUR/TND", "name", "Euro / Dinar", "value", 3.3420, "change", -0.0018, "changePercent", -0.05, "currency", "TND"),
-                Map.of("symbol", "USD/TND", "name", "Dollar / Dinar", "value", 3.0850, "change", 0.0035, "changePercent", 0.11, "currency", "TND")
-        ));
+    public ResponseEntity<MarketOverviewService.Overview> getIndices(@RequestParam(required = false) String date) {
+        return ResponseEntity.ok(marketOverviewService.overview(date != null && !date.isBlank() ? date : "9999-12-31"));
     }
 
     /**

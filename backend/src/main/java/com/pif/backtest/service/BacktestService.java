@@ -81,7 +81,7 @@ public class BacktestService {
                 if (ai == null) {
                     try {
                         ai = aiProbabilities(symbol, bars, bars.get(from).date(), warnings);
-                    } catch (AiServiceUnavailableException e) {
+                    } catch (AiServiceUnavailableException | IllegalArgumentException e) {
                         aiFailed = true;
                         warnings.add(e.getMessage() + " La stratégie « Signal IA » n'a pas été calculée.");
                         continue;
@@ -138,7 +138,7 @@ public class BacktestService {
             if (c.time() == null || c.time().length() < 10 || c.close() <= 0) continue;
             String date = c.time().substring(0, 10);
             if (date.compareTo(last) <= 0) continue;   // ordre strict, sans doublon
-            bars.add(new Bar(date, c.open(), c.high(), c.low(), c.close()));
+            bars.add(new Bar(date, c.open(), c.high(), c.low(), c.close(), c.volume()));
             last = date;
         }
         return bars;

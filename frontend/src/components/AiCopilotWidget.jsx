@@ -35,6 +35,7 @@ export default function AiCopilotWidget({
   cashBalance = 100000,
   portfolioValue = 100000,
   userPositions = [],
+  assetSignals = {},
   onSelectAsset
 }) {
   const [activeTab, setActiveTab] = useState('AUDIT'); // 'AUDIT' | 'LIVE_TICK' | 'CHAT'
@@ -65,20 +66,17 @@ export default function AiCopilotWidget({
     setIsAuditing(true);
     setAuditError(null);
 
-    // Préparer le snapshot du marché pour le moteur d'évaluation
-    const snapshot = (assets || []).slice(0, 15).map((a) => {
-      const tick = currentMarketTick && currentMarketTick[a.ticker];
-      const price = tick?.close || a.price || 10.0;
-      const change = tick?.changePercent || a.changePercent || 0.0;
-      return {
-        ticker: a.ticker,
-        price: price,
-        change: change,
-        volume: tick?.volume || 10000,
-        xgboost_signal: change > 0.8 ? 1 : change < -0.8 ? -1 : 0,
-        confidence: 0.65
-      };
-    });
+    // Snapshot du marché : signaux XGBoost calculés côté serveur sur l'historique réel à la date simulée
+    const snapshot = Object.values(assetSignals || {}).map((sig) => ({
+      ticker: sig.symbol,
+      price: sig.close,
+      change: sig.changePct != null ? sig.changePct * 100 : 0,
+      volume: sig.volume || 0,
+      xgboost_signal: sig.signal,
+      confidence: Math.max(sig.pBuy ?? 0, sig.pSell ?? 0),
+      p_buy: sig.pBuy,
+      p_sell: sig.pSell
+    }));
 
     const payload = {
       simulated_date: simulatedDate || '2022-01-03',

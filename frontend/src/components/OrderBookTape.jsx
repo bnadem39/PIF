@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Layers, ArrowDownUp } from 'lucide-react';
 import { getRealOrderBook } from '../services/realMarketService';
 
-export default function OrderBookTape({ selectedAsset }) {
+export default function OrderBookTape({ selectedAsset, price }) {
   const [activeTab, setActiveTab] = useState('BOOK'); // 'BOOK' ou 'TRADES'
   const [orderBook, setOrderBook] = useState(null);
   const [trades, setTrades] = useState([]);
@@ -11,7 +11,7 @@ export default function OrderBookTape({ selectedAsset }) {
     if (!selectedAsset) return;
 
     let isMounted = true;
-    getRealOrderBook(selectedAsset.ticker).then((book) => {
+    getRealOrderBook(selectedAsset.ticker, price).then((book) => {
       if (!isMounted) return;
       setOrderBook(book);
 
@@ -25,7 +25,7 @@ export default function OrderBookTape({ selectedAsset }) {
         initialTrades.push({
           id: `tr-${selectedAsset.ticker}-${i}`,
           time: time.toTimeString().split(' ')[0],
-          price: parseFloat((Number(selectedAsset.price) + delta).toFixed(isCrypto ? 2 : 3)),
+          price: parseFloat((Number(price || selectedAsset.price) + delta).toFixed(isCrypto ? 2 : 3)),
           size: isCrypto ? parseFloat((0.25 + i * 0.1).toFixed(3)) : (100 + i * 50),
           side
         });
@@ -36,7 +36,7 @@ export default function OrderBookTape({ selectedAsset }) {
     return () => {
       isMounted = false;
     };
-  }, [selectedAsset]);
+  }, [selectedAsset, price]);
 
   if (!orderBook) return null;
 
@@ -146,6 +146,9 @@ export default function OrderBookTape({ selectedAsset }) {
           </div>
         </div>
       )}
+      <p className="px-3 py-2 border-t border-[#1E293B] text-[10px] text-slate-500 leading-snug">
+        Carnet et trades simulés autour du cours de la date simulée : la BVMT ne publie pas l'historique du carnet d'ordres.
+      </p>
     </aside>
   );
 }

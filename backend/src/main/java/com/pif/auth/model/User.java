@@ -44,6 +44,9 @@ public class User implements UserDetails {
     @Column(name = "virtual_balance", precision = 15, scale = 3)
     private BigDecimal virtualBalance = new BigDecimal("100000.000");
 
+    @Column(nullable = false)
+    private boolean enabled = true;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -119,7 +122,11 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
     // --- Getters & Setters ---

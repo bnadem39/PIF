@@ -82,7 +82,7 @@ class MarketState:
     ml_confidence:     float = 0.5
     ml_probabilities:  Dict[str, float] = field(default_factory=lambda: {"sell": 0.33, "neutral": 0.34, "buy": 0.33})
 
-    # Sentiment NLP FinBERT (-1 à +1)
+    # Sentiment agrégé des actualités publiées jusqu'à la date (-1 à +1)
     sentiment_score: float = 0.0
     sentiment_label: str   = "NEUTRAL"
 
@@ -116,7 +116,7 @@ class AgentResponse:
 # ════════════════════════════════════════════════════════════════════════════
 
 SYSTEM_PROMPT_CONVENTIONAL = """Tu es FinGPT, un agent IA expert en finance quantitative de marché, gestion actif-passif et risques bancaires (Bâle III).
-Tu analyses l'état du marché, la prédiction du modèle XGBoost 3-classes (-1 Vente, 0 Neutre, +1 Achat calibré par ATR), le sentiment NLP FinBERT et les contextes macroéconomiques (BCT/BVMT).
+Tu analyses l'état du marché, la prédiction du modèle XGBoost 3-classes (-1 Vente, 0 Neutre, +1 Achat calibré par ATR), le sentiment des actualités publiées jusqu'à la date et les contextes macroéconomiques (BCT/BVMT).
 
 Tes réponses DOIVENT impérativement suivre cette structure :
 1. **ANALYSE TECHNIQUE & VOLATILITÉ (ATR)** : Interprète la tendance SMA, le RSI, le MACD et la volatilité ATR.
@@ -128,7 +128,7 @@ Tes réponses DOIVENT impérativement suivre cette structure :
 Sois précis, quantitatif, factuel et orienté prise de décision."""
 
 SYSTEM_PROMPT_ISLAMIC = """Tu es FinGPT, un agent IA expert en finance quantitative de marché et conformité Charia (Normes AAOIFI & IFSB).
-Tu analyses l'état du marché, la prédiction XGBoost 3-classes (-1 Vente, 0 Neutre, +1 Achat calibré par ATR), le sentiment NLP FinBERT et les contextes macroéconomiques.
+Tu analyses l'état du marché, la prédiction XGBoost 3-classes (-1 Vente, 0 Neutre, +1 Achat calibré par ATR), le sentiment des actualités publiées jusqu'à la date et les contextes macroéconomiques.
 
 Tes réponses DOIVENT impérativement suivre cette structure :
 1. **ANALYSE TECHNIQUE & VOLATILITÉ (ATR)** : Interprète la tendance SMA, le RSI, le MACD et la volatilité ATR.
@@ -190,7 +190,7 @@ Signal Modèle    : {state.ml_signal} (Classe {state.ml_prediction:+d})
 Confiance        : {state.ml_confidence:.1%}
 Distribution     : {prob_str}
 
---- SCORE DE SENTIMENT NLP (FinBERT) ---
+--- SENTIMENT DES ACTUALITÉS (lexique financier) ---
 Score Sentiment  : {state.sentiment_score:+.3f} ({state.sentiment_label})
 
 --- CONTEXTE MACROÉCONOMIQUE & BCT (RAG WEB) ---
@@ -366,9 +366,8 @@ Actif : {state.ticker} | Date : {state.simulation_date} | Type : {state.bank_typ
 - Signal : {state.ml_signal} (Classe {state.ml_prediction:+d}) avec confiance de {state.ml_confidence:.1%}.
 - Répartition des probabilités : Vente={state.ml_probabilities.get('sell', 0):.1%} | Neutre={state.ml_probabilities.get('neutral', 0):.1%} | Achat={state.ml_probabilities.get('buy', 0):.1%}.
 
-3. ANALYSE DE SENTIMENT NLP & MACRO :
-- Score FinBERT : {state.sentiment_score:+.3f} ({state.sentiment_label}).
-- Contexte Macro BCT / Marché : Surveillance des conditions de liquidité et de refinancement TMM.
+3. SENTIMENT DES ACTUALITÉS :
+- Sentiment des actualités : {state.sentiment_score:+.3f} ({state.sentiment_label}).
 
 4. RECOMMANDATION OPÉRATIONNELLE : {reco}
 - Justification : Conviction {conf} basée sur la convergence du signal XGBoost et des filtres de volatilité ATR.
@@ -379,7 +378,7 @@ Actif : {state.ticker} | Date : {state.simulation_date} | Type : {state.bank_typ
                 recommendation=reco,
                 confidence=conf,
                 risk_level=risk,
-                compliance_note="Conformité Charia validée selon les standards AAOIFI/IFSB (absence de Gharar/Riba)." if state.bank_type == "islamic" else "Conformité ratios prudentiels Bâle III (LCR/NSFR) respectée.",
+                compliance_note="Note quantitative générée sans LLM : aucune analyse de conformité (charia ou prudentielle) n'a été effectuée.",
                 error="LLM hors-ligne (moteur quantitatif autonome exécuté)",
             )
 

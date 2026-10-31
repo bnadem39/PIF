@@ -26,6 +26,7 @@ import StressTestPage from './pages/StressTestPage';
 import BacktestPage from './pages/BacktestPage';
 import ActuarialPage from './pages/ActuarialPage';
 import LearnPage from './pages/LearnPage';
+import AdminPage from './pages/AdminPage';
 import TickerTape from './components/TickerTape';
 import MarketWatch from './components/MarketWatch';
 import TradingChart from './components/TradingChart';
@@ -37,7 +38,9 @@ import CsvDataInspectorModal from './components/CsvDataInspectorModal';
 import PortfolioAnalyticsView from './components/PortfolioAnalyticsView';
 import AuthModal from './components/AuthModal';
 import AiCopilotWidget from './components/AiCopilotWidget';
-import { getAiAgentAnalysis, getAiSignal } from './services/aiService';
+import SignalExplainPanel from './components/SignalExplainPanel';
+import { getAiAgentAnalysis, getMarketSignals, explainSignal } from './services/aiService';
+import { getNewsSentiment } from './services/newsService';
 import {
   getRealSymbols,
   getPortfolioSummary,
@@ -54,7 +57,7 @@ const NAV_ITEMS = [
   { path: '/learn', label: 'Formation', icon: GraduationCap },
   { path: '/stress-test', label: 'Stress Testing', icon: Landmark },
   { path: '/actuarial', label: 'Actuariat', icon: Umbrella },
-  { path: '/admin/audit', label: 'Audit', icon: ShieldCheck, adminOnly: true }
+  { path: '/admin', label: 'Administration', icon: ShieldCheck, adminOnly: true }
 ];
 
 export default function App() {
@@ -223,28 +226,40 @@ export default function App() {
     if (!assetToAnalyze) return;
 
     setIsLoadingAi(true);
-    const price = currentSimulatedPrice || assetToAnalyze.price || 100.0;
-    const payload = {
-      ticker: assetToAnalyze.ticker,
-      simulation_date: simulatedDate,
-      open: price,
-      high: price * 1.01,
-      low: price * 0.99,
-      close: price,
-      volume: 1250000,
-      sma_20: price * 0.98,
-      sma_50: price * 0.95,
-      rsi_14: 61.5,
-      macd: 1.25,
-      macd_signal: 0.85,
-      macd_hist: 0.40,
-      volatility_30d: 38.5,
-      bank_type: 'conventional',
-      sentiment_score: 0.35,
-      confidence_threshold: 0.60
-    };
-
-    getAiAgentAnalysis(payload)
+    // Indicateurs réels recalculés sur l'historique jusqu'à la date simulée, puis analyse de l'agent
+    Promise.all([
+      explainSignal(assetToAnalyze.ticker, simulatedDate),
+      getNewsSentiment(simulatedDate, assetToAnalyze.ticker).catch(() => null)
+    ])
+      .then(([insight, news]) => {
+        const f = insight.features || {};
+        const payload = {
+          ticker: assetToAnalyze.ticker,
+          simulation_date: simulatedDate,
+          open: insight.close,
+          high: insight.close,
+          low: insight.close,
+          close: insight.close,
+          volume: 0,
+          sma_20: f.sma_20,
+          sma_50: f.sma_50,
+          rsi_14: f.rsi_14,
+          macd: f.macd,
+          macd_signal: f.macd_signal,
+          macd_hist: f.macd_hist,
+          volatility_30d: f.volatility_30d,
+          log_return_1d: f.log_return_1d,
+          price_to_sma20: f.price_to_sma20,
+          candle_range_pct: f.candle_range_pct,
+          volume_zscore: f.volume_zscore,
+          features: f,
+          bank_type: 'conventional',
+          // Sentiment agrégé des actualités publiées jusqu'à la date simulée (0 si aucune actualité)
+          sentiment_score: news?.score ?? 0,
+          confidence_threshold: 0.60
+        };
+        return getAiAgentAnalysis(payload);
+      })
       .then((data) => {
         setAiAnalysis(data);
         setIsLoadingAi(false);
@@ -260,49 +275,31 @@ export default function App() {
     triggerAssetAnalysis(selectedAsset);
   }, [selectedAsset?.ticker]);
 
-  // Calcul dynamique des signaux IA (XGBoost 3-classes) pour les actifs de la Watchlist
+  // Signaux IA (XGBoost 3 classes) de la watchlist, calculés côté serveur sur l'historique réel jusqu'à la date simulée.
+  // Pendant la lecture, la requête attend que la date se stabilise quelques centaines de millisecondes.
   useEffect(() => {
-    if (!assets || assets.length === 0) return;
-
-    let isMounted = true;
-    const sampleAssets = assets.slice(0, 20); // Priorité aux 20 premiers actifs affichés
-
-    sampleAssets.forEach((asset) => {
-      const price = currentMarketTick && currentMarketTick[asset.ticker]
-        ? currentMarketTick[asset.ticker].close
-        : asset.price || 100.0;
-
-      const features = {
-        open: price,
-        high: price * 1.01,
-        low: price * 0.99,
-        close: price,
-        volume: asset.volume24h ? Number(String(asset.volume24h).replace(/,/g, '')) || 50000 : 50000,
-        sma_20: price * 0.98,
-        sma_50: price * 0.96,
-        rsi_14: 55.0,
-        macd: 0.5,
-        macd_signal: 0.3,
-        macd_hist: 0.2,
-        volatility_30d: 20.0
-      };
-
-      getAiSignal(asset.ticker, features)
-        .then((sig) => {
-          if (isMounted && sig) {
-            setAssetSignals((prev) => ({
-              ...prev,
-              [asset.ticker]: sig
-            }));
-          }
-        })
-        .catch(() => {});
-    });
-
+    if (!assets || assets.length === 0 || !currentUser) return undefined;
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      const symbols = assets.map((a) => a.ticker);
+      const next = {};
+      for (let i = 0; i < symbols.length; i += 40) {
+        try {
+          const batch = await getMarketSignals(simulatedDate, symbols.slice(i, i + 40));
+          batch.forEach((sig) => { next[sig.symbol] = sig; });
+        } catch (e) {
+          console.warn('[AI] Signaux indisponibles :', e.message);
+          break;
+        }
+        if (cancelled) return;
+      }
+      if (!cancelled) setAssetSignals(next);
+    }, 500);
     return () => {
-      isMounted = false;
+      cancelled = true;
+      clearTimeout(timer);
     };
-  }, [assets, simulatedDate]);
+  }, [assets, simulatedDate, currentUser]);
 
   // Sélection d'actif depuis le Leaderboard ou la Watchlist
   const handleSelectAsset = useCallback((assetItem) => {
@@ -444,7 +441,7 @@ export default function App() {
       </header>
 
       {/* 2. TICKER TAPE DES COURS EN DÉFILEMENT */}
-      <TickerTape />
+      <TickerTape simulatedDate={simulatedDate} />
 
       {/* 3. VUE PRINCIPALE DYNAMIQUE */}
       <Routes>
@@ -506,6 +503,19 @@ export default function App() {
               </button>
 
               <button
+                onClick={() => setRightPanelView('SIGNAL')}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-1 px-2 rounded-md text-xs font-bold transition-all ${
+                  rightPanelView === 'SIGNAL'
+                    ? 'bg-[#0284C7] text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-[#1E293B]'
+                }`}
+                title="Signal XGBoost de l'actif et contribution de chaque variable (SHAP)"
+              >
+                <BrainCircuit size={13} />
+                <span>Signal IA</span>
+              </button>
+
+              <button
                 onClick={() => setRightPanelView('LEADERBOARD')}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-1 px-2 rounded-md text-xs font-bold transition-all ${
                   rightPanelView === 'LEADERBOARD'
@@ -547,8 +557,11 @@ export default function App() {
                 cashBalance={cashBalance}
                 portfolioValue={portfolioValue}
                 userPositions={userPositions}
+                assetSignals={assetSignals}
                 onSelectAsset={handleSelectAsset}
               />
+            ) : rightPanelView === 'SIGNAL' ? (
+              <SignalExplainPanel symbol={selectedAsset?.ticker} date={simulatedDate} isPlaying={isSimulationPlaying} />
             ) : rightPanelView === 'LEADERBOARD' ? (
               <DynamicLeaderboard
                 marketTick={currentMarketTick}
@@ -561,7 +574,7 @@ export default function App() {
                 totalDays={totalDays}
               />
             ) : (
-              selectedAsset && <OrderBookTape selectedAsset={selectedAsset} />
+              selectedAsset && <OrderBookTape selectedAsset={selectedAsset} price={currentSimulatedPrice} />
             )}
           </div>
         </main>
@@ -572,8 +585,10 @@ export default function App() {
             simulatedDate={simulatedDate}
             selectedAsset={selectedAsset}
             onNavigateToTrading={() => navigate('/')}
+            allSymbols={assets.map((a) => a.ticker)}
           />
         } />
+        <Route path="/admin" element={<AdminPage currentUser={currentUser} />} />
         <Route path="/admin/audit" element={<AdminAuditPage currentUser={currentUser} />} />
         <Route path="/stress-test" element={<StressTestPage currentUser={currentUser} />} />
         <Route path="/backtest" element={<BacktestPage currentUser={currentUser} />} />
