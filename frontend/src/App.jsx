@@ -21,11 +21,11 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import ModulePlaceholder from './pages/ModulePlaceholder';
 import AdminAuditPage from './pages/AdminAuditPage';
 import StressTestPage from './pages/StressTestPage';
 import BacktestPage from './pages/BacktestPage';
 import ActuarialPage from './pages/ActuarialPage';
+import LearnPage from './pages/LearnPage';
 import TickerTape from './components/TickerTape';
 import MarketWatch from './components/MarketWatch';
 import TradingChart from './components/TradingChart';
@@ -55,16 +55,6 @@ const NAV_ITEMS = [
   { path: '/stress-test', label: 'Stress Testing', icon: Landmark },
   { path: '/actuarial', label: 'Actuariat', icon: Umbrella },
   { path: '/admin/audit', label: 'Audit', icon: ShieldCheck, adminOnly: true }
-];
-
-// Modules à venir (voir le plan d'audit) : remplacer chaque entrée par sa vraie page
-const PLACEHOLDER_MODULES = [
-  {
-    path: '/learn',
-    title: 'Formation & apprentissage',
-    section: '§3.3',
-    items: ['Modules de cours par classe d\'actifs', 'Quiz et exercices', 'Scénarios de marché, concours, suivi de progression']
-  }
 ];
 
 export default function App() {
@@ -588,9 +578,7 @@ export default function App() {
         <Route path="/stress-test" element={<StressTestPage currentUser={currentUser} />} />
         <Route path="/backtest" element={<BacktestPage currentUser={currentUser} />} />
         <Route path="/actuarial" element={<ActuarialPage currentUser={currentUser} />} />
-        {PLACEHOLDER_MODULES.map((m) => (
-          <Route key={m.path} path={m.path} element={<ModulePlaceholder {...m} />} />
-        ))}
+        <Route path="/learn" element={<LearnPage currentUser={currentUser} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 

@@ -30,7 +30,7 @@ class BacktestEngineTest {
     void buyAndHoldBuysAtNextOpenWithWholeShares() {
         List<Bar> b = bars(10, 10, 12, 15);
         int[] t = {1, 1, 1, 1};
-        BacktestEngine.Run run = BacktestEngine.run(b, t, 0, 3, 1005, NO_COSTS, 0);
+        BacktestEngine.Run run = BacktestEngine.run(b, t, 0, 3, 1005, NO_COSTS, 0, true);
 
         // Jour 1 liquide ; achat de 100 titres à l'ouverture du jour 2 (10), 5 de cash restant
         assertThat(run.equity().get(0).position()).isZero();
@@ -41,11 +41,24 @@ class BacktestEngineTest {
     }
 
     @Test
+    void divisibleAssetIsFullyInvestedEvenWhenPriceExceedsCapital() {
+        // Un bitcoin à 60 000 avec 100 000 de capital : en titres entiers, 40 % du capital resterait liquide
+        List<Bar> b = bars(60_000, 60_000, 30_000, 30_000);
+        int[] t = {1, 1, 1, 1};
+        BacktestEngine.Run whole = BacktestEngine.run(b, t, 0, 3, 100_000, NO_COSTS, 0, true);
+        BacktestEngine.Run fractional = BacktestEngine.run(b, t, 0, 3, 100_000, NO_COSTS, 0, false);
+
+        assertThat(whole.metrics().totalReturn()).isCloseTo(-0.3, within(1e-9));
+        assertThat(fractional.metrics().totalReturn()).isCloseTo(-0.5, within(1e-9));
+        assertThat(fractional.trades().get(0).quantity()).isCloseTo(100_000.0 / 60_000, within(1e-9));
+    }
+
+    @Test
     void decisionsAreExecutedOnTheNextDayOnly() {
         // Le cours double le jour 3 : une stratégie qui décide d'acheter à la clôture du jour 3 ne doit pas en profiter
         List<Bar> b = bars(10, 10, 20, 20);
         int[] t = {0, 0, 1, 1};
-        BacktestEngine.Run run = BacktestEngine.run(b, t, 0, 3, 1000, NO_COSTS, 0);
+        BacktestEngine.Run run = BacktestEngine.run(b, t, 0, 3, 1000, NO_COSTS, 0, true);
         assertThat(run.metrics().totalReturn()).isCloseTo(0.0, within(1e-9));
     }
 
@@ -53,8 +66,8 @@ class BacktestEngineTest {
     void costsReduceReturnAndDrawdownIsTracked() {
         List<Bar> b = bars(10, 10, 8, 12, 12);
         int[] t = {1, 1, 1, 0, 0};
-        BacktestEngine.Run free = BacktestEngine.run(b, t, 0, 4, 10_000, NO_COSTS, 0);
-        BacktestEngine.Run costly = BacktestEngine.run(b, t, 0, 4, 10_000, new BacktestEngine.Costs(0.01, 0.005), 0);
+        BacktestEngine.Run free = BacktestEngine.run(b, t, 0, 4, 10_000, NO_COSTS, 0, true);
+        BacktestEngine.Run costly = BacktestEngine.run(b, t, 0, 4, 10_000, new BacktestEngine.Costs(0.01, 0.005), 0, true);
 
         assertThat(costly.metrics().finalEquity()).isLessThan(free.metrics().finalEquity());
         assertThat(costly.metrics().totalCosts()).isPositive();

@@ -388,7 +388,7 @@ export default function BacktestPage({ currentUser }) {
                               <td className="px-2 py-1 text-right font-mono">{num(t.entryPrice)}</td>
                               <td className="px-2 py-1 font-mono">{t.open ? <span className="text-slate-500">en cours</span> : t.exitDate}</td>
                               <td className="px-2 py-1 text-right font-mono">{num(t.exitPrice)}</td>
-                              <td className="px-2 py-1 text-right font-mono">{t.quantity}</td>
+                              <td className="px-2 py-1 text-right font-mono">{Number.isInteger(t.quantity) ? t.quantity : t.quantity.toLocaleString('fr-FR', { maximumFractionDigits: 4 })}</td>
                               <td className={`px-2 py-1 text-right font-mono ${t.pnl >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>{money(t.pnl)}</td>
                               <td className={`px-2 py-1 text-right font-mono ${t.returnPct >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>{pct(t.returnPct)}</td>
                             </tr>
