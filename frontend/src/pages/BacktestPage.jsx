@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { History, Play, RefreshCw, AlertTriangle, Info } from 'lucide-react';
+import { History, Play, RefreshCw, AlertTriangle, Info, Trophy, BrainCircuit, Scale } from 'lucide-react';
 import { getBacktestStrategies, runBacktest } from '../services/backtestService';
 import { getRealSymbols } from '../services/realMarketService';
 
@@ -203,6 +203,25 @@ export default function BacktestPage({ currentUser }) {
     points: r.equity
   })), [result]);
 
+  // Verdict simple à partir des résultats déjà calculés : meilleure stratégie (même critère que le focus initial,
+  // le ratio de Sharpe), performance du Signal IA, et comparaison honnête avec l'achat-conservation.
+  const verdict = useMemo(() => {
+    if (!result?.results?.length) return null;
+    const bestStrategy = [...result.results].sort((a, b) => (b.metrics.sharpe ?? -99) - (a.metrics.sharpe ?? -99))[0];
+    const aiSignal = result.results.find((r) => r.type === 'AI_SIGNAL');
+    const buyHold = result.results.find((r) => r.type === 'BUY_AND_HOLD');
+    let comparison = null;
+    if (aiSignal?.metrics.totalReturn != null && buyHold?.metrics.totalReturn != null) {
+      const diff = aiSignal.metrics.totalReturn - buyHold.metrics.totalReturn;
+      comparison = Math.abs(diff) < 0.001
+        ? "Le Signal IA fait à peu près pareil que l'achat-conservation sur cette période."
+        : diff > 0
+        ? "Le Signal IA fait mieux que l'achat-conservation sur cette période."
+        : "Le Signal IA fait moins bien que l'achat-conservation sur cette période.";
+    }
+    return { bestStrategy, aiSignal, comparison };
+  }, [result]);
+
   // Meilleure valeur de chaque colonne, pour la mettre en évidence
   const best = useMemo(() => {
     const out = {};
@@ -338,6 +357,41 @@ export default function BacktestPage({ currentUser }) {
               <Card title="Drawdown (perte depuis le plus haut)">
                 <LineChart series={series} valueKey="drawdown" height={140} format={(v) => pct(v, 0)} zeroLine />
               </Card>
+
+              {verdict && (verdict.bestStrategy || verdict.aiSignal || verdict.comparison) && (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {verdict.bestStrategy && (
+                    <div className="bg-[#0F172A] border border-[#1E293B] rounded-xl p-4">
+                      <div className="flex items-center gap-1.5 text-xs text-slate-400 mb-1">
+                        <Trophy size={14} className="text-amber-400" /> Meilleure stratégie
+                      </div>
+                      <div className="text-sm font-medium text-slate-100 truncate">{verdict.bestStrategy.label}</div>
+                      <div className={`text-lg font-bold mt-1 ${verdict.bestStrategy.metrics.totalReturn >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>
+                        {pct(verdict.bestStrategy.metrics.totalReturn)}
+                      </div>
+                    </div>
+                  )}
+                  {verdict.aiSignal && (
+                    <div className="bg-[#0F172A] border border-[#1E293B] rounded-xl p-4">
+                      <div className="flex items-center gap-1.5 text-xs text-slate-400 mb-1">
+                        <BrainCircuit size={14} className="text-cyan-400" /> Signal IA
+                      </div>
+                      <div className="text-sm font-medium text-slate-100 truncate">{verdict.aiSignal.label}</div>
+                      <div className={`text-lg font-bold mt-1 ${verdict.aiSignal.metrics.totalReturn >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>
+                        {pct(verdict.aiSignal.metrics.totalReturn)}
+                      </div>
+                    </div>
+                  )}
+                  {verdict.comparison && (
+                    <div className="bg-[#0F172A] border border-[#1E293B] rounded-xl p-4 flex items-center">
+                      <div className="flex items-start gap-1.5 text-sm text-slate-200">
+                        <Scale size={16} className="text-slate-400 shrink-0 mt-0.5" />
+                        <span>{verdict.comparison}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <Card title="Comparaison des performances">
                 <div className="overflow-x-auto">
