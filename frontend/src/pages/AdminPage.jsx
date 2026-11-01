@@ -9,6 +9,7 @@ import {
 } from '../services/adminService';
 import { getAllNews, analyzeNewsText, createNews, updateNews, deleteNews } from '../services/newsService';
 import AdminAuditPage from './AdminAuditPage';
+import PageHeader from '../components/PageHeader';
 
 const TABS = [
   { id: 'overview', label: "Vue d'ensemble", icon: BarChart3 },
@@ -486,10 +487,7 @@ export default function AdminPage({ currentUser }) {
 
   return (
     <main className="flex-1 overflow-y-auto p-4 space-y-3">
-      <div className="flex items-center gap-2 text-slate-100">
-        <ShieldCheck size={18} className="text-[#38BDF8]" />
-        <h1 className="text-base font-extrabold">Administration de la plateforme</h1>
-      </div>
+      <PageHeader icon={ShieldCheck} title="Administration de la plateforme" />
       <nav className="flex gap-1 border-b border-[#1E293B] overflow-x-auto">
         {TABS.map((t) => (
           <button

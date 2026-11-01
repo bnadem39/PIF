@@ -24,6 +24,7 @@ import {
   explainPortfolioAudit
 } from '../services/realMarketService';
 import PortfolioOptimizerPanel from './PortfolioOptimizerPanel';
+import PageHeader from './PageHeader';
 
 export default function PortfolioAnalyticsView({
   simulatedDate,
@@ -132,35 +133,33 @@ export default function PortfolioAnalyticsView({
   return (
     <div className="flex-1 overflow-y-auto bg-[#080C14] p-4 text-[#F8FAFC] select-none font-sans">
       {/* 1. BANDEAU DE TITRE ET ACTION RESET */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-[#1E293B]">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-base font-extrabold text-white tracking-wide">
-              Espace Portefeuille & Tableau de Bord Risque
-            </h1>
-          </div>
-          <p className="text-xs text-slate-400 mt-0.5 font-mono">
-            Date simulée active : <strong className="text-sky-400">{simulatedDate || 'Initiale'}</strong> • Taux de frais courtage : 0.15%
-          </p>
-        </div>
+      <div className="mb-4 pb-3 border-b border-[#1E293B]">
+        <PageHeader
+          icon={Layers}
+          title="Espace Portefeuille & Tableau de Bord Risque"
+          subtitle={
+            <>Date simulée active : <strong className="text-sky-400">{simulatedDate || 'Initiale'}</strong> • Taux de frais courtage : 0.15%</>
+          }
+          right={
+            <>
+              <button
+                onClick={refreshData}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1E293B] hover:bg-[#334155] text-slate-200 border border-[#334155] rounded-lg text-xs font-semibold transition-all"
+              >
+                <Activity size={14} className="text-[#38BDF8]" />
+                <span>Actualiser</span>
+              </button>
 
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={refreshData}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1E293B] hover:bg-[#334155] text-slate-200 border border-[#334155] rounded-lg text-xs font-semibold transition-all"
-          >
-            <Activity size={14} className="text-[#38BDF8]" />
-            <span>Actualiser</span>
-          </button>
-
-          <button
-            onClick={handleReset}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-800/80 rounded-lg text-xs font-semibold transition-all shadow-sm"
-          >
-            <RotateCcw size={14} />
-            <span>Réinitialiser (100 000 TND)</span>
-          </button>
-        </div>
+              <button
+                onClick={handleReset}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-800/80 rounded-lg text-xs font-semibold transition-all shadow-sm"
+              >
+                <RotateCcw size={14} />
+                <span>Réinitialiser (100 000 TND)</span>
+              </button>
+            </>
+          }
+        />
       </div>
 
       {actionMessage && (

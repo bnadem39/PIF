@@ -4,6 +4,7 @@ import {
   GraduationCap, BookOpen, CheckCircle2, Circle, ChevronLeft, Lightbulb, Trophy, Target, LineChart as ChartIcon,
   Award, Lock, XCircle, Play
 } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 import {
   getLearningCatalog, getLesson, completeLesson, getQuiz, submitQuiz, getScenario, answerScenario,
   submitChallenge, getLeaderboard
@@ -697,10 +698,7 @@ export default function LearnPage({ currentUser }) {
 
   return (
     <main className="flex-1 overflow-y-auto p-4 space-y-3">
-      <div className="flex items-center gap-2 text-slate-100">
-        <GraduationCap size={18} className="text-[#38BDF8]" />
-        <h1 className="text-base font-extrabold">Formation & apprentissage</h1>
-      </div>
+      <PageHeader icon={GraduationCap} title="Formation & apprentissage" />
 
       {error && <div className="text-xs text-rose-400">{error}</div>}
       <ProgressHeader progress={catalog?.progress} />

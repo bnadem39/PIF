@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Landmark, Play, RefreshCw, Save, Trash2, Info, BrainCircuit } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 import {
   getStressScenarios,
   getStressBanks,
@@ -334,12 +335,11 @@ export default function StressTestPage({ currentUser }) {
 
   return (
     <main className="flex-1 overflow-y-auto p-4 space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-slate-100">
-          <Landmark size={18} className="text-[#38BDF8]" />
-          <h1 className="text-base font-extrabold">AI Stress Testing bancaire</h1>
-        </div>
-        {banksInfo?.illustrative && (
+      <PageHeader
+        icon={Landmark}
+        title="AI Stress Testing bancaire"
+        subtitle="Simulez l'effet d'une crise économique sur un portefeuille bancaire, pour mieux comprendre les risques."
+        right={banksInfo?.illustrative && (
           <div className="flex items-start gap-1.5 text-[13px] text-amber-300/90 max-w-2xl">
             <Info size={13} className="mt-0.5 shrink-0" />
             <span>
@@ -348,8 +348,7 @@ export default function StressTestPage({ currentUser }) {
             </span>
           </div>
         )}
-      </div>
-      <p className="text-xs text-slate-400">Simulez l'effet d'une crise économique sur un portefeuille bancaire, pour mieux comprendre les risques.</p>
+      />
 
       {error && <div className="text-xs text-rose-400">{error}</div>}
 

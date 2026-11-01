@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Umbrella, Calculator, PieChart, Layers, RefreshCw, Info } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 import {
   getActuarialPortfolio,
   getActuarialModels,
@@ -541,12 +542,11 @@ export default function ActuarialPage({ currentUser }) {
 
   return (
     <main className="flex-1 overflow-y-auto p-4 space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-slate-100">
-          <Umbrella size={18} className="text-[#38BDF8]" />
-          <h1 className="text-base font-extrabold">Actuariat · assurance automobile</h1>
-        </div>
-        {portfolio && (
+      <PageHeader
+        icon={Umbrella}
+        title="Actuariat · assurance automobile"
+        subtitle="Calculez le prix d'une assurance auto et la provision pour sinistres à partir de données simulées."
+        right={portfolio && (
           <div className="flex items-start gap-1.5 text-[13px] text-amber-300/90 max-w-2xl">
             <Info size={13} className="mt-0.5 shrink-0" />
             <span>
@@ -555,8 +555,7 @@ export default function ActuarialPage({ currentUser }) {
             </span>
           </div>
         )}
-      </div>
-      <p className="text-xs text-slate-400">Calculez le prix d'une assurance auto et la provision pour sinistres à partir de données simulées.</p>
+      />
 
       <div className="flex gap-1">
         {TABS.map(({ key, label, icon: Icon }) => (

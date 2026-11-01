@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { History, Play, RefreshCw, AlertTriangle, Info, Trophy, BrainCircuit, Scale } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 import { getBacktestStrategies, runBacktest } from '../services/backtestService';
 import { getRealSymbols } from '../services/realMarketService';
 
@@ -245,11 +246,11 @@ export default function BacktestPage({ currentUser }) {
 
   return (
     <main className="flex-1 overflow-y-auto p-4 space-y-3">
-      <div className="flex items-center gap-2 text-slate-100">
-        <History size={18} className="text-[#38BDF8]" />
-        <h1 className="text-base font-extrabold">Backtesting & comparaison de stratégies</h1>
-      </div>
-      <p className="text-xs text-slate-400">Testez une stratégie de trading sur des données passées, sans risquer d'argent réel.</p>
+      <PageHeader
+        icon={History}
+        title="Backtesting & comparaison de stratégies"
+        subtitle="Testez une stratégie de trading sur des données passées, sans risquer d'argent réel."
+      />
 
       {error && <div className="text-xs text-rose-400">{error}</div>}
 
