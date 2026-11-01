@@ -123,7 +123,7 @@ export default function PortfolioOptimizerPanel({ simulatedDate, heldSymbols = [
       <div className="px-4 py-3 bg-[#0A0E17] border-b border-[#1E293B] flex items-center gap-2">
         <Target size={16} className="text-[#38BDF8]" />
         <h2 className="text-sm font-semibold text-white uppercase tracking-wider">Optimiseur de portefeuille (Markowitz)</h2>
-        <span className="text-[11px] text-slate-300 ml-auto">Cours connus au {simulatedDate}</span>
+        <span className="text-[13px] text-slate-300 ml-auto">Cours connus au {simulatedDate}</span>
       </div>
 
       <div className="p-4 grid grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)] gap-4">
@@ -189,7 +189,7 @@ export default function PortfolioOptimizerPanel({ simulatedDate, heldSymbols = [
             <Play size={13} /> {loading ? 'Calcul…' : 'Optimiser'}
           </button>
           {error && <div className="text-xs text-rose-400">{error}</div>}
-          <p className="text-[11px] text-slate-300 leading-snug">
+          <p className="text-[13px] text-slate-300 leading-snug">
             Rendements et risques estimés sur l'historique passé uniquement (
             <span title="Méthode statistique qui rend le calcul des risques plus fiable quand on a beaucoup d'actifs et peu d'historique.">covariance de Ledoit-Wolf</span>
             , sans vente à découvert).
@@ -215,7 +215,7 @@ export default function PortfolioOptimizerPanel({ simulatedDate, heldSymbols = [
                     <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-200">
                       <span className="w-2 h-2 rounded-full" style={{ background: COLORS[p.name] }} />{NAMES[p.name]}
                     </div>
-                    <div className="text-[11px] font-mono text-slate-300 mt-0.5">
+                    <div className="text-[13px] font-mono text-slate-300 mt-0.5">
                       R {pct(p.expected_return)} · σ {pct(p.volatility)} ·{' '}
                       <span title="Ratio de Sharpe : rendement obtenu par unité de risque pris. Plus il est élevé, meilleur est le couple rendement/risque.">
                         Sharpe <b className="text-slate-100 text-xs font-bold">{p.sharpe.toFixed(2)}</b>
@@ -225,7 +225,7 @@ export default function PortfolioOptimizerPanel({ simulatedDate, heldSymbols = [
                 ))}
               </div>
               <FrontierChart result={result} />
-              <div className="text-[11px] text-slate-300">
+              <div className="text-[13px] text-slate-300">
                 {result.observations} séances communes du {result.from} au {result.date}. Points gris : actifs seuls ; courbe : frontière efficiente.
               </div>
             </div>
@@ -234,7 +234,7 @@ export default function PortfolioOptimizerPanel({ simulatedDate, heldSymbols = [
               <div className="min-w-0">
                 <div className="text-sm font-semibold uppercase tracking-wide text-slate-300 mb-2">Allocation · {NAMES[selected.name]}</div>
                 <div className="overflow-x-auto">
-                <table className="w-full text-[11px]">
+                <table className="w-full text-[13px]">
                   <thead>
                     <tr className="text-slate-400 text-left">
                       <th className="font-normal pb-1">Actif</th>

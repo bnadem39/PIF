@@ -104,7 +104,7 @@ export default function DynamicLeaderboard({
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
               </h2>
-              <p className="text-[11px] text-slate-300 font-mono">
+              <p className="text-[13px] text-slate-300 font-mono">
                 Simulation au : <strong className="text-sky-400">{simulatedDate || '---'}</strong>
               </p>
             </div>
@@ -153,7 +153,7 @@ export default function DynamicLeaderboard({
       </div>
 
       {/* 2. ENTÊTE DU TABLEAU */}
-      <div className="grid grid-cols-12 px-3 py-1.5 bg-[#080C14] text-[11px] font-mono font-bold text-slate-300 border-b border-[#1E293B] uppercase tracking-wider">
+      <div className="grid grid-cols-12 px-3 py-1.5 bg-[#080C14] text-[13px] font-mono font-bold text-slate-300 border-b border-[#1E293B] uppercase tracking-wider">
         <div className="col-span-2 text-center">Rang</div>
         <div className="col-span-4">Actif / Prix</div>
         <div className="col-span-4 text-right">Rendement YTD</div>
@@ -177,25 +177,25 @@ export default function DynamicLeaderboard({
 
             // Médaille spéciale pour le podium #1, #2, #3
             let rankBadge = (
-              <span className="font-mono text-[11px] font-bold text-slate-300">
+              <span className="font-mono text-[13px] font-bold text-slate-300">
                 #{rank}
               </span>
             );
             if (rank === 1) {
               rankBadge = (
-                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gradient-to-br from-amber-300 to-amber-600 text-slate-950 font-black text-[10px] shadow-sm shadow-amber-500/30">
+                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gradient-to-br from-amber-300 to-amber-600 text-slate-950 font-black text-xs shadow-sm shadow-amber-500/30">
                   1
                 </span>
               );
             } else if (rank === 2) {
               rankBadge = (
-                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gradient-to-br from-slate-200 to-slate-400 text-slate-950 font-black text-[10px] shadow-sm">
+                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gradient-to-br from-slate-200 to-slate-400 text-slate-950 font-black text-xs shadow-sm">
                   2
                 </span>
               );
             } else if (rank === 3) {
               rankBadge = (
-                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gradient-to-br from-amber-600 to-amber-800 text-amber-100 font-black text-[10px] shadow-sm">
+                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gradient-to-br from-amber-600 to-amber-800 text-amber-100 font-black text-xs shadow-sm">
                   3
                 </span>
               );
@@ -231,7 +231,7 @@ export default function DynamicLeaderboard({
                       {asset.symbol}
                     </span>
                     <span
-                      className={`text-[11px] font-bold px-1 rounded uppercase tracking-wider ${
+                      className={`text-[13px] font-bold px-1 rounded uppercase tracking-wider ${
                         isCrypto
                           ? 'bg-purple-950/80 text-purple-300 border border-purple-800/60'
                           : 'bg-sky-950/80 text-sky-300 border border-sky-800/60'
@@ -242,7 +242,7 @@ export default function DynamicLeaderboard({
                   </div>
                   <div className="text-sm font-mono text-slate-100 font-bold truncate">
                     {asset.currentPrice.toFixed(precision)}{' '}
-                    <span className="text-[11px] text-slate-400 font-normal">{asset.currency}</span>
+                    <span className="text-[13px] text-slate-400 font-normal">{asset.currency}</span>
                   </div>
                 </div>
 
@@ -299,7 +299,7 @@ export default function DynamicLeaderboard({
       </div>
 
       {/* 4. FOOTER RÉCAPITULATIF DU LEADERBOARD */}
-      <div className="p-2.5 bg-[#0F172A] border-t border-[#1E293B] flex items-center justify-between text-[11px] font-mono text-slate-300">
+      <div className="p-2.5 bg-[#0F172A] border-t border-[#1E293B] flex items-center justify-between text-[13px] font-mono text-slate-300">
         <div className="flex items-center gap-1 text-emerald-400 font-bold">
           <Sparkles size={12} />
           <span>Synchronisation 100% Temps Réel</span>

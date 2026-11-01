@@ -218,7 +218,7 @@ export default function QuickOrderWidget({
                 onChange={(e) => setCustomPrice(e.target.value)}
                 className="w-24 bg-transparent text-white font-bold outline-none"
               />
-              <span className="text-[11px] text-slate-400">{selectedAsset?.currency || 'TND'}</span>
+              <span className="text-[13px] text-slate-400">{selectedAsset?.currency || 'TND'}</span>
             </div>
           </div>
 

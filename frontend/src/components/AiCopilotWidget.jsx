@@ -153,7 +153,7 @@ export default function AiCopilotWidget({
           <div>
             <h3 className="text-sm font-semibold text-white flex items-center gap-1.5">
               FinGPT Stratège
-              <span className={`text-[11px] px-1.5 py-0.5 rounded font-mono font-bold uppercase ${
+              <span className={`text-[13px] px-1.5 py-0.5 rounded font-mono font-bold uppercase ${
                 isPlaying
                   ? 'bg-amber-950/80 text-amber-400 border border-amber-800'
                   : 'bg-emerald-950/80 text-emerald-400 border border-emerald-800'
@@ -161,7 +161,7 @@ export default function AiCopilotWidget({
                 {isPlaying ? 'PLAY • VEILLE' : 'PAUSE • PRÊT'}
               </span>
             </h3>
-            <p className="text-[11px] text-slate-300 font-mono">{simulatedDate}</p>
+            <p className="text-[13px] text-slate-300 font-mono">{simulatedDate}</p>
           </div>
         </div>
 
@@ -295,7 +295,7 @@ export default function AiCopilotWidget({
                     <Target className="w-3.5 h-3.5 text-indigo-400" />
                     2. Top Opportunités d'Arbitrage
                   </h4>
-                  <span className="text-[11px] text-slate-300 font-mono">Confiance XGBoost</span>
+                  <span className="text-[13px] text-slate-300 font-mono">Confiance XGBoost</span>
                 </div>
 
                 <div className="space-y-2">
@@ -330,7 +330,7 @@ export default function AiCopilotWidget({
                               <span className="text-sm font-bold text-slate-100">
                                 {opp.confidence_pct}%
                               </span>
-                              <span className="text-[11px] text-slate-400 block">
+                              <span className="text-[13px] text-slate-400 block">
                                 {opp.risk_reward || 'R/R 1:2'}
                               </span>
                             </div>
@@ -360,7 +360,7 @@ export default function AiCopilotWidget({
                   {(auditResult.sources || ['Banque Centrale de Tunisie (BCT)', 'Bourse de Tunis (BVMT)']).map((src, i) => (
                     <span
                       key={i}
-                      className="text-[11px] px-1.5 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-800"
+                      className="text-[13px] px-1.5 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-800"
                     >
                       {src}
                     </span>
@@ -429,13 +429,13 @@ export default function AiCopilotWidget({
                 >
                   <p>{msg.text}</p>
                   {msg.sources && msg.sources.length > 0 && (
-                    <div className="mt-1.5 pt-1.5 border-t border-slate-700/60 text-[11px] text-slate-300">
+                    <div className="mt-1.5 pt-1.5 border-t border-slate-700/60 text-[13px] text-slate-300">
                       <span className="font-semibold text-amber-400">Sources : </span>
                       {msg.sources.join(', ')}
                     </div>
                   )}
                 </div>
-                <span className="text-[11px] text-slate-400 mt-0.5 px-1">{msg.time}</span>
+                <span className="text-[13px] text-slate-400 mt-0.5 px-1">{msg.time}</span>
               </div>
             ))}
             {isSending && (

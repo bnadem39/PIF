@@ -49,7 +49,7 @@ function Card({ title, children, right }) {
   return (
     <section className="bg-[#0F172A] border border-[#1E293B] rounded-xl p-3">
       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-xs font-bold uppercase tracking-wide text-slate-400">{title}</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-300">{title}</h2>
         {right}
       </div>
       {children}
@@ -112,7 +112,7 @@ function LineChart({ series, valueKey, height = 220, format, zeroLine = false })
         {hover != null && <line x1={x(hover)} x2={x(hover)} y1={pad.t} y2={height - pad.b} stroke="#475569" />}
       </svg>
       {hover != null && (
-        <div className="absolute top-1 left-16 bg-[#0B1120]/95 border border-[#334155] rounded-lg px-2 py-1.5 text-[11px] pointer-events-none">
+        <div className="absolute top-1 left-16 bg-[#0B1120]/95 border border-[#334155] rounded-lg px-2 py-1.5 text-[13px] pointer-events-none">
           <div className="text-slate-400 mb-0.5">{series[0].points[hover].date}</div>
           {series.map((s) => (
             <div key={s.key} className="flex justify-between gap-3">
@@ -131,7 +131,7 @@ function ParamInputs({ info, values, onChange }) {
   return (
     <div className="grid grid-cols-2 gap-1.5 mt-1.5 pl-5">
       {info.params.map((p) => (
-        <label key={p.name} className="text-[10px] text-slate-400">
+        <label key={p.name} className="text-xs text-slate-300">
           {p.label}
           <input
             type="number"
@@ -140,7 +140,7 @@ function ParamInputs({ info, values, onChange }) {
             step={p.integer ? 1 : 0.01}
             value={values[p.name] ?? p.defaultValue}
             onChange={(e) => onChange(p.name, e.target.value === '' ? undefined : Number(e.target.value))}
-            className="w-full mt-0.5 bg-[#1E293B] border border-[#334155] rounded px-1.5 py-0.5 text-xs text-slate-200"
+            className="w-full mt-0.5 bg-[#1E293B] border border-[#334155] rounded px-1.5 py-1 text-sm text-slate-200"
           />
         </label>
       ))}
@@ -222,7 +222,7 @@ export default function BacktestPage({ currentUser }) {
   }
 
   const focused = result?.results.find((r) => r.key === focus);
-  const inputCls = 'w-full bg-[#1E293B] border border-[#334155] rounded px-2 py-1 text-xs text-slate-200';
+  const inputCls = 'w-full bg-[#1E293B] border border-[#334155] rounded px-2 py-1.5 text-sm text-slate-200';
 
   return (
     <main className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -236,9 +236,9 @@ export default function BacktestPage({ currentUser }) {
 
       <div className="grid grid-cols-1 xl:grid-cols-[300px_minmax(0,1fr)] gap-3 items-start">
         {/* ── Paramètres ─────────────────────────────────────────── */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           <Card title="1. Actif et période">
-            <div className="space-y-2 text-[11px] text-slate-400">
+            <div className="space-y-2 text-xs text-slate-300">
               <label className="block">
                 Actif
                 <select value={symbol} onChange={(e) => setSymbol(e.target.value)} className={`${inputCls} mt-0.5`}>
@@ -260,10 +260,10 @@ export default function BacktestPage({ currentUser }) {
           </Card>
 
           <Card title="2. Stratégies">
-            <div className="space-y-2.5">
+            <div className="space-y-4">
               {catalog.map((c) => (
                 <div key={c.type}>
-                  <label className="flex items-center gap-2 text-xs text-slate-200" title={c.description}>
+                  <label className="flex items-center gap-2 text-sm font-medium text-slate-200" title={c.description}>
                     <input
                       type="checkbox"
                       checked={selected.includes(c.type)}
@@ -273,7 +273,7 @@ export default function BacktestPage({ currentUser }) {
                     {c.label}
                   </label>
                   {STRATEGY_SIMPLE_DESC[c.type] && (
-                    <p className="text-[10px] text-slate-400 pl-[18px] mt-0.5">{STRATEGY_SIMPLE_DESC[c.type]}</p>
+                    <p className="text-xs text-slate-300 pl-[18px] mt-0.5">{STRATEGY_SIMPLE_DESC[c.type]}</p>
                   )}
                   {selected.includes(c.type) && (
                     <ParamInputs
@@ -285,18 +285,18 @@ export default function BacktestPage({ currentUser }) {
                 </div>
               ))}
             </div>
-            <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400 mt-3 mb-1">3. Lancer</div>
+            <div className="text-sm font-semibold uppercase tracking-wide text-slate-300 mt-4 mb-1.5">3. Lancer</div>
             <button
               onClick={run}
               disabled={!selected.length || loading}
-              className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold bg-[#38BDF8] text-[#0B1120] disabled:opacity-40"
+              className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-semibold bg-[#38BDF8] text-[#0B1120] disabled:opacity-40"
             >
               {loading ? <RefreshCw size={13} className="animate-spin" /> : <Play size={13} />}
               {loading ? 'Calcul en cours…' : 'Lancer le backtest'}
             </button>
           </Card>
 
-          <div className="flex items-start gap-1.5 text-[11px] text-slate-400 px-1">
+          <div className="flex items-start gap-1.5 text-xs text-slate-400 px-1">
             <Info size={13} className="mt-0.5 shrink-0" />
             <span>
               Les décisions sont prises à la clôture et exécutées à l'ouverture suivante, frais et slippage compris.
@@ -316,16 +316,16 @@ export default function BacktestPage({ currentUser }) {
           {result && (
             <>
               {result.warnings.map((w) => (
-                <div key={w} className="flex items-start gap-1.5 text-[11px] text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-lg px-2.5 py-1.5">
+                <div key={w} className="flex items-start gap-1.5 text-[13px] text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-lg px-2.5 py-1.5">
                   <AlertTriangle size={13} className="mt-0.5 shrink-0" /> {w}
                 </div>
               ))}
 
               <Card
                 title={`Valeur du portefeuille · ${result.symbol} · ${result.startDate} → ${result.endDate}`}
-                right={<span className="text-[10px] text-slate-400">{result.tradingDays} séances</span>}
+                right={<span className="text-xs text-slate-400">{result.tradingDays} séances</span>}
               >
-                <div className="flex flex-wrap gap-x-4 gap-y-1 mb-1 text-[11px]">
+                <div className="flex flex-wrap gap-x-4 gap-y-1 mb-1 text-[13px]">
                   {series.map((s) => (
                     <span key={s.key} className="flex items-center gap-1.5 text-slate-300">
                       <span className="inline-block w-3 h-0.5" style={{ background: s.color }} />{s.label}
@@ -341,7 +341,7 @@ export default function BacktestPage({ currentUser }) {
 
               <Card title="Comparaison des performances">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-[11px]">
+                  <table className="w-full text-[13px]">
                     <thead className="text-slate-400">
                       <tr>
                         <th className="text-left px-2 py-1">Stratégie</th>
@@ -373,18 +373,18 @@ export default function BacktestPage({ currentUser }) {
                     </tbody>
                   </table>
                 </div>
-                <p className="mt-1.5 text-[10px] text-slate-400">
+                <p className="mt-1.5 text-xs text-slate-400">
                   En vert : meilleure valeur de la colonne. Montants en devise de l'actif. Cliquez sur une stratégie pour voir ses transactions.
                 </p>
               </Card>
 
               {focused && (
-                <Card title={`Transactions · ${focused.label}`} right={<span className="text-[10px] text-slate-400">{focused.metrics.trades} au total</span>}>
+                <Card title={`Transactions · ${focused.label}`} right={<span className="text-xs text-slate-400">{focused.metrics.trades} au total</span>}>
                   {focused.trades.length === 0 ? (
                     <div className="text-xs text-slate-400">Aucune transaction sur la période.</div>
                   ) : (
                     <div className="overflow-x-auto max-h-72 overflow-y-auto">
-                      <table className="w-full text-[11px]">
+                      <table className="w-full text-[13px]">
                         <thead className="text-slate-400 sticky top-0 bg-[#0F172A]">
                           <tr>
                             <th className="text-left px-2 py-1">Entrée</th>

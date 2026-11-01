@@ -35,15 +35,15 @@ function Card({ title, children, right }) {
 function Stat({ label, value, hint, title }) {
   return (
     <div className="rounded-lg border border-[#1E293B] px-2.5 py-2" title={title}>
-      <div className="text-[10px] text-slate-400">{label}</div>
+      <div className="text-xs text-slate-400">{label}</div>
       <div className="text-sm font-bold text-slate-100 font-mono">{value}</div>
-      {hint && <div className="text-[10px] text-slate-400">{hint}</div>}
+      {hint && <div className="text-xs text-slate-400">{hint}</div>}
     </div>
   );
 }
 
 function Field({ label, children }) {
-  return <label className="block text-[11px] text-slate-400">{label}{children}</label>;
+  return <label className="block text-[13px] text-slate-400">{label}{children}</label>;
 }
 
 /** Coefficient multiplicateur : barre centrée sur 1 (échelle log), rouge > 1 (plus de risque), vert < 1. */
@@ -135,13 +135,13 @@ function PricingTab({ portfolio, models }) {
                   <Card key={k} title={title}>
                     <div className="space-y-1">
                       {quote.breakdown[k].map((s) => (
-                        <div key={s.factor} className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_64px] items-center gap-2 text-[11px]">
+                        <div key={s.factor} className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_64px] items-center gap-2 text-[13px]">
                           <span className="text-slate-300 truncate">{s.label}</span>
                           {s.factor === 'base' ? <span /> : <RelBar value={s.value} />}
                           <span className="font-mono text-right text-slate-200">{s.factor === 'base' ? fmt(s.value, d) : `× ${s.value.toFixed(2)}`}</span>
                         </div>
                       ))}
-                      <div className="flex justify-between border-t border-[#1E293B] pt-1 text-[11px] font-bold text-slate-100">
+                      <div className="flex justify-between border-t border-[#1E293B] pt-1 text-[13px] font-bold text-slate-100">
                         <span>Résultat (produit)</span>
                         <span className="font-mono">{fmt(k === 'frequency' ? quote.frequency : quote.severity, d)}</span>
                       </div>
@@ -157,7 +157,7 @@ function PricingTab({ portfolio, models }) {
       {models && (
         <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] gap-3 items-start">
           <Card title="Comparaison des modèles (échantillon de test)">
-            <table className="w-full text-[11px]">
+            <table className="w-full text-[13px]">
               <thead className="text-slate-400">
                 <tr><th className="text-left py-1">Indicateur</th><th className="text-right">GLM</th><th className="text-right">Boosting</th></tr>
               </thead>
@@ -181,7 +181,7 @@ function PricingTab({ portfolio, models }) {
                 })}
               </tbody>
             </table>
-            <p className="mt-2 text-[10px] text-slate-400">
+            <p className="mt-2 text-xs text-slate-400">
               Déviance du modèle nul (même fréquence pour tous) : {c.null.frequency_deviance.toFixed(4)}.
               Apprentissage sur {fmt(models.train_size)} contrats, test sur {fmt(models.test_size)}.
               Le GLM sert de tarif : chaque coefficient s'explique à l'assuré et au régulateur.
@@ -190,7 +190,7 @@ function PricingTab({ portfolio, models }) {
 
           <Card title="Coefficients multiplicateurs du GLM">
             <div className="overflow-x-auto max-h-96 overflow-y-auto">
-              <table className="w-full text-[11px]">
+              <table className="w-full text-[13px]">
                 <thead className="text-slate-400 sticky top-0 bg-[#0F172A]">
                   <tr>
                     <th className="text-left px-1 py-1">Variable</th>
@@ -223,7 +223,7 @@ function PricingTab({ portfolio, models }) {
                 </tbody>
               </table>
             </div>
-            <p className="mt-1.5 text-[10px] text-slate-400">
+            <p className="mt-1.5 text-xs text-slate-400">
               « Vrai » : paramètre utilisé pour générer le portefeuille synthétique ; un bon modèle le retrouve dans son intervalle de confiance.
               En gris : non significatif (p &gt; 5 %). Bonus-malus : élasticité (λ ∝ (BM/100)^β).
             </p>
@@ -273,7 +273,7 @@ function MarginsTab({ portfolio }) {
           <div className="flex gap-1 col-span-2 md:col-span-1">
             {[['conventional', 'Conventionnel'], ['takaful', 'Takaful']].map(([v, l]) => (
               <button key={v} onClick={() => setMode(v)}
-                className={`flex-1 px-2 py-1 rounded border text-[11px] ${mode === v ? 'border-[#38BDF8] text-[#38BDF8]' : 'border-[#334155] text-slate-400'}`}>{l}</button>
+                className={`flex-1 px-2 py-1 rounded border text-[13px] ${mode === v ? 'border-[#38BDF8] text-[#38BDF8]' : 'border-[#334155] text-slate-400'}`}>{l}</button>
             ))}
           </div>
           {takaful && (
@@ -284,7 +284,7 @@ function MarginsTab({ portfolio }) {
           )}
         </div>
         {takaful && (
-          <p className="mt-2 text-[10px] text-slate-400">
+          <p className="mt-2 text-xs text-slate-400">
             Modèle wakala : les cotisations alimentent le fonds des participants, l'opérateur prélève une commission de gestion.
             Un excédent du fonds est en partie redistribué ; un déficit est couvert par un prêt sans intérêt de l'opérateur (qard hassan).
           </p>
@@ -310,7 +310,7 @@ function MarginsTab({ portfolio }) {
 
           <Card title={`Rentabilité par ${data.segment_label.toLowerCase()}`}>
             <div className="overflow-x-auto">
-              <table className="w-full text-[11px]">
+              <table className="w-full text-[13px]">
                 <thead className="text-slate-400">
                   <tr>
                     <th className="text-left px-2 py-1">Segment</th>
@@ -362,7 +362,7 @@ function MarginsTab({ portfolio }) {
                 </tbody>
               </table>
             </div>
-            <p className="mt-1.5 text-[10px] text-slate-400">
+            <p className="mt-1.5 text-xs text-slate-400">
               Montants annuels en TND. Ligne pointillée : S/P d'équilibre (1 − frais). Rouge : segment déficitaire au tarif actuel.
             </p>
           </Card>
@@ -424,15 +424,15 @@ function ReservingTab() {
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-1 xl:grid-cols-[360px_minmax(0,1fr)] gap-3 items-start">
-        <Card title="Triangle des paiements (incrémentaux)" right={<button onClick={loadDefault} className="text-[10px] text-slate-400 hover:text-slate-300">Exemple</button>}>
+        <Card title="Triangle des paiements (incrémentaux)" right={<button onClick={loadDefault} className="text-xs text-slate-400 hover:text-slate-300">Exemple</button>}>
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             rows={11}
             spellCheck={false}
-            className="w-full bg-[#1E293B] border border-[#334155] rounded px-2 py-1 text-[10px] font-mono text-slate-200 whitespace-pre"
+            className="w-full bg-[#1E293B] border border-[#334155] rounded px-2 py-1 text-xs font-mono text-slate-200 whitespace-pre"
           />
-          <p className="text-[10px] text-slate-400 mb-2">
+          <p className="text-xs text-slate-400 mb-2">
             Une ligne par année de survenance, une colonne par année de développement (séparateur : tabulation, espace ou point-virgule).
             Collez directement depuis un tableur.
           </p>
@@ -457,7 +457,7 @@ function ReservingTab() {
             <Card title="Provision par année de survenance (± 2 erreurs de Mack)">
               <div className="space-y-1">
                 {data.rows.map((r) => (
-                  <div key={r.origin} className="grid grid-cols-[40px_minmax(0,1fr)_96px_56px] items-center gap-2 text-[11px]">
+                  <div key={r.origin} className="grid grid-cols-[40px_minmax(0,1fr)_96px_56px] items-center gap-2 text-[13px]">
                     <span className="text-slate-400">An {r.origin}</span>
                     <div className="relative h-3">
                       <div className="absolute inset-y-0 left-0 bg-[#38BDF8] rounded-sm" style={{ width: `${(r.reserve / maxReserve) * 100}%` }} />
@@ -471,7 +471,7 @@ function ReservingTab() {
                   </div>
                 ))}
               </div>
-              <p className="mt-1.5 text-[10px] text-slate-400">Dernière colonne : coefficient de variation (erreur de Mack / provision).</p>
+              <p className="mt-1.5 text-xs text-slate-400">Dernière colonne : coefficient de variation (erreur de Mack / provision).</p>
             </Card>
           </div>
         )}
@@ -480,7 +480,7 @@ function ReservingTab() {
       {data && (
         <Card title="Triangle complété par Chain Ladder">
           <div className="overflow-x-auto">
-            <table className="w-full text-[10px] font-mono">
+            <table className="w-full text-xs font-mono">
               <thead className="text-slate-400">
                 <tr>
                   <th className="text-left px-1.5 py-1 font-sans">Survenance</th>
@@ -507,7 +507,7 @@ function ReservingTab() {
               </tbody>
             </table>
           </div>
-          <p className="mt-1.5 text-[10px] text-slate-400">
+          <p className="mt-1.5 text-xs text-slate-400">
             Montants cumulés. En bleu : projections. Facteur de développement k = Σ C(i, k+1) / Σ C(i, k) sur les années observées.
           </p>
         </Card>
@@ -547,7 +547,7 @@ export default function ActuarialPage({ currentUser }) {
           <h1 className="text-base font-extrabold">Actuariat · assurance automobile</h1>
         </div>
         {portfolio && (
-          <div className="flex items-start gap-1.5 text-[11px] text-amber-300/90 max-w-2xl">
+          <div className="flex items-start gap-1.5 text-[13px] text-amber-300/90 max-w-2xl">
             <Info size={13} className="mt-0.5 shrink-0" />
             <span>
               Portefeuille synthétique de {fmt(portfolio.policies)} contrats ({fmt(portfolio.claims)} sinistres, fréquence {fmt(portfolio.frequency, 3)},

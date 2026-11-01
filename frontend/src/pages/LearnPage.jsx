@@ -129,7 +129,7 @@ function ModuleGrid({ modules, onLesson, onQuiz }) {
                 <button onClick={() => onLesson(l.id)} className="w-full flex items-center gap-2 text-left text-xs text-slate-300 hover:text-white">
                   {l.completed ? <CheckCircle2 size={14} className="text-emerald-400 shrink-0" /> : <Circle size={14} className="text-slate-600 shrink-0" />}
                   <span className="flex-1">{l.title}</span>
-                  <span className="text-[11px] text-slate-400">{l.minutes} min</span>
+                  <span className="text-[13px] text-slate-400">{l.minutes} min</span>
                 </button>
               </li>
             ))}
@@ -137,7 +137,7 @@ function ModuleGrid({ modules, onLesson, onQuiz }) {
               <button onClick={() => onQuiz(m.quiz.id)} className="w-full flex items-center gap-2 text-left text-xs text-slate-300 hover:text-white">
                 {m.quiz.passed ? <CheckCircle2 size={14} className="text-emerald-400 shrink-0" /> : <Lightbulb size={14} className="text-amber-400 shrink-0" />}
                 <span className="flex-1">Quiz · {m.quiz.questions} questions</span>
-                <span className="text-[11px] text-slate-400">{m.quiz.bestScore != null ? `meilleur ${pct(m.quiz.bestScore, 0)}` : `réussite ${pct(m.quiz.passScore, 0)}`}</span>
+                <span className="text-[13px] text-slate-400">{m.quiz.bestScore != null ? `meilleur ${pct(m.quiz.bestScore, 0)}` : `réussite ${pct(m.quiz.passScore, 0)}`}</span>
               </button>
             </li>
           </ul>
@@ -168,7 +168,7 @@ function LessonBlock({ block }) {
       return (
         <div className="rounded-lg bg-[#0B1120] border border-[#1E293B] px-3 py-2">
           <div className="font-mono text-sm text-[#38BDF8]">{block.text}</div>
-          {block.legend && <div className="text-[11px] text-slate-300 mt-1">{block.legend}</div>}
+          {block.legend && <div className="text-[13px] text-slate-300 mt-1">{block.legend}</div>}
         </div>
       );
     case 'link':
@@ -214,7 +214,7 @@ function LessonReader({ lessonId, onBack, onProgress, onNext }) {
         <article className="max-w-3xl space-y-3">
           <div>
             <h3 className="text-lg font-extrabold text-slate-100">{lesson.title}</h3>
-            <div className="text-[11px] text-slate-300">{lesson.minutes} min de lecture</div>
+            <div className="text-[13px] text-slate-300">{lesson.minutes} min de lecture</div>
           </div>
           {lesson.blocks.map((b, i) => <LessonBlock key={i} block={b} />)}
           <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#1E293B]">
@@ -278,7 +278,7 @@ function QuizRunner({ quizId, onBack, onDone }) {
         <div className="max-w-3xl space-y-3">
           <div>
             <h3 className="text-lg font-extrabold text-slate-100">{quiz.title}</h3>
-            <div className="text-[11px] text-slate-300">
+            <div className="text-[13px] text-slate-300">
               Réussite à partir de {pct(quiz.passScore, 0)} · {quiz.bestScore != null ? `meilleur score ${pct(quiz.bestScore, 0)}` : 'premier essai'}
             </div>
           </div>
@@ -430,7 +430,7 @@ function ScenariosTab({ scenarios, onProgressChange }) {
                   {s.answered ? <CheckCircle2 size={13} className="text-emerald-400 shrink-0" /> : <Circle size={13} className="text-slate-600 shrink-0" />}
                   <span className="flex-1">{s.title}</span>
                 </div>
-                <div className="text-[11px] text-slate-400 pl-5">
+                <div className="text-[13px] text-slate-400 pl-5">
                   {s.symbol} · {s.decisionDate}{s.answered ? ` · ${s.points} pts` : ''}
                 </div>
               </button>
@@ -536,13 +536,13 @@ function ChallengesTab({ challenges, onProgressChange }) {
                 {c.completed ? 'Réussi' : `${c.points} pts`}
               </span>
             </div>
-            <div className="text-[11px] text-slate-400 mt-0.5">{c.symbol} · {c.startDate} → {c.endDate}</div>
+            <div className="text-[13px] text-slate-400 mt-0.5">{c.symbol} · {c.startDate} → {c.endDate}</div>
             <p className="text-xs text-slate-300 mt-1.5">{c.description}</p>
             <div
               className="text-xs text-[#38BDF8] mt-1.5 flex items-center gap-1"
               title={c.criterion?.type === 'MIN_SHARPE' ? 'Ratio de Sharpe : rendement obtenu par unité de risque pris. Plus il est élevé, meilleur est le résultat.' : undefined}
             ><Target size={12} /> {criterionText(c.criterion)}</div>
-            {c.attempts > 0 && <div className="text-[11px] text-slate-400 mt-1">{c.attempts} essai{c.attempts > 1 ? 's' : ''}</div>}
+            {c.attempts > 0 && <div className="text-[13px] text-slate-400 mt-1">{c.attempts} essai{c.attempts > 1 ? 's' : ''}</div>}
           </button>
         ))}
       </div>
@@ -551,7 +551,7 @@ function ChallengesTab({ challenges, onProgressChange }) {
         <Card title="Votre stratégie">
           <div className="space-y-2">
             <div className="text-xs text-slate-200 font-semibold">{challenge.title}</div>
-            <label className="block text-[11px] text-slate-300">
+            <label className="block text-[13px] text-slate-300">
               Stratégie
               <select value={type} onChange={(e) => setType(e.target.value)} className={inputCls}>
                 {strategies.map((s) => <option key={s.type} value={s.type}>{s.label}</option>)}
@@ -560,7 +560,7 @@ function ChallengesTab({ challenges, onProgressChange }) {
             {info && (
               <div className="grid grid-cols-2 gap-1.5">
                 {info.params.map((p) => (
-                  <label key={p.name} className="text-[11px] text-slate-300">
+                  <label key={p.name} className="text-[13px] text-slate-300">
                     {p.label}
                     <input
                       type="number"
@@ -578,7 +578,7 @@ function ChallengesTab({ challenges, onProgressChange }) {
                 ))}
               </div>
             )}
-            <div className="flex gap-1.5 text-[11px] text-slate-300"><Lightbulb size={13} className="shrink-0 text-amber-400" /> {challenge.hint}</div>
+            <div className="flex gap-1.5 text-[13px] text-slate-300"><Lightbulb size={13} className="shrink-0 text-amber-400" /> {challenge.hint}</div>
             <button onClick={run} disabled={running || !info} className="w-full px-3 py-1.5 rounded-lg bg-[#38BDF8] text-[#0B1120] text-xs font-bold disabled:opacity-50">
               {running ? 'Backtest en cours…' : 'Tester la stratégie'}
             </button>
@@ -590,7 +590,7 @@ function ChallengesTab({ challenges, onProgressChange }) {
                 </div>
                 <div className="text-xs text-slate-300">{result.message}</div>
                 <div className="overflow-x-auto">
-                <table className="w-full text-[11px]">
+                <table className="w-full text-[13px]">
                   <thead>
                     <tr className="text-slate-400">
                       <th className="text-left font-normal" />

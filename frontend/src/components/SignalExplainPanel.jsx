@@ -126,7 +126,7 @@ export default function SignalExplainPanel({ symbol, date, isPlaying }) {
                 const positive = r.contribution >= 0;
                 return (
                   <div key={r.feature} title={`${r.label} = ${formatValue(r.value)} · contribution ${r.contribution > 0 ? '+' : ''}${r.contribution.toFixed(3)} (log-odds)`}>
-                    <div className="flex justify-between text-[11px]">
+                    <div className="flex justify-between text-[13px]">
                       <span className="text-slate-300 truncate pr-2">{r.label}</span>
                       <span className="font-mono text-slate-300 shrink-0">{formatValue(r.value)}</span>
                     </div>
@@ -176,7 +176,7 @@ export default function SignalExplainPanel({ symbol, date, isPlaying }) {
               {news.map((n) => (
                 <li key={n.id} className="border-l-2 pl-2" style={{ borderColor: SENT_COLOR[n.sentimentLabel] }}>
                   <div className="text-xs text-slate-200 leading-snug">{n.title}</div>
-                  <div className="text-[11px] text-slate-400 font-mono">
+                  <div className="text-[13px] text-slate-400 font-mono">
                     {n.publishedDate}{n.source ? ` · ${n.source}` : ''} · {n.sentimentScore > 0 ? '+' : ''}{n.sentimentScore.toFixed(2)}
                   </div>
                 </li>
@@ -200,7 +200,7 @@ export default function SignalExplainPanel({ symbol, date, isPlaying }) {
             <ul className="space-y-1.5">
               {anomalies.anomalies.slice(0, 5).map((a) => (
                 <li key={a.date} className="flex gap-2">
-                  <span className="font-mono text-[11px] text-slate-400 shrink-0 w-[68px]">{a.date}</span>
+                  <span className="font-mono text-[13px] text-slate-400 shrink-0 w-[68px]">{a.date}</span>
                   <span className="text-xs text-slate-300 leading-snug">
                     {a.reasons.map((r) => r.text).join(' · ')}
                   </span>

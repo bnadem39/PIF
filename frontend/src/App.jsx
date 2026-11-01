@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Terminal,
   Shield,
@@ -53,13 +53,13 @@ import {
 
 // Onglets principaux : une route par module du cahier des charges
 const NAV_ITEMS = [
-  { path: '/', label: 'Terminal Time-Lapse', icon: BarChart2 },
-  { path: '/portfolio', label: 'Portefeuille & Risque', icon: PieChart },
-  { path: '/backtest', label: 'Backtesting', icon: History },
-  { path: '/learn', label: 'Formation', icon: GraduationCap },
-  { path: '/stress-test', label: 'Stress Testing', icon: Landmark },
-  { path: '/actuarial', label: 'Actuariat', icon: Umbrella },
-  { path: '/admin', label: 'Administration', icon: ShieldCheck, adminOnly: true }
+  { path: '/', label: 'Terminal', icon: BarChart2, title: 'Terminal : simulation du marché en temps accéléré' },
+  { path: '/portfolio', label: 'Portefeuille', icon: PieChart, title: 'Portefeuille : vos positions et vos risques' },
+  { path: '/backtest', label: 'Backtesting', icon: History, title: 'Backtesting : tester une stratégie sur le passé' },
+  { path: '/learn', label: 'Formation', icon: GraduationCap, title: 'Formation : apprendre avec des défis' },
+  { path: '/stress-test', label: 'Stress Testing', icon: Landmark, title: 'Stress Testing : tester la solidité face à une crise' },
+  { path: '/actuarial', label: 'Actuariat', icon: Umbrella, title: 'Actuariat : assurance automobile' },
+  { path: '/admin', label: 'Administration', icon: ShieldCheck, adminOnly: true, title: 'Administration de la plateforme' }
 ];
 
 export default function App() {
@@ -102,6 +102,21 @@ export default function App() {
   // Navigation principale : l'onglet actif est dérivé de l'URL (React Router)
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Pages conservées en mémoire après leur première visite (lazy keep-alive), pour ne pas perdre
+  // leurs résultats/onglet actif en changeant de page. Montées à la demande, puis juste masquées.
+  const visitedPathsRef = useRef(new Set());
+  const KEEP_ALIVE_PATHS = ['/backtest', '/stress-test', '/actuarial'];
+  if (KEEP_ALIVE_PATHS.includes(location.pathname)) {
+    visitedPathsRef.current.add(location.pathname);
+  }
+
+  // Sécurité changement de compte : identifie l'utilisateur connecté (ou son absence),
+  // pour réinitialiser les pages conservées à la déconnexion ou au changement d'utilisateur.
+  const userKey = currentUser ? (currentUser.id ?? currentUser.email ?? 'user') : 'anonymous';
+  useEffect(() => {
+    visitedPathsRef.current.clear();
+  }, [userKey]);
 
   // 1. Initialisation & Rafraîchissement du Portefeuille
   const refreshPortfolio = useCallback(async (dateToUse = simulatedDate, symbolToUse = selectedAsset?.ticker, priceToUse = currentSimulatedPrice) => {
@@ -342,7 +357,7 @@ export default function App() {
             <Terminal size={17} />
             <span className="font-extrabold tracking-wider text-sm whitespace-nowrap">PIF MARKET TIME-LAPSE</span>
           </div>
-          <div className="hidden 2xl:flex items-center gap-1.5 text-[11px] text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 px-2.5 py-0.5 rounded-full font-mono font-semibold">
+          <div className="hidden 2xl:flex items-center gap-1.5 text-[13px] text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 px-2.5 py-0.5 rounded-full font-mono font-semibold">
             <Globe size={11} /> Moteur Multi-Actifs Synchronisé + Leaderboard
           </div>
         </div>
@@ -358,15 +373,15 @@ export default function App() {
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                title={item.label}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
+                title={item.title || item.label}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-all ${
                   isActive
-                    ? 'bg-[#1E293B] text-[#38BDF8] border border-[#334155] shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-[#1E293B]/50'
+                    ? 'bg-[#0284C7]/15 text-[#38BDF8] border-b-2 border-[#38BDF8] shadow-sm'
+                    : 'text-slate-300 hover:text-slate-200 hover:bg-[#1E293B]/50 border-b-2 border-transparent'
                 }`}
               >
-                <Icon size={14} />
-                <span className="hidden xl:inline">{item.label}</span>
+                <Icon size={18} />
+                <span>{item.label}</span>
               </button>
             );
           })}
@@ -399,7 +414,7 @@ export default function App() {
                   <div className="text-sm font-bold text-slate-200 truncate max-w-[130px]">
                     {currentUser.fullName || currentUser.email}
                   </div>
-                  <div className="text-[11px] text-[#10B981] font-semibold">
+                  <div className="text-[13px] text-[#10B981] font-semibold">
                     {currentUser.role === 'ROLE_ADMIN' ? 'ADMINISTRATEUR' : 'TRADER ACTIF'}
                   </div>
                 </div>
@@ -445,6 +460,21 @@ export default function App() {
 
       {/* 2. TICKER TAPE DES COURS EN DÉFILEMENT */}
       <TickerTape simulatedDate={simulatedDate} />
+
+      {/* Aide rapide "3 étapes" du Terminal : bloc normal dans le flux, sous le bandeau de cotations */}
+      {location.pathname === '/' && showTerminalHelp && (
+        <div className="flex items-center gap-2 bg-[#0F172A] border-b border-[#1E293B] text-[13px] text-slate-300 px-4 py-1.5 shrink-0">
+          <Info size={13} className="text-[#38BDF8] shrink-0" />
+          <span className="flex-1 min-w-0">1. Choisissez un actif dans la liste à gauche · 2. Lancez la simulation avec Play · 3. Achetez ou vendez depuis le ticket d'ordre.</span>
+          <button
+            onClick={() => setShowTerminalHelp(false)}
+            className="text-slate-500 hover:text-white shrink-0"
+            title="Masquer cette aide"
+          >
+            <X size={13} />
+          </button>
+        </div>
+      )}
 
       {/* 3. VUE PRINCIPALE DYNAMIQUE */}
       {/* Terminal Time-Lapse : reste monté en permanence pour préserver l'état de la simulation
@@ -582,20 +612,21 @@ export default function App() {
           </div>
       </main>
 
-      {/* Aide rapide "3 étapes" du Terminal : positionnée en survol (fixed) pour ne jamais réduire la hauteur du graphique */}
-      {location.pathname === '/' && showTerminalHelp && (
-        <div className="fixed top-[88px] left-0 right-0 z-30 flex justify-center pointer-events-none px-4">
-          <div className="pointer-events-auto flex items-center gap-2 bg-[#0F172A]/95 border border-[#334155] text-[11px] text-slate-300 px-3 py-1.5 rounded-full shadow-lg backdrop-blur-sm max-w-3xl">
-            <Info size={13} className="text-[#38BDF8] shrink-0" />
-            <span>1. Choisissez un actif dans la liste à gauche · 2. Lancez la simulation avec Play · 3. Achetez ou vendez depuis le ticket d'ordre.</span>
-            <button
-              onClick={() => setShowTerminalHelp(false)}
-              className="text-slate-500 hover:text-white ml-1 shrink-0"
-              title="Masquer cette aide"
-            >
-              <X size={13} />
-            </button>
-          </div>
+      {/* Backtesting, Stress Testing et Actuariat : montées à la demande (première visite),
+          puis conservées et simplement masquées pour ne pas perdre leurs résultats/onglet actif. */}
+      {visitedPathsRef.current.has('/backtest') && (
+        <div key={userKey} className={location.pathname === '/backtest' ? 'contents' : 'hidden'}>
+          <BacktestPage currentUser={currentUser} />
+        </div>
+      )}
+      {visitedPathsRef.current.has('/stress-test') && (
+        <div key={userKey} className={location.pathname === '/stress-test' ? 'contents' : 'hidden'}>
+          <StressTestPage currentUser={currentUser} />
+        </div>
+      )}
+      {visitedPathsRef.current.has('/actuarial') && (
+        <div key={userKey} className={location.pathname === '/actuarial' ? 'contents' : 'hidden'}>
+          <ActuarialPage currentUser={currentUser} />
         </div>
       )}
 
@@ -613,9 +644,10 @@ export default function App() {
         } />
         <Route path="/admin" element={<AdminPage currentUser={currentUser} />} />
         <Route path="/admin/audit" element={<AdminAuditPage currentUser={currentUser} />} />
-        <Route path="/stress-test" element={<StressTestPage currentUser={currentUser} />} />
-        <Route path="/backtest" element={<BacktestPage currentUser={currentUser} />} />
-        <Route path="/actuarial" element={<ActuarialPage currentUser={currentUser} />} />
+        {/* Rendu géré par les blocs conservés (keep-alive) ci-dessus */}
+        <Route path="/stress-test" element={null} />
+        <Route path="/backtest" element={null} />
+        <Route path="/actuarial" element={null} />
         <Route path="/learn" element={<LearnPage currentUser={currentUser} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

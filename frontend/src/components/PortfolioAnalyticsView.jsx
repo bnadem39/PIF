@@ -188,7 +188,7 @@ export default function PortfolioAnalyticsView({
             {Number(cashBalance).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })}{' '}
             <span className="text-xs text-slate-400 font-normal">TND</span>
           </div>
-          <div className="text-[10px] text-slate-400 mt-1">
+          <div className="text-xs text-slate-400 mt-1">
             Fonds bloqués : 0.000 TND
           </div>
         </div>
@@ -203,7 +203,7 @@ export default function PortfolioAnalyticsView({
             {Number(totalValue).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })}{' '}
             <span className="text-xs text-slate-400 font-normal">TND</span>
           </div>
-          <div className="text-[10px] text-slate-400 mt-1">
+          <div className="text-xs text-slate-400 mt-1">
             Titres : {Number(positionsMarketValue).toFixed(3)} TND ({portfolio?.positionsCount || 0} lignes)
           </div>
         </div>
@@ -227,7 +227,7 @@ export default function PortfolioAnalyticsView({
             {Number(totalUnrealizedPnl).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })}{' '}
             <span className="text-xs font-normal">TND</span>
           </div>
-          <div className="text-[10px] font-semibold mt-1">
+          <div className="text-xs font-semibold mt-1">
             <span
               className={`px-1.5 py-0.5 rounded ${
                 isUnrealizedPos ? 'bg-emerald-950 text-emerald-400' : 'bg-rose-950 text-rose-400'
@@ -254,7 +254,7 @@ export default function PortfolioAnalyticsView({
             {Number(totalRealizedPnl).toLocaleString(undefined, { minimumFractionDigits: 3, maximumFractionDigits: 3 })}{' '}
             <span className="text-xs font-normal">TND</span>
           </div>
-          <div className="text-[10px] text-slate-400 mt-1">
+          <div className="text-xs text-slate-400 mt-1">
             Win Rate : <strong className="text-sky-400">{Number(winRate).toFixed(1)}%</strong> ({winningTrades}V / {losingTrades}D)
           </div>
         </div>
@@ -270,11 +270,11 @@ export default function PortfolioAnalyticsView({
             <div>
               <h2 className="text-sm font-bold text-white flex items-center gap-2">
                 Diagnostic Stratégique IA du Portefeuille
-                <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800 font-mono">
+                <span className="text-xs px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800 font-mono">
                   FinGPT Copilot • À la demande
                 </span>
               </h2>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[13px] text-slate-400">
                 Audit unitaire et confidentiel : diversification, P&L latent et préconisations de gestion des risques.
               </p>
             </div>
@@ -323,7 +323,7 @@ export default function PortfolioAnalyticsView({
         {auditData && !isAuditing && (
           <div className="mt-3 space-y-3 font-sans">
             <div className="flex flex-wrap items-center gap-2">
-              <span className={`text-[11px] font-mono font-bold px-2.5 py-1 rounded-md border ${
+              <span className={`text-[13px] font-mono font-bold px-2.5 py-1 rounded-md border ${
                 auditData.risk_level === 'LOW'
                   ? 'bg-emerald-950/80 text-emerald-400 border-emerald-800'
                   : auditData.risk_level === 'HIGH' || auditData.risk_level === 'VERY HIGH'
@@ -333,17 +333,17 @@ export default function PortfolioAnalyticsView({
                 Niveau de Risque : {auditData.risk_level}
               </span>
 
-              <span className="text-[11px] font-mono font-bold px-2.5 py-1 rounded-md bg-slate-900 text-sky-400 border border-slate-700" title="Suggestion de rééquilibrage proposée par l'auditeur IA pour réduire le risque.">
+              <span className="text-[13px] font-mono font-bold px-2.5 py-1 rounded-md bg-slate-900 text-sky-400 border border-slate-700" title="Suggestion de rééquilibrage proposée par l'auditeur IA pour réduire le risque.">
                 Arbitrage Conseillé : {auditData.arbitrage_advice}
               </span>
 
               {auditData.key_ratios && (
-                <span className="text-[11px] font-mono text-slate-400 bg-slate-950 px-2.5 py-1 rounded border border-slate-800">
+                <span className="text-[13px] font-mono text-slate-400 bg-slate-950 px-2.5 py-1 rounded border border-slate-800">
                   Cash : {auditData.key_ratios.cash_ratio_pct}% • Lignes : {auditData.key_ratios.positions_count}
                 </span>
               )}
 
-              <span className="text-[10px] font-mono text-slate-400 ml-auto">
+              <span className="text-xs font-mono text-slate-400 ml-auto">
                 Latence : {auditData.latency_ms}ms • Date : {auditData.simulated_date}
               </span>
             </div>
@@ -353,7 +353,7 @@ export default function PortfolioAnalyticsView({
             </div>
 
             {auditData.sources && auditData.sources.length > 0 && (
-              <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-mono flex-wrap">
+              <div className="flex items-center gap-1.5 text-xs text-slate-400 font-mono flex-wrap">
                 <span className="text-slate-400">Références :</span>
                 {auditData.sources.map((src, i) => (
                   <span key={i} className="px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300">
@@ -377,7 +377,7 @@ export default function PortfolioAnalyticsView({
                 Courbe d'Équité (Equity Curve)
               </h2>
             </div>
-            <span className="text-[11px] font-mono text-slate-400">
+            <span className="text-[13px] font-mono text-slate-400">
               Capital Initial : 100 000.000 TND
             </span>
           </div>
@@ -423,7 +423,7 @@ export default function PortfolioAnalyticsView({
               </div>
             )}
 
-            <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 mt-2 border-t border-[#1E293B] pt-1">
+            <div className="flex items-center justify-between text-xs font-mono text-slate-400 mt-2 border-t border-[#1E293B] pt-1">
               <span>Départ : 100 000 TND</span>
               <span>Actuel : {Number(totalValue).toFixed(2)} TND</span>
             </div>
@@ -465,7 +465,7 @@ export default function PortfolioAnalyticsView({
             </div>
           </div>
 
-          <div className="text-[11px] text-slate-400 mt-4 border-t border-[#1E293B] pt-2">
+          <div className="text-[13px] text-slate-400 mt-4 border-t border-[#1E293B] pt-2">
             Zéro risque de découvert : contrôles de solvabilité pré-trade actifs sur Spring Boot.
           </div>
         </div>
@@ -480,14 +480,14 @@ export default function PortfolioAnalyticsView({
               Positions Ouvertes en Portefeuille ({portfolio?.positions?.length || 0})
             </h2>
           </div>
-          <span className="text-[11px] font-mono text-slate-400" title="PRU = Prix de Revient Unitaire : le prix moyen payé pour vos actions d'un même actif, pondéré par les quantités achetées.">
+          <span className="text-[13px] font-mono text-slate-400" title="PRU = Prix de Revient Unitaire : le prix moyen payé pour vos actions d'un même actif, pondéré par les quantités achetées.">
             Formule PRU : Σ(Qi × Pi) / ΣQi
           </span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-mono">
-            <thead className="bg-[#080C14] text-slate-400 uppercase text-[10px] border-b border-[#1E293B]">
+            <thead className="bg-[#080C14] text-slate-400 uppercase text-xs border-b border-[#1E293B]">
               <tr>
                 <th className="py-2.5 px-3">Actif</th>
                 <th className="py-2.5 px-3 text-right">Quantité</th>
@@ -584,14 +584,14 @@ export default function PortfolioAnalyticsView({
               Journal d'Audit des Transactions ({transactions.length})
             </h2>
           </div>
-          <span className="text-[11px] font-mono text-slate-400">
+          <span className="text-[13px] font-mono text-slate-400">
             Horodatage selon la date de simulation
           </span>
         </div>
 
         <div className="overflow-x-auto max-h-72">
           <table className="w-full text-left text-xs font-mono">
-            <thead className="bg-[#080C14] text-slate-400 uppercase text-[10px] border-b border-[#1E293B] sticky top-0">
+            <thead className="bg-[#080C14] text-slate-400 uppercase text-xs border-b border-[#1E293B] sticky top-0">
               <tr>
                 <th className="py-2.5 px-3">#</th>
                 <th className="py-2.5 px-3">Date Simulée</th>
@@ -615,7 +615,7 @@ export default function PortfolioAnalyticsView({
                       <td className="py-2 px-3 font-bold text-[#38BDF8]">{tx.symbol}</td>
                       <td className="py-2 px-3">
                         <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                          className={`px-2 py-0.5 rounded text-xs font-bold ${
                             isBuy
                               ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
                               : 'bg-rose-950 text-rose-400 border border-rose-800'

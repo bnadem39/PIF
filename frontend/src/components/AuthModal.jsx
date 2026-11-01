@@ -356,7 +356,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
         )}
 
         {/* Pied de Modale */}
-        <div className="px-6 py-3.5 bg-[#080C14] border-t border-[#1E293B] text-center text-[11px] text-slate-400 font-mono">
+        <div className="px-6 py-3.5 bg-[#080C14] border-t border-[#1E293B] text-center text-[13px] text-slate-400 font-mono">
           {mode === 'LOGIN' ? (
             <span>
               Pas encore de compte ?{' '}
