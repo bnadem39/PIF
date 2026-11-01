@@ -192,7 +192,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
           <form onSubmit={handleLoginSubmit} className="p-6 pt-2 space-y-4 font-mono text-xs">
             {/* Champ Email */}
             <div>
-              <label className="block text-slate-300 font-semibold mb-1 text-[11px] uppercase">
+              <label className="block text-slate-300 font-semibold mb-1 text-xs uppercase">
                 Adresse Email
               </label>
               <div className="flex items-center bg-[#080C14] border border-[#334155] rounded-xl px-3 py-2.5 focus-within:border-[#38BDF8] transition-colors">
@@ -211,7 +211,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
             {/* Champ Mot de Passe */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-slate-300 font-semibold text-[11px] uppercase">
+                <label className="text-slate-300 font-semibold text-xs uppercase">
                   Mot de Passe
                 </label>
               </div>
@@ -259,7 +259,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
           <form onSubmit={handleRegisterSubmit} className="p-6 pt-2 space-y-3.5 font-mono text-xs">
             {/* Nom Complet */}
             <div>
-              <label className="block text-slate-300 font-semibold mb-1 text-[11px] uppercase">
+              <label className="block text-slate-300 font-semibold mb-1 text-xs uppercase">
                 Nom & Prénom (Trader)
               </label>
               <div className="flex items-center bg-[#080C14] border border-[#334155] rounded-xl px-3 py-2.5 focus-within:border-[#38BDF8] transition-colors">
@@ -276,7 +276,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
 
             {/* Adresse Email */}
             <div>
-              <label className="block text-slate-300 font-semibold mb-1 text-[11px] uppercase">
+              <label className="block text-slate-300 font-semibold mb-1 text-xs uppercase">
                 Adresse Email
               </label>
               <div className="flex items-center bg-[#080C14] border border-[#334155] rounded-xl px-3 py-2.5 focus-within:border-[#38BDF8] transition-colors">
@@ -294,7 +294,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
 
             {/* Mot de Passe */}
             <div>
-              <label className="block text-slate-300 font-semibold mb-1 text-[11px] uppercase">
+              <label className="block text-slate-300 font-semibold mb-1 text-xs uppercase">
                 Mot de Passe (min. 6 car.)
               </label>
               <div className="flex items-center bg-[#080C14] border border-[#334155] rounded-xl px-3 py-2.5 focus-within:border-[#38BDF8] transition-colors">
@@ -312,7 +312,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
 
             {/* Confirmer Mot de Passe */}
             <div>
-              <label className="block text-slate-300 font-semibold mb-1 text-[11px] uppercase">
+              <label className="block text-slate-300 font-semibold mb-1 text-xs uppercase">
                 Confirmer Mot de Passe
               </label>
               <div className="flex items-center bg-[#080C14] border border-[#334155] rounded-xl px-3 py-2.5 focus-within:border-[#38BDF8] transition-colors">
@@ -329,7 +329,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess, initialMode 
             </div>
 
             {/* Badge Avantage Solde Initial */}
-            <div className="p-2.5 bg-emerald-950/60 border border-emerald-800/80 rounded-xl flex items-center gap-2 text-emerald-300 text-[11px]">
+            <div className="p-2.5 bg-emerald-950/60 border border-emerald-800/80 rounded-xl flex items-center gap-2 text-emerald-300 text-xs">
               <ShieldCheck size={16} className="shrink-0 text-emerald-400" />
               <span>Capital initial virtuel crédité : <strong>100 000,000 TND</strong></span>
             </div>

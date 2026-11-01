@@ -388,15 +388,15 @@ export default function App() {
                   setAuthModalMode('LOGIN');
                   setIsAuthModalOpen(true);
                 }}
-                className="flex items-center gap-2 bg-[#1E293B] border border-[#334155] px-2.5 py-1 rounded-lg cursor-pointer hover:border-[#38BDF8] transition-colors"
+                className="flex items-center gap-2 bg-[#1E293B] border border-[#334155] px-2.5 py-1.5 rounded-lg cursor-pointer hover:border-[#38BDF8] transition-colors"
                 title="Cliquer pour changer d'utilisateur"
               >
                 <UserCircle size={16} className="text-[#38BDF8]" />
                 <div className="text-left font-mono">
-                  <div className="text-[11px] font-bold text-slate-200 truncate max-w-[130px]">
+                  <div className="text-sm font-bold text-slate-200 truncate max-w-[130px]">
                     {currentUser.fullName || currentUser.email}
                   </div>
-                  <div className="text-[9px] text-[#10B981] font-semibold">
+                  <div className="text-[11px] text-[#10B981] font-semibold">
                     {currentUser.role === 'ROLE_ADMIN' ? 'ADMINISTRATEUR' : 'TRADER ACTIF'}
                   </div>
                 </div>

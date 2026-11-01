@@ -27,7 +27,7 @@ export default function TickerTape({ simulatedDate }) {
     <div className="bg-[#0F172A] border-b border-[#1E293B] text-xs h-9 flex items-center px-4 overflow-x-auto no-scrollbar select-none">
       <div className="flex items-center gap-2 pr-4 border-r border-[#334155] text-[#38BDF8] font-semibold shrink-0">
         <Activity size={14} />
-        <span className="tracking-wider uppercase text-[10px]">Marché au {overview?.date || simulatedDate || '…'}</span>
+        <span className="tracking-wider uppercase text-[11px]">Marché au {overview?.date || simulatedDate || '…'}</span>
       </div>
 
       <div className="flex items-center gap-6 pl-4 whitespace-nowrap">
