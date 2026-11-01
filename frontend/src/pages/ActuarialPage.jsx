@@ -32,9 +32,9 @@ function Card({ title, children, right }) {
   );
 }
 
-function Stat({ label, value, hint }) {
+function Stat({ label, value, hint, title }) {
   return (
-    <div className="rounded-lg border border-[#1E293B] px-2.5 py-2">
+    <div className="rounded-lg border border-[#1E293B] px-2.5 py-2" title={title}>
       <div className="text-[10px] text-slate-500">{label}</div>
       <div className="text-sm font-bold text-slate-100 font-mono">{value}</div>
       {hint && <div className="text-[10px] text-slate-500">{hint}</div>}
@@ -165,15 +165,15 @@ function PricingTab({ portfolio, models }) {
                 {[
                   ['Déviance fréquence', 'frequency_deviance', (v) => v.toFixed(4), -1],
                   ['Déviance sévérité', 'severity_deviance', (v) => v.toFixed(4), -1],
-                  ['Gini (segmentation)', 'gini', (v) => v.toFixed(3), 1],
+                  ['Gini (segmentation)', 'gini', (v) => v.toFixed(3), 1, 'Mesure la capacité du modèle à bien distinguer les profils à risque : plus proche de 1, meilleur est le modèle.'],
                   ['Prédit / observé', 'predicted_to_actual', (v) => v.toFixed(3), 0]
-                ].map(([l, k, f, better]) => {
+                ].map(([l, k, f, better, hint]) => {
                   const g = c.glm[k];
                   const b = c.gbm[k];
                   const glmBest = better > 0 ? g > b : better < 0 ? g < b : Math.abs(g - 1) < Math.abs(b - 1);
                   return (
                     <tr key={k} className="border-t border-[#1E293B]">
-                      <td className="py-1">{l}</td>
+                      <td className="py-1" title={hint}>{l}</td>
                       <td className={`text-right font-mono ${glmBest ? 'text-emerald-300 font-bold' : ''}`}>{f(g)}</td>
                       <td className={`text-right font-mono ${!glmBest ? 'text-emerald-300 font-bold' : ''}`}>{f(b)}</td>
                     </tr>
@@ -195,9 +195,9 @@ function PricingTab({ portfolio, models }) {
                   <tr>
                     <th className="text-left px-1 py-1">Variable</th>
                     <th className="text-left px-1">Modalité</th>
-                    <th className="text-right px-1">Fréquence [IC 95 %]</th>
+                    <th className="text-right px-1" title="Intervalle dans lequel la vraie valeur a 95 % de chances de se trouver, compte tenu de l'incertitude statistique.">Fréquence [IC 95 %]</th>
                     <th className="text-right px-1">Vrai</th>
-                    <th className="text-right px-1">Coût moyen [IC 95 %]</th>
+                    <th className="text-right px-1" title="Intervalle dans lequel la vraie valeur a 95 % de chances de se trouver, compte tenu de l'incertitude statistique.">Coût moyen [IC 95 %]</th>
                     <th className="text-right px-1">Vrai</th>
                   </tr>
                 </thead>
@@ -452,7 +452,7 @@ function ReservingTab() {
               <Stat label="Paiements à date" value={fmt(data.total.latest)} />
               <Stat label="Charge ultime estimée" value={fmt(data.total.ultimate)} />
               <Stat label="Provision (IBNR)" value={fmt(data.total.reserve)} hint={source} />
-              <Stat label="Erreur de Mack" value={fmt(data.total.mack_se)} hint={`${pct(data.total.mack_se / data.total.reserve)} de la provision`} />
+              <Stat label="Erreur de Mack" value={fmt(data.total.mack_se)} hint={`${pct(data.total.mack_se / data.total.reserve)} de la provision`} title="Méthode statistique (Mack) qui estime l'incertitude autour du montant de provision calculé." />
             </div>
             <Card title="Provision par année de survenance (± 2 erreurs de Mack)">
               <div className="space-y-1">
