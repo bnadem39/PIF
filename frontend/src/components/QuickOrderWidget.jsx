@@ -184,7 +184,7 @@ export default function QuickOrderWidget({
 
           {/* Quantité & Raccourcis % */}
           <div className="flex items-center gap-2">
-            <label className="text-slate-400 text-[11px] font-semibold">Qté :</label>
+            <label className="text-slate-400 text-[11px] font-semibold" title="Quantité d'actions à acheter ou vendre">Qté :</label>
             <input
               type="number"
               min="1"
@@ -209,7 +209,7 @@ export default function QuickOrderWidget({
 
           {/* Cours d'exécution simulé */}
           <div className="flex items-center gap-2">
-            <label className="text-slate-400 text-[11px] font-semibold">Cours :</label>
+            <label className="text-slate-400 text-[11px] font-semibold" title="Prix (cours) auquel l'ordre sera exécuté">Cours :</label>
             <div className="flex items-center bg-[#080C14] border border-[#334155] rounded px-2 py-1">
               <input
                 type="number"
@@ -234,7 +234,7 @@ export default function QuickOrderWidget({
               }`}
             >
               <Shield size={12} className={enableStopLoss || enableTakeProfit ? 'text-indigo-400' : ''} />
-              <span>Gestion Risques (SL/TP)</span>
+              <span>Gestion des Risques (SL/TP)</span>
               {showRiskConfig ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
             </button>
           )}

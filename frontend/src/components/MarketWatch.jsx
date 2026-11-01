@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
 import { Search, SlidersHorizontal, ShieldCheck, Database, Globe } from 'lucide-react';
 
+// Formate une date ISO (AAAA-MM-JJ) en JJ/MM/AAAA pour l'affichage uniquement (la valeur réelle n'est pas modifiée)
+const formatDateDisplay = (iso) => {
+  if (!iso || typeof iso !== 'string') return iso;
+  const [y, m, d] = iso.split('-');
+  return y && m && d ? `${d}/${m}/${y}` : iso;
+};
+
 export default function MarketWatch({ assets = [], selectedAsset, onSelectAsset, isLoading, assetSignals = {} }) {
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('ALL');
@@ -18,7 +25,7 @@ export default function MarketWatch({ assets = [], selectedAsset, onSelectAsset,
   const getSignalBadge = (sig) => {
     if (!sig || sig.pBuy == null) {
       return (
-        <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700/60">
+        <span title="Aucun signal disponible pour cet actif pour le moment." className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700/60">
           IA —
         </span>
       );
@@ -39,7 +46,7 @@ export default function MarketWatch({ assets = [], selectedAsset, onSelectAsset,
     }
     return (
       <span
-        title={`P(hausse) ${Math.round(sig.pBuy * 100)} % · P(baisse) ${Math.round(sig.pSell * 100)} % : sous le seuil de 60 %`}
+        title={`Le signal n'est pas assez net pour conseiller clairement d'acheter ou de vendre (${Math.round(sig.pBuy * 100)} % de chances de hausse, ${Math.round(sig.pSell * 100)} % de chances de baisse).`}
         className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-slate-800/80 text-slate-400 border border-slate-700/50"
       >
         ATTENTE
@@ -153,8 +160,8 @@ export default function MarketWatch({ assets = [], selectedAsset, onSelectAsset,
                   <div className="text-[10px] text-slate-400 truncate max-w-[140px] mt-0.5" title={asset.name}>
                     {asset.name}
                   </div>
-                  <div className="text-[10px] font-mono text-slate-400 mt-0.5">
-                    {signalData ? `Vol : ${Math.round(signalData.volume).toLocaleString('fr-FR')} · ${signalData.date}` : pricesLoading ? 'Vol : …' : 'Vol : -'}
+                  <div className="text-[10px] font-mono text-slate-500 mt-0.5">
+                    {signalData ? `Vol : ${Math.round(signalData.volume).toLocaleString('fr-FR')} · ${formatDateDisplay(signalData.date)}` : pricesLoading ? 'Vol : …' : 'Vol : -'}
                   </div>
                 </div>
 
@@ -167,7 +174,7 @@ export default function MarketWatch({ assets = [], selectedAsset, onSelectAsset,
                   <div className="text-right shrink-0 text-[10px] text-slate-400">Pas encore coté<br />à cette date</div>
                 ) : (
                 <div className="text-right shrink-0">
-                  <div className="font-mono text-xs font-semibold text-slate-100">
+                  <div className="font-mono text-sm font-bold text-slate-100">
                     {Number(price).toLocaleString(undefined, {
                       minimumFractionDigits: asset.currency === 'TND' ? 3 : 2,
                       maximumFractionDigits: asset.currency === 'TND' ? 3 : 2

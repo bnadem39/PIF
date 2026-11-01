@@ -18,7 +18,9 @@ import {
   GraduationCap,
   Landmark,
   Umbrella,
-  ShieldCheck
+  ShieldCheck,
+  Info,
+  X
 } from 'lucide-react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import AdminAuditPage from './pages/AdminAuditPage';
@@ -65,6 +67,7 @@ export default function App() {
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [selectedYear, setSelectedYear] = useState('2022');
   const [isCsvInspectorOpen, setIsCsvInspectorOpen] = useState(false);
+  const [showTerminalHelp, setShowTerminalHelp] = useState(true);
   const [isLoadingAssets, setIsLoadingAssets] = useState(true);
 
   // Authentification & Utilisateur actif
@@ -578,6 +581,23 @@ export default function App() {
             )}
           </div>
       </main>
+
+      {/* Aide rapide "3 étapes" du Terminal : positionnée en survol (fixed) pour ne jamais réduire la hauteur du graphique */}
+      {location.pathname === '/' && showTerminalHelp && (
+        <div className="fixed top-[88px] left-0 right-0 z-30 flex justify-center pointer-events-none px-4">
+          <div className="pointer-events-auto flex items-center gap-2 bg-[#0F172A]/95 border border-[#334155] text-[11px] text-slate-300 px-3 py-1.5 rounded-full shadow-lg backdrop-blur-sm max-w-3xl">
+            <Info size={13} className="text-[#38BDF8] shrink-0" />
+            <span>1. Choisissez un actif dans la liste à gauche · 2. Lancez la simulation avec Play · 3. Achetez ou vendez depuis le ticket d'ordre.</span>
+            <button
+              onClick={() => setShowTerminalHelp(false)}
+              className="text-slate-500 hover:text-white ml-1 shrink-0"
+              title="Masquer cette aide"
+            >
+              <X size={13} />
+            </button>
+          </div>
+        </div>
+      )}
 
       <Routes>
         {/* Rendu géré par le <main> toujours monté ci-dessus */}
