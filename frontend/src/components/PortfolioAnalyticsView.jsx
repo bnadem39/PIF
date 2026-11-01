@@ -558,8 +558,19 @@ export default function PortfolioAnalyticsView({
                 })
               ) : (
                 <tr>
-                  <td colSpan="10" className="py-6 text-center text-slate-400 font-mono text-xs">
-                    Aucune position ouverte actuellement. Passez un ordre d'achat dans le terminal.
+                  <td colSpan="10" className="py-10 text-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <Wallet size={28} className="text-slate-600" />
+                      <p className="text-sm text-slate-300">Aucune position ouverte actuellement.</p>
+                      {onNavigateToTrading && (
+                        <button
+                          onClick={onNavigateToTrading}
+                          className="mt-1 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#0284C7]/20 hover:bg-[#0284C7]/30 text-[#38BDF8] border border-[#0284C7]/50 transition-all"
+                        >
+                          Aller au Terminal pour passer un premier ordre
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               )}

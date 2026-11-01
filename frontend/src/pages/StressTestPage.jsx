@@ -461,8 +461,10 @@ export default function StressTestPage({ currentUser }) {
         {/* ── Résultats ─────────────────────────────────────────── */}
         <div className="space-y-3 min-w-0">
           {!sc && (
-            <div className="border border-dashed border-[#1E293B] rounded-xl p-8 text-center text-xs text-slate-400">
-              Choisissez un ou plusieurs scénarios puis lancez le stress test.
+            <div className="border border-dashed border-[#1E293B] rounded-xl p-10 text-center flex flex-col items-center gap-2">
+              <Landmark size={28} className="text-slate-600" />
+              <p className="text-sm text-slate-300">Aucun stress test lancé pour le moment.</p>
+              <p className="text-xs text-slate-400 max-w-sm">Choisissez un ou plusieurs scénarios puis lancez le stress test.</p>
             </div>
           )}
 

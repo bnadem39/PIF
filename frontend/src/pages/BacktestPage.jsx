@@ -327,8 +327,10 @@ export default function BacktestPage({ currentUser }) {
         {/* ── Résultats ─────────────────────────────────────────── */}
         <div className="space-y-3 min-w-0">
           {!result && (
-            <div className="border border-dashed border-[#1E293B] rounded-xl p-8 text-center text-xs text-slate-400">
-              Suivez les 3 étapes à gauche : choisissez un actif et une période, cochez une ou plusieurs stratégies, puis cliquez sur « Lancer le backtest ».
+            <div className="border border-dashed border-[#1E293B] rounded-xl p-10 text-center flex flex-col items-center gap-2">
+              <History size={28} className="text-slate-600" />
+              <p className="text-sm text-slate-300">Aucun backtest lancé pour le moment.</p>
+              <p className="text-xs text-slate-400 max-w-sm">Suivez les 3 étapes à gauche : choisissez un actif et une période, cochez une ou plusieurs stratégies, puis cliquez sur « Lancer le backtest ».</p>
             </div>
           )}
 
