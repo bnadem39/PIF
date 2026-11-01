@@ -618,17 +618,17 @@ export default function App() {
       {/* Backtesting, Stress Testing et Actuariat : montées à la demande (première visite),
           puis conservées et simplement masquées pour ne pas perdre leurs résultats/onglet actif. */}
       {visitedPathsRef.current.has('/backtest') && (
-        <div key={userKey} className={location.pathname === '/backtest' ? 'contents' : 'hidden'}>
+        <div key={`${userKey}-backtest`} className={location.pathname === '/backtest' ? 'contents' : 'hidden'}>
           <BacktestPage currentUser={currentUser} />
         </div>
       )}
       {visitedPathsRef.current.has('/stress-test') && (
-        <div key={userKey} className={location.pathname === '/stress-test' ? 'contents' : 'hidden'}>
+        <div key={`${userKey}-stress`} className={location.pathname === '/stress-test' ? 'contents' : 'hidden'}>
           <StressTestPage currentUser={currentUser} />
         </div>
       )}
       {visitedPathsRef.current.has('/actuarial') && (
-        <div key={userKey} className={location.pathname === '/actuarial' ? 'contents' : 'hidden'}>
+        <div key={`${userKey}-actuarial`} className={location.pathname === '/actuarial' ? 'contents' : 'hidden'}>
           <ActuarialPage currentUser={currentUser} />
         </div>
       )}
