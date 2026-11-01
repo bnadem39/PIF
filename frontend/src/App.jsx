@@ -420,14 +420,17 @@ export default function App() {
                 </div>
               </div>
 
+              <div className="w-px h-6 bg-[#334155] shrink-0" />
+
               {/* Bouton Déconnexion */}
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 border border-[#334155] hover:text-rose-400 hover:border-rose-500/60 hover:bg-rose-950/20 transition-all font-mono shrink-0"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold text-slate-300 bg-transparent border border-slate-600 hover:text-rose-400 hover:border-rose-500/60 hover:bg-rose-950/20 transition-all shrink-0"
                 title="Se déconnecter"
+                aria-label="Se déconnecter"
               >
-                <LogOut size={13} />
-                <span>Déconnexion</span>
+                <LogOut size={16} />
+                <span className="hidden sm:inline">Déconnexion</span>
               </button>
             </div>
           ) : (
