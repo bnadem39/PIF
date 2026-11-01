@@ -444,9 +444,9 @@ export default function App() {
       <TickerTape simulatedDate={simulatedDate} />
 
       {/* 3. VUE PRINCIPALE DYNAMIQUE */}
-      <Routes>
-        <Route path="/" element={
-        <main className="flex-1 flex overflow-hidden">
+      {/* Terminal Time-Lapse : reste monté en permanence pour préserver l'état de la simulation
+          (currentIndex, date simulée, lecture) lors de la navigation vers un autre onglet. */}
+      <main className={`flex-1 flex overflow-hidden ${location.pathname === '/' ? '' : 'hidden'}`}>
           {/* Watchlist à gauche */}
           <MarketWatch
             assets={assets}
@@ -577,8 +577,11 @@ export default function App() {
               selectedAsset && <OrderBookTape selectedAsset={selectedAsset} price={currentSimulatedPrice} />
             )}
           </div>
-        </main>
-        } />
+      </main>
+
+      <Routes>
+        {/* Rendu géré par le <main> toujours monté ci-dessus */}
+        <Route path="/" element={null} />
         {/* Vue Dédiée Espace Portefeuille & Risque */}
         <Route path="/portfolio" element={
           <PortfolioAnalyticsView
