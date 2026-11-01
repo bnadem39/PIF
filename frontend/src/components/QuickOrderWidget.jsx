@@ -152,8 +152,8 @@ export default function QuickOrderWidget({
   };
 
   return (
-    <div className="bg-[#0F172A] border-t border-[#1E293B] p-3 text-xs select-none font-mono">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-2.5">
+    <div className="bg-[#0F172A] border-t border-[#1E293B] p-4 text-xs select-none font-mono">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         {/* Ligne 1 : Contrôles d'Exécution Principaux */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           {/* Sélecteur Achat / Vente */}
@@ -183,8 +183,8 @@ export default function QuickOrderWidget({
           </div>
 
           {/* Quantité & Raccourcis % */}
-          <div className="flex items-center gap-2">
-            <label className="text-slate-400 text-[11px] font-semibold" title="Quantité d'actions à acheter ou vendre">Qté :</label>
+          <div className="flex items-center gap-3">
+            <label className="text-slate-300 text-xs font-semibold" title="Quantité d'actions à acheter ou vendre">Qté :</label>
             <input
               type="number"
               min="1"
@@ -199,7 +199,7 @@ export default function QuickOrderWidget({
                   key={pct}
                   type="button"
                   onClick={() => handlePercentage(pct)}
-                  className="bg-[#1E293B] hover:bg-[#334155] text-slate-300 text-[10px] px-1.5 py-1 rounded transition-colors font-bold"
+                  className="bg-[#1E293B] hover:bg-[#334155] text-slate-300 text-xs px-1.5 py-1 rounded transition-colors font-bold"
                 >
                   {pct}%
                 </button>
@@ -208,8 +208,8 @@ export default function QuickOrderWidget({
           </div>
 
           {/* Cours d'exécution simulé */}
-          <div className="flex items-center gap-2">
-            <label className="text-slate-400 text-[11px] font-semibold" title="Prix (cours) auquel l'ordre sera exécuté">Cours :</label>
+          <div className="flex items-center gap-3">
+            <label className="text-slate-300 text-xs font-semibold" title="Prix (cours) auquel l'ordre sera exécuté">Cours :</label>
             <div className="flex items-center bg-[#080C14] border border-[#334155] rounded px-2 py-1">
               <input
                 type="number"
@@ -227,7 +227,7 @@ export default function QuickOrderWidget({
             <button
               type="button"
               onClick={() => setShowRiskConfig(!showRiskConfig)}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold border transition-all ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border transition-all ${
                 enableStopLoss || enableTakeProfit || enableTrailingStop
                   ? 'bg-indigo-600/20 text-indigo-400 border-indigo-500/40'
                   : 'bg-[#1E293B] text-slate-400 border-[#334155] hover:text-slate-200'
@@ -240,17 +240,17 @@ export default function QuickOrderWidget({
           )}
 
           {/* Montant Estimé & Frais */}
-          <div className="hidden xl:flex items-center gap-3 text-[11px] border-l border-[#1E293B] pl-3">
+          <div className="hidden xl:flex items-center gap-3 text-xs border-l border-[#1E293B] pl-3">
             <div>
-              <span className="text-slate-400">Total : </span>
-              <strong className="text-white">
+              <span className="text-slate-300">Total : </span>
+              <strong className="text-white text-sm">
                 {(side === 'BUY' ? totalBuyRequired : netSellProceeds).toFixed(precision)} {selectedAsset?.currency}
               </strong>
             </div>
             {side === 'SELL' && (
               <div>
-                <span className="text-slate-400">Détenu : </span>
-                <strong className={heldQuantity > 0 ? 'text-emerald-400' : 'text-rose-400'}>
+                <span className="text-slate-300">Détenu : </span>
+                <strong className={`text-sm ${heldQuantity > 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                   {heldQuantity} titres
                 </strong>
               </div>
@@ -280,7 +280,7 @@ export default function QuickOrderWidget({
 
         {/* Ligne 2 : Panneau Dépliable de Configuration SL / TP / Trailing Stop */}
         {showRiskConfig && side === 'BUY' && (
-          <div className="bg-[#080C14] border border-[#1E293B] rounded-lg p-2.5 grid grid-cols-1 md:grid-cols-3 gap-3 text-[11px] animate-fadeIn">
+          <div className="bg-[#080C14] border border-[#1E293B] rounded-lg p-3 grid grid-cols-1 md:grid-cols-3 gap-3 text-xs animate-fadeIn">
             {/* 1. Stop-Loss (SL) */}
             <div className="p-2 rounded bg-slate-900/60 border border-slate-800 space-y-1.5">
               <div className="flex items-center justify-between">
@@ -293,7 +293,7 @@ export default function QuickOrderWidget({
                   />
                   <span className="font-bold text-rose-400">Stop-Loss (SL)</span>
                 </label>
-                <div className="flex bg-slate-950 p-0.5 rounded border border-slate-800 text-[9px]">
+                <div className="flex bg-slate-950 p-0.5 rounded border border-slate-800 text-xs">
                   <button
                     type="button"
                     onClick={() => setSlMode('PERCENT')}
@@ -320,7 +320,7 @@ export default function QuickOrderWidget({
                     onChange={(e) => setSlValue(e.target.value)}
                     className="w-20 bg-slate-950 border border-slate-700 rounded px-2 py-0.5 text-white font-bold"
                   />
-                  <span className="text-slate-400 text-[10px]">
+                  <span className="text-slate-300 text-xs">
                     Déclenchement @ <strong className="text-rose-400">{calculatedSlPrice?.toFixed(precision)} TND</strong>
                   </span>
                 </div>
@@ -339,7 +339,7 @@ export default function QuickOrderWidget({
                   />
                   <span className="font-bold text-emerald-400">Take-Profit (TP)</span>
                 </label>
-                <div className="flex bg-slate-950 p-0.5 rounded border border-slate-800 text-[9px]">
+                <div className="flex bg-slate-950 p-0.5 rounded border border-slate-800 text-xs">
                   <button
                     type="button"
                     onClick={() => setTpMode('PERCENT')}
@@ -366,7 +366,7 @@ export default function QuickOrderWidget({
                     onChange={(e) => setTpValue(e.target.value)}
                     className="w-20 bg-slate-950 border border-slate-700 rounded px-2 py-0.5 text-white font-bold"
                   />
-                  <span className="text-slate-400 text-[10px]">
+                  <span className="text-slate-300 text-xs">
                     Objectif @ <strong className="text-emerald-400">{calculatedTpPrice?.toFixed(precision)} TND</strong>
                   </span>
                 </div>
@@ -388,7 +388,7 @@ export default function QuickOrderWidget({
               {enableTrailingStop && (
                 <div className="flex items-center justify-between gap-2 pt-1">
                   <div className="flex items-center gap-1">
-                    <span className="text-slate-400 text-[10px]">Distance :</span>
+                    <span className="text-slate-300 text-xs">Distance :</span>
                     <input
                       type="number"
                       step="0.05"
@@ -397,7 +397,7 @@ export default function QuickOrderWidget({
                       className="w-16 bg-slate-950 border border-slate-700 rounded px-2 py-0.5 text-white font-bold"
                     />
                   </div>
-                  <span className="text-slate-400 text-[10px]">
+                  <span className="text-slate-300 text-xs">
                     Seuil glissant dynamique
                   </span>
                 </div>
@@ -427,7 +427,7 @@ export default function QuickOrderWidget({
 
       {/* Avertissement Pré-Trade temps réel si non solvable */}
       {!feedback && !isFormValid && (
-        <div className="mt-2 text-[11px] text-amber-400 flex items-center gap-1.5">
+        <div className="mt-2 text-xs text-amber-400 flex items-center gap-1.5">
           <ShieldAlert size={13} className="shrink-0" />
           <span>
             {side === 'BUY'

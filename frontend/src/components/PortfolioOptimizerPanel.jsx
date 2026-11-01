@@ -122,8 +122,8 @@ export default function PortfolioOptimizerPanel({ simulatedDate, heldSymbols = [
     <div className="bg-[#0F172A] border border-[#1E293B] rounded-xl overflow-hidden mb-5">
       <div className="px-4 py-3 bg-[#0A0E17] border-b border-[#1E293B] flex items-center gap-2">
         <Target size={16} className="text-[#38BDF8]" />
-        <h2 className="text-xs font-bold text-white uppercase tracking-wider">Optimiseur de portefeuille (Markowitz)</h2>
-        <span className="text-[10px] text-slate-400 ml-auto">Cours connus au {simulatedDate}</span>
+        <h2 className="text-sm font-semibold text-white uppercase tracking-wider">Optimiseur de portefeuille (Markowitz)</h2>
+        <span className="text-[11px] text-slate-300 ml-auto">Cours connus au {simulatedDate}</span>
       </div>
 
       <div className="p-4 grid grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)] gap-4">
@@ -133,14 +133,14 @@ export default function PortfolioOptimizerPanel({ simulatedDate, heldSymbols = [
             <div className="text-slate-400 mb-1">Actifs ({symbols.length}/15)</div>
             <div className="flex flex-wrap gap-1 mb-1.5">
               {symbols.map((s) => (
-                <span key={s} className="flex items-center gap-1 bg-[#1E293B] text-slate-200 font-mono text-[11px] px-1.5 py-0.5 rounded">
+                <span key={s} className="flex items-center gap-1 bg-[#1E293B] text-slate-200 font-mono text-xs px-1.5 py-0.5 rounded">
                   {s}
                   <button onClick={() => setSymbols(symbols.filter((x) => x !== s))} className="text-slate-400 hover:text-rose-400" aria-label={`Retirer ${s}`}>
                     <X size={11} />
                   </button>
                 </span>
               ))}
-              {symbols.length === 0 && <span className="text-[11px] text-slate-400">Vide : les positions détenues seront utilisées.</span>}
+              {symbols.length === 0 && <span className="text-xs text-slate-400">Vide : les positions détenues seront utilisées.</span>}
             </div>
             <div className="relative">
               <input
@@ -153,31 +153,31 @@ export default function PortfolioOptimizerPanel({ simulatedDate, heldSymbols = [
               {suggestions.length > 0 && (
                 <div className="absolute z-10 left-0 right-0 mt-1 bg-[#0B1120] border border-[#1E293B] rounded shadow-lg">
                   {suggestions.map((s) => (
-                    <button key={s} onClick={() => add(s)} className="block w-full text-left px-2 py-1 font-mono text-[11px] text-slate-300 hover:bg-[#1E293B]">{s}</button>
+                    <button key={s} onClick={() => add(s)} className="block w-full text-left px-2 py-1 font-mono text-xs text-slate-300 hover:bg-[#1E293B]">{s}</button>
                   ))}
                 </div>
               )}
             </div>
             {heldSymbols.length > 0 && (
-              <button onClick={() => setSymbols([...new Set([...symbols, ...heldSymbols])].slice(0, 15))} className="mt-1 text-[10px] text-[#38BDF8] hover:underline">
+              <button onClick={() => setSymbols([...new Set([...symbols, ...heldSymbols])].slice(0, 15))} className="mt-1 text-xs text-[#38BDF8] hover:underline">
                 Ajouter les positions détenues
               </button>
             )}
           </div>
 
           <label className="block">
-            <div className="flex justify-between text-slate-400"><span>Historique</span><b className="text-slate-200 font-mono">{lookbackDays} jours</b></div>
+            <div className="flex justify-between text-slate-300"><span>Historique</span><b className="text-slate-200 font-mono">{lookbackDays} jours</b></div>
             <input type="range" min={120} max={1095} step={15} value={lookbackDays} onChange={(e) => setLookbackDays(+e.target.value)} className="w-full accent-[#38BDF8]" />
           </label>
           <label className="block">
-            <div className="flex justify-between text-slate-400"><span>Poids maximal par actif</span><b className="text-slate-200 font-mono">{pct(maxWeight, 0)}</b></div>
+            <div className="flex justify-between text-slate-300"><span>Poids maximal par actif</span><b className="text-slate-200 font-mono">{pct(maxWeight, 0)}</b></div>
             <input type="range" min={0.1} max={1} step={0.05} value={maxWeight} onChange={(e) => setMaxWeight(+e.target.value)} className="w-full accent-[#38BDF8]" />
             {maxWeight < minWeightNeeded && (
-              <div className="text-[10px] text-amber-400">Avec {symbols.length} actifs, il faut au moins {pct(minWeightNeeded, 0)}.</div>
+              <div className="text-xs text-amber-400">Avec {symbols.length} actifs, il faut au moins {pct(minWeightNeeded, 0)}.</div>
             )}
           </label>
           <label className="block">
-            <div className="flex justify-between text-slate-400"><span>Taux sans risque (TMM)</span><b className="text-slate-200 font-mono">{pct(riskFree, 2)}</b></div>
+            <div className="flex justify-between text-slate-300"><span>Taux sans risque (TMM)</span><b className="text-slate-200 font-mono">{pct(riskFree, 2)}</b></div>
             <input type="range" min={0} max={0.12} step={0.0025} value={riskFree} onChange={(e) => setRiskFree(+e.target.value)} className="w-full accent-[#38BDF8]" />
           </label>
 
@@ -188,8 +188,8 @@ export default function PortfolioOptimizerPanel({ simulatedDate, heldSymbols = [
           >
             <Play size={13} /> {loading ? 'Calcul…' : 'Optimiser'}
           </button>
-          {error && <div className="text-[11px] text-rose-400">{error}</div>}
-          <p className="text-[10px] text-slate-400 leading-snug">
+          {error && <div className="text-xs text-rose-400">{error}</div>}
+          <p className="text-[11px] text-slate-300 leading-snug">
             Rendements et risques estimés sur l'historique passé uniquement (
             <span title="Méthode statistique qui rend le calcul des risques plus fiable quand on a beaucoup d'actifs et peu d'historique.">covariance de Ledoit-Wolf</span>
             , sans vente à découvert).
@@ -212,27 +212,28 @@ export default function PortfolioOptimizerPanel({ simulatedDate, heldSymbols = [
                     onClick={() => setView(p.name)}
                     className={`text-left rounded-lg border p-2 transition-colors ${view === p.name ? 'border-[#38BDF8] bg-[#0B1120]' : 'border-[#1E293B] hover:border-slate-600'}`}
                   >
-                    <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-200">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-200">
                       <span className="w-2 h-2 rounded-full" style={{ background: COLORS[p.name] }} />{NAMES[p.name]}
                     </div>
-                    <div className="text-[10px] font-mono text-slate-400 mt-0.5">
+                    <div className="text-[11px] font-mono text-slate-300 mt-0.5">
                       R {pct(p.expected_return)} · σ {pct(p.volatility)} ·{' '}
                       <span title="Ratio de Sharpe : rendement obtenu par unité de risque pris. Plus il est élevé, meilleur est le couple rendement/risque.">
-                        Sharpe <b className="text-slate-200">{p.sharpe.toFixed(2)}</b>
+                        Sharpe <b className="text-slate-100 text-xs font-bold">{p.sharpe.toFixed(2)}</b>
                       </span>
                     </div>
                   </button>
                 ))}
               </div>
               <FrontierChart result={result} />
-              <div className="text-[10px] text-slate-400">
+              <div className="text-[11px] text-slate-300">
                 {result.observations} séances communes du {result.from} au {result.date}. Points gris : actifs seuls ; courbe : frontière efficiente.
               </div>
             </div>
 
             {selected && (
               <div className="min-w-0">
-                <div className="text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-2">Allocation · {NAMES[selected.name]}</div>
+                <div className="text-sm font-semibold uppercase tracking-wide text-slate-300 mb-2">Allocation · {NAMES[selected.name]}</div>
+                <div className="overflow-x-auto">
                 <table className="w-full text-[11px]">
                   <thead>
                     <tr className="text-slate-400 text-left">
@@ -262,12 +263,13 @@ export default function PortfolioOptimizerPanel({ simulatedDate, heldSymbols = [
                     ))}
                   </tbody>
                 </table>
+                </div>
                 {current && selected.name !== 'current' && (
-                  <div className="mt-3 text-[11px] text-slate-300 bg-[#0B1120] border border-[#1E293B] rounded-lg p-2 leading-snug">
+                  <div className="mt-3 text-xs text-slate-300 bg-[#0B1120] border border-[#1E293B] rounded-lg p-2 leading-snug">
                     Par rapport à votre portefeuille : volatilité {signedPct(selected.volatility - current.volatility)}{' '}
                     et rendement attendu {signedPct(selected.expected_return - current.expected_return)}.
                     {Object.values(current.weights).some((w) => w > result.max_weight + 1e-6) && (
-                      <div className="flex gap-1 mt-1 text-[10px] text-amber-300/90">
+                      <div className="flex gap-1 mt-1 text-xs text-amber-300/90">
                         <AlertTriangle size={11} className="shrink-0 mt-0.5" />
                         Votre portefeuille dépasse le poids maximal de {pct(result.max_weight, 0)} sur au moins un actif : il n'est pas dans l'ensemble optimisé.
                       </div>

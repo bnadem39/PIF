@@ -20,8 +20,8 @@ export default function AccountSummaryFooter({ cashBalance, portfolioValue, dail
         {/* Solde Cash */}
         <div className="flex items-center gap-1.5 text-slate-300">
           <Wallet size={14} className="text-[#38BDF8]" />
-          <span className="text-slate-400 text-[10px] uppercase">Cash Dispo:</span>
-          <span className="font-bold text-slate-100">
+          <span className="text-slate-300 text-[11px] uppercase">Cash Dispo:</span>
+          <span className="font-bold text-sm text-slate-100">
             {cashBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TND
           </span>
         </div>
@@ -29,8 +29,8 @@ export default function AccountSummaryFooter({ cashBalance, portfolioValue, dail
         {/* Valeur Totale Portefeuille */}
         <div className="flex items-center gap-1.5 text-slate-300 border-l border-[#1E293B] pl-4">
           <DollarSign size={14} className="text-emerald-400" />
-          <span className="text-slate-400 text-[10px] uppercase">Valeur Totale:</span>
-          <span className="font-bold text-slate-100">
+          <span className="text-slate-300 text-[11px] uppercase">Valeur Totale:</span>
+          <span className="font-bold text-sm text-slate-100">
             {portfolioValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TND
           </span>
         </div>
@@ -38,8 +38,8 @@ export default function AccountSummaryFooter({ cashBalance, portfolioValue, dail
         {/* P&L du Jour */}
         <div className="flex items-center gap-1.5 border-l border-[#1E293B] pl-4">
           <TrendingUp size={14} className={isPnLPositive ? 'text-[#10B981]' : 'text-[#EF4444]'} />
-          <span className="text-slate-400 text-[10px] uppercase">P&L Jour:</span>
-          <span className={`font-bold ${isPnLPositive ? 'text-[#10B981]' : 'text-[#EF4444]'}`}>
+          <span className="text-slate-300 text-[11px] uppercase">P&L Jour:</span>
+          <span className={`font-bold text-sm ${isPnLPositive ? 'text-[#10B981]' : 'text-[#EF4444]'}`}>
             {isPnLPositive ? '+' : ''}{dailyPnL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TND
             {' '}({isPnLPositive ? '+' : ''}{dailyPnLPercent.toFixed(2)}%)
           </span>
@@ -53,7 +53,7 @@ export default function AccountSummaryFooter({ cashBalance, portfolioValue, dail
           <span className="text-slate-300 font-medium">Simulateur de marché actif</span>
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 text-slate-300">
           <ShieldCheck size={13} className="text-[#38BDF8]" />
           <span>Pré-Trade Risk: ACTIF</span>
         </div>

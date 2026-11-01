@@ -151,24 +151,24 @@ export default function AiCopilotWidget({
             <BrainCircuit className={`w-4 h-4 ${isPlaying ? 'animate-spin' : 'animate-pulse'}`} />
           </div>
           <div>
-            <h3 className="text-xs font-bold text-white flex items-center gap-1.5">
+            <h3 className="text-sm font-semibold text-white flex items-center gap-1.5">
               FinGPT Stratège
-              <span className={`text-[9px] px-1.5 py-0.5 rounded font-mono font-bold uppercase ${
-                isPlaying 
-                  ? 'bg-amber-950/80 text-amber-400 border border-amber-800' 
+              <span className={`text-[11px] px-1.5 py-0.5 rounded font-mono font-bold uppercase ${
+                isPlaying
+                  ? 'bg-amber-950/80 text-amber-400 border border-amber-800'
                   : 'bg-emerald-950/80 text-emerald-400 border border-emerald-800'
               }`}>
                 {isPlaying ? 'PLAY • VEILLE' : 'PAUSE • PRÊT'}
               </span>
             </h3>
-            <p className="text-[10px] text-slate-400 font-mono">{simulatedDate}</p>
+            <p className="text-[11px] text-slate-300 font-mono">{simulatedDate}</p>
           </div>
         </div>
 
         <div className="flex bg-[#080C14] p-0.5 rounded-lg border border-[#1E293B]">
           <button
             onClick={() => setActiveTab('AUDIT')}
-            className={`px-2 py-1 rounded text-[11px] font-bold transition-all ${
+            className={`px-2 py-1 rounded text-xs font-bold transition-all ${
               activeTab === 'AUDIT'
                 ? 'bg-indigo-600 text-white shadow'
                 : 'text-slate-400 hover:text-slate-200'
@@ -178,7 +178,7 @@ export default function AiCopilotWidget({
           </button>
           <button
             onClick={() => setActiveTab('LIVE_TICK')}
-            className={`px-2 py-1 rounded text-[11px] font-bold transition-all ${
+            className={`px-2 py-1 rounded text-xs font-bold transition-all ${
               activeTab === 'LIVE_TICK'
                 ? 'bg-indigo-600 text-white shadow'
                 : 'text-slate-400 hover:text-slate-200'
@@ -188,7 +188,7 @@ export default function AiCopilotWidget({
           </button>
           <button
             onClick={() => setActiveTab('CHAT')}
-            className={`px-2 py-1 rounded text-[11px] font-bold flex items-center gap-1 transition-all ${
+            className={`px-2 py-1 rounded text-xs font-bold flex items-center gap-1 transition-all ${
               activeTab === 'CHAT'
                 ? 'bg-indigo-600 text-white shadow'
                 : 'text-slate-400 hover:text-slate-200'
@@ -210,7 +210,7 @@ export default function AiCopilotWidget({
                 <Play className="w-4 h-4 fill-slate-500" />
               </div>
               <h4 className="text-xs font-bold text-slate-300">Simulation en cours de rejeu</h4>
-              <p className="text-[11px] text-slate-400 leading-relaxed">
+              <p className="text-xs text-slate-300 leading-relaxed">
                 Le LLM génératif est en veille pour préserver les performances CPU/GPU. Seuls les signaux légers XGBoost défilent en direct.
               </p>
               <button
@@ -229,7 +229,7 @@ export default function AiCopilotWidget({
                   <Pause className="w-3.5 h-3.5 fill-indigo-400 text-indigo-400" />
                   Séance figée au {simulatedDate}
                 </span>
-                <span className="text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 px-2 py-0.5 rounded-full font-mono">
+                <span className="text-xs bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 px-2 py-0.5 rounded-full font-mono">
                   RAG + FinGPT
                 </span>
               </div>
@@ -260,11 +260,11 @@ export default function AiCopilotWidget({
               {/* SECTION 1 : SYNTHÈSE DE MARCHÉ */}
               <div className="bg-[#0F172A]/90 border border-[#1E293B] rounded-xl p-3.5 space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <h4 className="text-sm font-semibold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
                     1. Synthèse de Marché & Régime
                   </h4>
-                  <span className={`text-[10px] font-black px-2 py-0.5 rounded font-mono ${
+                  <span className={`text-xs font-black px-2 py-0.5 rounded font-mono ${
                     auditResult.market_regime === 'BULLISH'
                       ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
                       : auditResult.market_regime === 'BEARISH'
@@ -281,8 +281,8 @@ export default function AiCopilotWidget({
 
                 {/* Impact Portefeuille */}
                 {auditResult.portfolio_impact && (
-                  <div className="pt-1.5 border-t border-[#1E293B] text-[11px] text-slate-400">
-                    <span className="font-bold text-slate-300 block mb-0.5">Impact Portefeuille & Liquidités :</span>
+                  <div className="pt-1.5 border-t border-[#1E293B] text-xs text-slate-300">
+                    <span className="font-bold text-slate-200 block mb-0.5">Impact Portefeuille & Liquidités :</span>
                     <p className="text-slate-300 italic">{auditResult.portfolio_impact}</p>
                   </div>
                 )}
@@ -291,11 +291,11 @@ export default function AiCopilotWidget({
               {/* SECTION 2 : SÉLECTEUR D'OPPORTUNITÉS D'ACTIFS */}
               <div className="bg-[#0F172A]/90 border border-[#1E293B] rounded-xl p-3.5 space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <h4 className="text-sm font-semibold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
                     <Target className="w-3.5 h-3.5 text-indigo-400" />
                     2. Top Opportunités d'Arbitrage
                   </h4>
-                  <span className="text-[10px] text-slate-400 font-mono">Confiance XGBoost</span>
+                  <span className="text-[11px] text-slate-300 font-mono">Confiance XGBoost</span>
                 </div>
 
                 <div className="space-y-2">
@@ -315,7 +315,7 @@ export default function AiCopilotWidget({
                               <span className="text-xs font-black text-white group-hover:text-cyan-400 transition-colors">
                                 {opp.ticker}
                               </span>
-                              <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded font-mono ${
+                              <span className={`text-xs font-bold px-1.5 py-0.2 rounded font-mono ${
                                 isBuy
                                   ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
                                   : isTrim
@@ -327,16 +327,16 @@ export default function AiCopilotWidget({
                             </div>
 
                             <div className="text-right">
-                              <span className="text-[11px] font-bold text-slate-200">
+                              <span className="text-sm font-bold text-slate-100">
                                 {opp.confidence_pct}%
                               </span>
-                              <span className="text-[9px] text-slate-400 block">
+                              <span className="text-[11px] text-slate-400 block">
                                 {opp.risk_reward || 'R/R 1:2'}
                               </span>
                             </div>
                           </div>
 
-                          <p className="text-[11px] text-slate-400 leading-snug">
+                          <p className="text-xs text-slate-300 leading-snug">
                             {opp.reasoning}
                           </p>
                         </div>
@@ -352,7 +352,7 @@ export default function AiCopilotWidget({
 
               {/* SOURCES RAG CONSULTÉES */}
               <div className="bg-[#080C14] p-2.5 rounded-xl border border-[#1E293B] space-y-1.5">
-                <span className="text-[10px] font-semibold text-slate-400 flex items-center gap-1">
+                <span className="text-xs font-semibold text-slate-300 flex items-center gap-1">
                   <BookOpen className="w-3 h-3 text-amber-400" />
                   Sources Macro RAG & Bulletins :
                 </span>
@@ -360,7 +360,7 @@ export default function AiCopilotWidget({
                   {(auditResult.sources || ['Banque Centrale de Tunisie (BCT)', 'Bourse de Tunis (BVMT)']).map((src, i) => (
                     <span
                       key={i}
-                      className="text-[9px] px-1.5 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-800"
+                      className="text-[11px] px-1.5 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-800"
                     >
                       {src}
                     </span>
@@ -384,9 +384,9 @@ export default function AiCopilotWidget({
       {/* 2. ONGLET SECONDAIRE : ACTIF COURANT & XGBOOST TEMPS RÉEL */}
       {activeTab === 'LIVE_TICK' && (
         <div className="flex-1 p-3.5 overflow-y-auto space-y-3.5">
-          <div className="p-3 bg-[#0F172A] border border-[#1E293B] rounded-xl flex items-center justify-between">
+          <div className="p-4 bg-[#0F172A] border border-[#1E293B] rounded-xl flex items-center justify-between">
             <div>
-              <span className="text-[10px] text-slate-400 uppercase font-bold block">Actif Sélectionné</span>
+              <span className="text-xs text-slate-300 uppercase font-bold block">Actif Sélectionné</span>
               <span className="text-sm font-black text-white">{selectedAsset?.ticker || 'BIAT'}</span>
             </div>
             <div className="text-right">
@@ -402,7 +402,7 @@ export default function AiCopilotWidget({
             </div>
           </div>
 
-          <div className="bg-[#0F172A] p-3 rounded-xl border border-[#1E293B] space-y-2">
+          <div className="bg-[#0F172A] p-4 rounded-xl border border-[#1E293B] space-y-2">
             <span className="text-xs font-bold text-slate-300 block">Note Technique Rapide :</span>
             <p className="text-xs text-slate-400 leading-relaxed bg-[#080C14] p-2.5 rounded-lg border border-[#1E293B]">
               {aiAnalysis?.analysis || "Signal continu calculé par le classificateur XGBoost 3-classes en temps réel."}
@@ -414,7 +414,7 @@ export default function AiCopilotWidget({
       {/* 3. ONGLET SECONDAIRE : CHATBOT CONVERSATIONNEL */}
       {activeTab === 'CHAT' && (
         <div className="flex-1 flex flex-col h-full overflow-hidden">
-          <div className="flex-1 p-3 overflow-y-auto space-y-3">
+          <div className="flex-1 p-4 overflow-y-auto space-y-3">
             {chatMessages.map((msg, idx) => (
               <div
                 key={idx}
@@ -429,13 +429,13 @@ export default function AiCopilotWidget({
                 >
                   <p>{msg.text}</p>
                   {msg.sources && msg.sources.length > 0 && (
-                    <div className="mt-1.5 pt-1.5 border-t border-slate-700/60 text-[10px] text-slate-400">
+                    <div className="mt-1.5 pt-1.5 border-t border-slate-700/60 text-[11px] text-slate-300">
                       <span className="font-semibold text-amber-400">Sources : </span>
                       {msg.sources.join(', ')}
                     </div>
                   )}
                 </div>
-                <span className="text-[9px] text-slate-400 mt-0.5 px-1">{msg.time}</span>
+                <span className="text-[11px] text-slate-400 mt-0.5 px-1">{msg.time}</span>
               </div>
             ))}
             {isSending && (
@@ -447,7 +447,7 @@ export default function AiCopilotWidget({
           </div>
 
           {/* Saisie du message */}
-          <form onSubmit={handleSendMessage} className="p-2.5 bg-[#0F172A] border-t border-[#1E293B] flex gap-2">
+          <form onSubmit={handleSendMessage} className="p-2.5 bg-[#0F172A] border-t border-[#1E293B] flex gap-3">
             <input
               type="text"
               value={inputQuery}
