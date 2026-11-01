@@ -20,19 +20,19 @@ const money = (v) => (v == null ? '-' : Math.round(v).toLocaleString('fr-FR'));
 
 // Colonnes du tableau comparatif : better = sens dans lequel la valeur est meilleure
 const METRICS = [
-  { key: 'totalReturn', label: 'Rendement', fmt: pct, better: 1 },
-  { key: 'cagr', label: 'Rend. annualisé', fmt: pct, better: 1 },
-  { key: 'volatility', label: 'Volatilité', fmt: pct, better: -1 },
-  { key: 'sharpe', label: 'Sharpe', fmt: num, better: 1 },
-  { key: 'sortino', label: 'Sortino', fmt: num, better: 1 },
-  { key: 'maxDrawdown', label: 'Perte max.', fmt: pct, better: 1 },
-  { key: 'calmar', label: 'Calmar', fmt: num, better: 1 },
-  { key: 'trades', label: 'Trades', fmt: (v) => v },
-  { key: 'winRate', label: 'Réussite', fmt: (v) => pct(v, 0), better: 1 },
-  { key: 'profitFactor', label: 'Profit factor', fmt: num, better: 1 },
-  { key: 'exposure', label: 'Exposition', fmt: (v) => pct(v, 0) },
-  { key: 'beta', label: 'Bêta', fmt: num },
-  { key: 'totalCosts', label: 'Frais', fmt: money, better: -1 }
+  { key: 'totalReturn', label: 'Rendement', fmt: pct, better: 1, hint: 'Gain ou perte total sur toute la période, en pourcentage du capital investi.' },
+  { key: 'cagr', label: 'Rend. annualisé', fmt: pct, better: 1, hint: 'Rendement moyen ramené à une base annuelle (CAGR), pour comparer des périodes différentes.' },
+  { key: 'volatility', label: 'Volatilité', fmt: pct, better: -1, hint: 'Amplitude des variations de prix : plus elle est élevée, plus le risque est important.' },
+  { key: 'sharpe', label: 'Sharpe', fmt: num, better: 1, hint: 'Ratio de Sharpe : rendement obtenu par unité de risque pris. Plus il est élevé, meilleur est le couple rendement/risque.' },
+  { key: 'sortino', label: 'Sortino', fmt: num, better: 1, hint: 'Comme le ratio de Sharpe, mais ne pénalise que les baisses de prix (pas la volatilité positive).' },
+  { key: 'maxDrawdown', label: 'Perte max.', fmt: pct, better: 1, hint: 'Max Drawdown : la plus grosse baisse subie depuis un sommet avant de remonter.' },
+  { key: 'calmar', label: 'Calmar', fmt: num, better: 1, hint: 'Ratio de Calmar : rendement annualisé comparé à la pire perte subie (Max Drawdown).' },
+  { key: 'trades', label: 'Trades', fmt: (v) => v, hint: "Nombre total d'ordres passés par la stratégie sur la période." },
+  { key: 'winRate', label: 'Réussite', fmt: (v) => pct(v, 0), better: 1, hint: "Taux de réussite : part des trades clôturés avec un gain." },
+  { key: 'profitFactor', label: 'Profit factor', fmt: num, better: 1, hint: 'Somme des gains divisée par la somme des pertes. Supérieur à 1 = stratégie gagnante.' },
+  { key: 'exposure', label: 'Exposition', fmt: (v) => pct(v, 0), hint: 'Part du temps où la stratégie est investie sur le marché (hors du temps en cash).' },
+  { key: 'beta', label: 'Bêta', fmt: num, hint: "Bêta : sensibilité de l'actif aux mouvements du marché (1 = suit le marché, >1 = plus volatil)." },
+  { key: 'totalCosts', label: 'Frais', fmt: money, better: -1, hint: "Total des frais de transaction payés sur la période." }
 ];
 
 function Card({ title, children, right }) {
@@ -330,7 +330,7 @@ export default function BacktestPage({ currentUser }) {
                     <thead className="text-slate-500">
                       <tr>
                         <th className="text-left px-2 py-1">Stratégie</th>
-                        {METRICS.map((m) => <th key={m.key} className="text-right px-2 py-1 whitespace-nowrap">{m.label}</th>)}
+                        {METRICS.map((m) => <th key={m.key} title={m.hint} className="text-right px-2 py-1 whitespace-nowrap">{m.label}</th>)}
                       </tr>
                     </thead>
                     <tbody>
