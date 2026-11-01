@@ -213,8 +213,9 @@ export default function TradingChart({
     });
 
     const handleResize = () => {
-      if (container && chart) {
+      if (container && chart && container.clientWidth > 0 && container.clientHeight > 0) {
         chart.applyOptions({ width: container.clientWidth, height: container.clientHeight });
+        chart.timeScale().fitContent();
       }
     };
     const resizeObserver = new ResizeObserver(() => handleResize());
