@@ -127,31 +127,72 @@ function DivergingBars({ rows, format, oneSided = false }) {
   );
 }
 
+// Niveau du feu tricolore : vert (aucune banque hors seuils), orange (une partie), rouge (la majorité)
+function vulnerabilityLevel(vulnerable, count) {
+  if (!count || vulnerable === 0) return 'ok';
+  if (vulnerable > count / 2) return 'critical';
+  return 'warning';
+}
+const LEVEL_STYLE = {
+  ok: 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300',
+  warning: 'bg-amber-500/15 border-amber-500/40 text-amber-300',
+  critical: 'bg-rose-500/15 border-rose-500/40 text-rose-300'
+};
+const LEVEL_LABEL = {
+  ok: 'Aucune banque hors seuils',
+  warning: 'Une partie des banques sont hors seuils',
+  critical: 'La majorité des banques sont hors seuils'
+};
+
 function TypeSummary({ summary, minRatio }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-      {['conventional', 'islamic'].filter((t) => summary?.[t]).map((t) => {
-        const s = summary[t];
-        return (
-          <div key={t} className="rounded-lg border border-[#1E293B] p-2.5" style={{ borderLeft: `3px solid ${TYPE_COLOR[t]}` }}>
-            <div className="text-xs font-bold text-slate-100 mb-1.5">Banques {TYPE_LABEL[t].toLowerCase()}s ({s.count})</div>
-            <dl className="grid grid-cols-2 gap-x-3 gap-y-1 text-[13px]">
-              <dt className="text-slate-400" title="CET1 : part de fonds propres très solides que la banque détient par rapport à ses risques. Plus c'est haut, plus elle est solide.">CET1 moyen</dt>
-              <dd className={`font-mono text-right ${s.avg_cet1_after < minRatio ? 'text-rose-300' : 'text-slate-200'}`}>
-                {pct(s.avg_cet1_before)} → {pct(s.avg_cet1_after)}
-              </dd>
-              <dt className="text-slate-400" title="LCR : capacité de la banque à faire face à ses sorties de cash sur 30 jours en cas de crise.">LCR moyen après</dt>
-              <dd className="font-mono text-right text-slate-200">{s.avg_lcr_after.toFixed(2)}</dd>
-              <dt className="text-slate-400" title="NPL : part des prêts accordés qui ne sont plus remboursés normalement (créances douteuses).">NPL moyen après</dt>
-              <dd className="font-mono text-right text-slate-200">{pct(s.avg_npl_after)}</dd>
-              <dt className="text-slate-400">Perte de crédit</dt>
-              <dd className="font-mono text-right text-slate-200">{pct(s.avg_credit_loss_rate, 2)}</dd>
-              <dt className="text-slate-400">Hors seuils</dt>
-              <dd className="font-mono text-right text-slate-200">{s.vulnerable} / {s.count}</dd>
-            </dl>
-          </div>
-        );
-      })}
+    <div className="space-y-3">
+      {/* Feux tricolores : vue d'ensemble immédiate par groupe de banques */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {['conventional', 'islamic'].filter((t) => summary?.[t]).map((t) => {
+          const s = summary[t];
+          const level = vulnerabilityLevel(s.vulnerable, s.count);
+          return (
+            <div key={t} className={`rounded-xl border p-4 ${LEVEL_STYLE[level]}`}>
+              <div className="text-xs font-semibold uppercase tracking-wide opacity-80">Banques {TYPE_LABEL[t].toLowerCase()}s</div>
+              <div className="text-2xl font-bold mt-1">{s.vulnerable} sur {s.count} hors seuils</div>
+              <div className="text-xs mt-1 opacity-90">{LEVEL_LABEL[level]}</div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400">
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block shrink-0" /> Aucune banque hors seuils</span>
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block shrink-0" /> Une partie hors seuils</span>
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-rose-400 inline-block shrink-0" /> La majorité hors seuils</span>
+      </div>
+      <p className="text-xs text-slate-400">« Hors seuils » signifie que la banque ne respecte plus le ratio de solvabilité minimal choisi, une fois le choc simulé appliqué.</p>
+
+      {/* Détails chiffrés par groupe, inchangés */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {['conventional', 'islamic'].filter((t) => summary?.[t]).map((t) => {
+          const s = summary[t];
+          return (
+            <div key={t} className="rounded-lg border border-[#1E293B] p-2.5" style={{ borderLeft: `3px solid ${TYPE_COLOR[t]}` }}>
+              <div className="text-xs font-bold text-slate-100 mb-1.5">Banques {TYPE_LABEL[t].toLowerCase()}s ({s.count})</div>
+              <dl className="grid grid-cols-2 gap-x-3 gap-y-1 text-[13px]">
+                <dt className="text-slate-400" title="CET1 : part de fonds propres très solides que la banque détient par rapport à ses risques. Plus c'est haut, plus elle est solide.">CET1 moyen</dt>
+                <dd className={`font-mono text-right ${s.avg_cet1_after < minRatio ? 'text-rose-300' : 'text-slate-200'}`}>
+                  {pct(s.avg_cet1_before)} → {pct(s.avg_cet1_after)}
+                </dd>
+                <dt className="text-slate-400" title="LCR : capacité de la banque à faire face à ses sorties de cash sur 30 jours en cas de crise.">LCR moyen après</dt>
+                <dd className="font-mono text-right text-slate-200">{s.avg_lcr_after.toFixed(2)}</dd>
+                <dt className="text-slate-400" title="NPL : part des prêts accordés qui ne sont plus remboursés normalement (créances douteuses).">NPL moyen après</dt>
+                <dd className="font-mono text-right text-slate-200">{pct(s.avg_npl_after)}</dd>
+                <dt className="text-slate-400">Perte de crédit</dt>
+                <dd className="font-mono text-right text-slate-200">{pct(s.avg_credit_loss_rate, 2)}</dd>
+                <dt className="text-slate-400">Hors seuils</dt>
+                <dd className="font-mono text-right text-slate-200">{s.vulnerable} / {s.count}</dd>
+              </dl>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
