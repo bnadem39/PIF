@@ -117,6 +117,8 @@ export default function PortfolioOptimizerPanel({ simulatedDate, heldSymbols = [
   const selected = result?.portfolios.find((p) => p.name === view);
   const current = result?.portfolios.find((p) => p.name === 'current');
   const minWeightNeeded = symbols.length ? 1 / symbols.length : 0;
+  // Au moins deux actifs choisis, ou au moins deux positions détenues (utilisées quand la sélection est vide)
+  const hasEnoughAssets = symbols.length >= 2 || heldSymbols.length >= 2;
 
   return (
     <div className="bg-[#0F172A] border border-[#1E293B] rounded-xl overflow-hidden mb-5">
@@ -183,8 +185,9 @@ export default function PortfolioOptimizerPanel({ simulatedDate, heldSymbols = [
 
           <button
             onClick={run}
-            disabled={loading || maxWeight < minWeightNeeded}
-            className="w-full flex items-center justify-center gap-2 bg-[#0369A1] hover:bg-[#0284C7] disabled:opacity-40 text-white font-semibold rounded py-2"
+            disabled={loading || maxWeight < minWeightNeeded || !hasEnoughAssets}
+            title={!hasEnoughAssets ? 'Choisissez au moins deux actifs' : undefined}
+            className="w-full flex items-center justify-center gap-2 bg-[#0369A1] hover:bg-[#0284C7] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded py-2"
           >
             <Play size={13} /> {loading ? 'Calcul…' : 'Optimiser'}
           </button>
