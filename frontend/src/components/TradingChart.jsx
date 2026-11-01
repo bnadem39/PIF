@@ -771,6 +771,7 @@ export default function TradingChart({
                 return (
                   <button
                     key={sym}
+                    title={`Cliquer pour afficher ${sym} dans le graphique`}
                     onClick={() => {
                       if (onSelectAsset) {
                         const meta = matrixData?.assetMetadata?.[sym] || {};
