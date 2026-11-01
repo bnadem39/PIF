@@ -29,6 +29,12 @@ const STATUS_STYLE = {
   RESILIENTE: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40'
 };
 const MODEL_LABEL = { ridge: 'Ridge', random_forest: 'Forêt aléatoire', xgboost: 'XGBoost' };
+// Explication simple de chaque modèle d'IA, affichée au survol (aucun changement de calcul)
+const MODEL_HINT = {
+  ridge: 'Modèle statistique simple et stable, qui trouve la relation la plus directe entre les données.',
+  random_forest: "Combine de nombreux arbres de décision pour une prédiction plus robuste qu'un seul modèle.",
+  xgboost: "Modèle d'apprentissage automatique avancé, souvent le plus précis mais plus complexe."
+};
 const TARGET_LABEL = { npl_increase: 'Hausse des créances douteuses', credit_loss_rate: 'Taux de perte de crédit' };
 
 const pct = (v, d = 1) => (v == null ? '-' : `${(v * 100).toFixed(d)} %`);
@@ -74,7 +80,7 @@ function Cet1Bars({ results, minRatio }) {
           </span>
         </div>
       ))}
-      <div className="flex gap-4 pt-1 text-[10px] text-slate-500">
+      <div className="flex gap-4 pt-1 text-[10px] text-slate-400">
         <span><span className="inline-block w-3 h-1.5 bg-slate-500/70 mr-1" />Avant</span>
         <span><span className="inline-block w-3 h-2 mr-1" style={{ background: TYPE_COLOR.conventional }} />Après (conv.)</span>
         <span><span className="inline-block w-3 h-2 mr-1" style={{ background: TYPE_COLOR.islamic }} />Après (isl.)</span>
@@ -130,17 +136,17 @@ function TypeSummary({ summary, minRatio }) {
           <div key={t} className="rounded-lg border border-[#1E293B] p-2.5" style={{ borderLeft: `3px solid ${TYPE_COLOR[t]}` }}>
             <div className="text-xs font-bold text-slate-100 mb-1.5">Banques {TYPE_LABEL[t].toLowerCase()}s ({s.count})</div>
             <dl className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
-              <dt className="text-slate-500">CET1 moyen</dt>
+              <dt className="text-slate-400" title="CET1 : part de fonds propres très solides que la banque détient par rapport à ses risques. Plus c'est haut, plus elle est solide.">CET1 moyen</dt>
               <dd className={`font-mono text-right ${s.avg_cet1_after < minRatio ? 'text-rose-300' : 'text-slate-200'}`}>
                 {pct(s.avg_cet1_before)} → {pct(s.avg_cet1_after)}
               </dd>
-              <dt className="text-slate-500">LCR moyen après</dt>
+              <dt className="text-slate-400" title="LCR : capacité de la banque à faire face à ses sorties de cash sur 30 jours en cas de crise.">LCR moyen après</dt>
               <dd className="font-mono text-right text-slate-200">{s.avg_lcr_after.toFixed(2)}</dd>
-              <dt className="text-slate-500">NPL moyen après</dt>
+              <dt className="text-slate-400" title="NPL : part des prêts accordés qui ne sont plus remboursés normalement (créances douteuses).">NPL moyen après</dt>
               <dd className="font-mono text-right text-slate-200">{pct(s.avg_npl_after)}</dd>
-              <dt className="text-slate-500">Perte de crédit</dt>
+              <dt className="text-slate-400">Perte de crédit</dt>
               <dd className="font-mono text-right text-slate-200">{pct(s.avg_credit_loss_rate, 2)}</dd>
-              <dt className="text-slate-500">Hors seuils</dt>
+              <dt className="text-slate-400">Hors seuils</dt>
               <dd className="font-mono text-right text-slate-200">{s.vulnerable} / {s.count}</dd>
             </dl>
           </div>
@@ -151,18 +157,18 @@ function TypeSummary({ summary, minRatio }) {
 }
 
 function ModelsPanel({ models }) {
-  if (!models) return <div className="text-xs text-slate-500">Chargement des modèles…</div>;
+  if (!models) return <div className="text-xs text-slate-400">Chargement des modèles…</div>;
   return (
     <div className="space-y-3">
-      <p className="text-[11px] text-slate-500">
+      <p className="text-[11px] text-slate-400">
         Validation croisée à 5 plis sur {models.n_samples.toLocaleString('fr-FR')} observations
         ({models.data_source === 'synthetic' ? 'données synthétiques' : models.data_source}). Le meilleur R² est retenu.
       </p>
       <table className="w-full text-[11px]">
-        <thead className="text-slate-500">
+        <thead className="text-slate-400">
           <tr>
-            <th className="text-left py-1">Cible (R²)</th>
-            {Object.keys(MODEL_LABEL).map((m) => <th key={m} className="text-right py-1">{MODEL_LABEL[m]}</th>)}
+            <th className="text-left py-1" title="R² : part de la variation réelle que le modèle arrive à expliquer (1 = parfait, 0 = aucune explication).">Cible (R²)</th>
+            {Object.keys(MODEL_LABEL).map((m) => <th key={m} title={MODEL_HINT[m]} className="text-right py-1">{MODEL_LABEL[m]}</th>)}
           </tr>
         </thead>
         <tbody>
@@ -179,7 +185,7 @@ function ModelsPanel({ models }) {
         </tbody>
       </table>
       <div>
-        <div className="text-[11px] text-slate-400 mb-1">Importance globale SHAP (taux de perte de crédit)</div>
+        <div className="text-[11px] text-slate-400 mb-1" title="SHAP : méthode qui calcule combien chaque variable a pesé dans la prédiction du modèle.">Importance globale SHAP (taux de perte de crédit)</div>
         <DivergingBars
           rows={(models.global_importance.credit_loss_rate || []).slice(0, 8).map((g) => ({
             key: g.feature, label: g.label, value: g.importance
@@ -302,6 +308,7 @@ export default function StressTestPage({ currentUser }) {
           </div>
         )}
       </div>
+      <p className="text-xs text-slate-400">Simulez l'effet d'une crise économique sur un portefeuille bancaire, pour mieux comprendre les risques.</p>
 
       {error && <div className="text-xs text-rose-400">{error}</div>}
 
@@ -319,7 +326,7 @@ export default function StressTestPage({ currentUser }) {
                   />
                   <span className="flex-1">{s.name}</span>
                   {!s.preset && isAdmin && (
-                    <button onClick={() => removeScenario(s.id)} className="text-slate-500 hover:text-rose-400" title="Supprimer">
+                    <button onClick={() => removeScenario(s.id)} className="text-slate-400 hover:text-rose-400" title="Supprimer">
                       <Trash2 size={12} />
                     </button>
                   )}
@@ -334,7 +341,7 @@ export default function StressTestPage({ currentUser }) {
 
           {useCustom && (
             <Card title="Chocs personnalisés" right={
-              <button onClick={() => setShocks(DEFAULT_SHOCKS)} className="text-[10px] text-slate-500 hover:text-slate-300">Réinitialiser</button>
+              <button onClick={() => setShocks(DEFAULT_SHOCKS)} className="text-[10px] text-slate-400 hover:text-slate-300">Réinitialiser</button>
             }>
               <div className="space-y-2">
                 {SHOCK_FIELDS.map((f) => (
@@ -405,7 +412,7 @@ export default function StressTestPage({ currentUser }) {
             </div>
           </Card>
 
-          <Card title="Modèles IA" right={<BrainCircuit size={14} className="text-slate-500" />}>
+          <Card title="Modèles IA" right={<BrainCircuit size={14} className="text-slate-400" />}>
             <ModelsPanel models={models} />
           </Card>
         </div>
@@ -413,7 +420,7 @@ export default function StressTestPage({ currentUser }) {
         {/* ── Résultats ─────────────────────────────────────────── */}
         <div className="space-y-3 min-w-0">
           {!sc && (
-            <div className="border border-dashed border-[#1E293B] rounded-xl p-8 text-center text-xs text-slate-500">
+            <div className="border border-dashed border-[#1E293B] rounded-xl p-8 text-center text-xs text-slate-400">
               Choisissez un ou plusieurs scénarios puis lancez le stress test.
             </div>
           )}
@@ -454,12 +461,12 @@ export default function StressTestPage({ currentUser }) {
               <Card title="Résultats par banque">
                 <div className="overflow-x-auto">
                   <table className="w-full text-[11px]">
-                    <thead className="text-slate-500">
+                    <thead className="text-slate-400">
                       <tr>
                         <th className="text-left px-2 py-1">Banque</th>
-                        <th className="text-right px-2 py-1">CET1</th>
-                        <th className="text-right px-2 py-1">LCR</th>
-                        <th className="text-right px-2 py-1">NPL</th>
+                        <th className="text-right px-2 py-1" title="Part de fonds propres très solides par rapport aux risques pris : plus c'est haut, plus la banque est solide.">CET1</th>
+                        <th className="text-right px-2 py-1" title="Capacité de la banque à faire face à ses sorties de cash sur 30 jours en cas de crise.">LCR</th>
+                        <th className="text-right px-2 py-1" title="Part des prêts qui ne sont plus remboursés normalement (créances douteuses).">NPL</th>
                         <th className="text-right px-2 py-1">Pertes nettes</th>
                         <th className="text-right px-2 py-1">Besoin en capital</th>
                         <th className="text-left px-2 py-1">Statut</th>
@@ -486,7 +493,7 @@ export default function StressTestPage({ currentUser }) {
                     </tbody>
                   </table>
                 </div>
-                <p className="mt-1.5 text-[10px] text-slate-500">Montants en millions TND. Cliquez sur une banque pour son détail.</p>
+                <p className="mt-1.5 text-[10px] text-slate-400">Montants en millions TND. Cliquez sur une banque pour son détail.</p>
               </Card>
 
               {bank && (
@@ -514,7 +521,7 @@ export default function StressTestPage({ currentUser }) {
                           format={(v) => `${v >= 0 ? '+' : ''}${(v * 100).toFixed(2)}`}
                         />
                       </>
-                    ) : <div className="text-xs text-slate-500">Pas d'explication disponible.</div>}
+                    ) : <div className="text-xs text-slate-400">Pas d'explication disponible.</div>}
                   </Card>
                 </div>
               )}

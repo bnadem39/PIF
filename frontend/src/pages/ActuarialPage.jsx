@@ -35,9 +35,9 @@ function Card({ title, children, right }) {
 function Stat({ label, value, hint, title }) {
   return (
     <div className="rounded-lg border border-[#1E293B] px-2.5 py-2" title={title}>
-      <div className="text-[10px] text-slate-500">{label}</div>
+      <div className="text-[10px] text-slate-400">{label}</div>
       <div className="text-sm font-bold text-slate-100 font-mono">{value}</div>
-      {hint && <div className="text-[10px] text-slate-500">{hint}</div>}
+      {hint && <div className="text-[10px] text-slate-400">{hint}</div>}
     </div>
   );
 }
@@ -158,7 +158,7 @@ function PricingTab({ portfolio, models }) {
         <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] gap-3 items-start">
           <Card title="Comparaison des modèles (échantillon de test)">
             <table className="w-full text-[11px]">
-              <thead className="text-slate-500">
+              <thead className="text-slate-400">
                 <tr><th className="text-left py-1">Indicateur</th><th className="text-right">GLM</th><th className="text-right">Boosting</th></tr>
               </thead>
               <tbody className="text-slate-300">
@@ -181,7 +181,7 @@ function PricingTab({ portfolio, models }) {
                 })}
               </tbody>
             </table>
-            <p className="mt-2 text-[10px] text-slate-500">
+            <p className="mt-2 text-[10px] text-slate-400">
               Déviance du modèle nul (même fréquence pour tous) : {c.null.frequency_deviance.toFixed(4)}.
               Apprentissage sur {fmt(models.train_size)} contrats, test sur {fmt(models.test_size)}.
               Le GLM sert de tarif : chaque coefficient s'explique à l'assuré et au régulateur.
@@ -191,7 +191,7 @@ function PricingTab({ portfolio, models }) {
           <Card title="Coefficients multiplicateurs du GLM">
             <div className="overflow-x-auto max-h-96 overflow-y-auto">
               <table className="w-full text-[11px]">
-                <thead className="text-slate-500 sticky top-0 bg-[#0F172A]">
+                <thead className="text-slate-400 sticky top-0 bg-[#0F172A]">
                   <tr>
                     <th className="text-left px-1 py-1">Variable</th>
                     <th className="text-left px-1">Modalité</th>
@@ -223,7 +223,7 @@ function PricingTab({ portfolio, models }) {
                 </tbody>
               </table>
             </div>
-            <p className="mt-1.5 text-[10px] text-slate-500">
+            <p className="mt-1.5 text-[10px] text-slate-400">
               « Vrai » : paramètre utilisé pour générer le portefeuille synthétique ; un bon modèle le retrouve dans son intervalle de confiance.
               En gris : non significatif (p &gt; 5 %). Bonus-malus : élasticité (λ ∝ (BM/100)^β).
             </p>
@@ -284,7 +284,7 @@ function MarginsTab({ portfolio }) {
           )}
         </div>
         {takaful && (
-          <p className="mt-2 text-[10px] text-slate-500">
+          <p className="mt-2 text-[10px] text-slate-400">
             Modèle wakala : les cotisations alimentent le fonds des participants, l'opérateur prélève une commission de gestion.
             Un excédent du fonds est en partie redistribué ; un déficit est couvert par un prêt sans intérêt de l'opérateur (qard hassan).
           </p>
@@ -311,7 +311,7 @@ function MarginsTab({ portfolio }) {
           <Card title={`Rentabilité par ${data.segment_label.toLowerCase()}`}>
             <div className="overflow-x-auto">
               <table className="w-full text-[11px]">
-                <thead className="text-slate-500">
+                <thead className="text-slate-400">
                   <tr>
                     <th className="text-left px-2 py-1">Segment</th>
                     <th className="text-right px-2">Contrats</th>
@@ -362,7 +362,7 @@ function MarginsTab({ portfolio }) {
                 </tbody>
               </table>
             </div>
-            <p className="mt-1.5 text-[10px] text-slate-500">
+            <p className="mt-1.5 text-[10px] text-slate-400">
               Montants annuels en TND. Ligne pointillée : S/P d'équilibre (1 − frais). Rouge : segment déficitaire au tarif actuel.
             </p>
           </Card>
@@ -424,7 +424,7 @@ function ReservingTab() {
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-1 xl:grid-cols-[360px_minmax(0,1fr)] gap-3 items-start">
-        <Card title="Triangle des paiements (incrémentaux)" right={<button onClick={loadDefault} className="text-[10px] text-slate-500 hover:text-slate-300">Exemple</button>}>
+        <Card title="Triangle des paiements (incrémentaux)" right={<button onClick={loadDefault} className="text-[10px] text-slate-400 hover:text-slate-300">Exemple</button>}>
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -432,7 +432,7 @@ function ReservingTab() {
             spellCheck={false}
             className="w-full bg-[#1E293B] border border-[#334155] rounded px-2 py-1 text-[10px] font-mono text-slate-200 whitespace-pre"
           />
-          <p className="text-[10px] text-slate-500 mb-2">
+          <p className="text-[10px] text-slate-400 mb-2">
             Une ligne par année de survenance, une colonne par année de développement (séparateur : tabulation, espace ou point-virgule).
             Collez directement depuis un tableur.
           </p>
@@ -471,7 +471,7 @@ function ReservingTab() {
                   </div>
                 ))}
               </div>
-              <p className="mt-1.5 text-[10px] text-slate-500">Dernière colonne : coefficient de variation (erreur de Mack / provision).</p>
+              <p className="mt-1.5 text-[10px] text-slate-400">Dernière colonne : coefficient de variation (erreur de Mack / provision).</p>
             </Card>
           </div>
         )}
@@ -481,7 +481,7 @@ function ReservingTab() {
         <Card title="Triangle complété par Chain Ladder">
           <div className="overflow-x-auto">
             <table className="w-full text-[10px] font-mono">
-              <thead className="text-slate-500">
+              <thead className="text-slate-400">
                 <tr>
                   <th className="text-left px-1.5 py-1 font-sans">Survenance</th>
                   {Array.from({ length: n }, (_, k) => <th key={k} className="text-right px-1.5">{k + 1}</th>)}
@@ -507,7 +507,7 @@ function ReservingTab() {
               </tbody>
             </table>
           </div>
-          <p className="mt-1.5 text-[10px] text-slate-500">
+          <p className="mt-1.5 text-[10px] text-slate-400">
             Montants cumulés. En bleu : projections. Facteur de développement k = Σ C(i, k+1) / Σ C(i, k) sur les années observées.
           </p>
         </Card>
@@ -556,6 +556,7 @@ export default function ActuarialPage({ currentUser }) {
           </div>
         )}
       </div>
+      <p className="text-xs text-slate-400">Calculez le prix d'une assurance auto et la provision pour sinistres à partir de données simulées.</p>
 
       <div className="flex gap-1">
         {TABS.map(({ key, label, icon: Icon }) => (

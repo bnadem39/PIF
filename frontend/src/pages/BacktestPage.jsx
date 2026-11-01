@@ -14,6 +14,16 @@ const STRATEGY_COLOR = {
 };
 const DEFAULT_SELECTION = ['BUY_AND_HOLD', 'SMA_CROSSOVER', 'RSI_REVERSION', 'AI_SIGNAL'];
 
+// Phrase simple (sans jargon) affichée sous chaque stratégie, en complément de la description technique
+const STRATEGY_SIMPLE_DESC = {
+  BUY_AND_HOLD: "Achète l'actif au départ et le garde jusqu'à la fin, sans aucune autre opération.",
+  SMA_CROSSOVER: 'Achète quand le prix dépasse sa moyenne récente, vend quand il redescend dessous.',
+  RSI_REVERSION: 'Achète quand le prix a beaucoup baissé récemment, en pariant sur un retour à la normale.',
+  MACD_CROSSOVER: 'Suit les changements de tendance en comparant deux moyennes de prix.',
+  BOLLINGER_REVERSION: "Achète quand le prix s'écarte fortement de sa moyenne, en pariant sur un retour vers elle.",
+  AI_SIGNAL: "Suit les signaux d'achat et de vente calculés par le modèle d'intelligence artificielle."
+};
+
 const pct = (v, d = 1) => (v == null ? '-' : `${(v * 100).toFixed(d)} %`);
 const num = (v, d = 2) => (v == null ? '-' : v.toFixed(d));
 const money = (v) => (v == null ? '-' : Math.round(v).toLocaleString('fr-FR'));
@@ -121,7 +131,7 @@ function ParamInputs({ info, values, onChange }) {
   return (
     <div className="grid grid-cols-2 gap-1.5 mt-1.5 pl-5">
       {info.params.map((p) => (
-        <label key={p.name} className="text-[10px] text-slate-500">
+        <label key={p.name} className="text-[10px] text-slate-400">
           {p.label}
           <input
             type="number"
@@ -220,13 +230,14 @@ export default function BacktestPage({ currentUser }) {
         <History size={18} className="text-[#38BDF8]" />
         <h1 className="text-base font-extrabold">Backtesting & comparaison de stratégies</h1>
       </div>
+      <p className="text-xs text-slate-400">Testez une stratégie de trading sur des données passées, sans risquer d'argent réel.</p>
 
       {error && <div className="text-xs text-rose-400">{error}</div>}
 
       <div className="grid grid-cols-1 xl:grid-cols-[300px_minmax(0,1fr)] gap-3 items-start">
         {/* ── Paramètres ─────────────────────────────────────────── */}
         <div className="space-y-3">
-          <Card title="Actif et période">
+          <Card title="1. Actif et période">
             <div className="space-y-2 text-[11px] text-slate-400">
               <label className="block">
                 Actif
@@ -242,13 +253,13 @@ export default function BacktestPage({ currentUser }) {
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <label>Capital<input type="number" min="1000" step="1000" value={capital} onChange={(e) => setCapital(Number(e.target.value))} className={`${inputCls} mt-0.5`} /></label>
-                <label>Frais %<input type="number" min="0" max="5" step="0.05" value={commission} onChange={(e) => setCommission(Number(e.target.value))} className={`${inputCls} mt-0.5`} /></label>
-                <label>Slippage %<input type="number" min="0" max="5" step="0.05" value={slippage} onChange={(e) => setSlippage(Number(e.target.value))} className={`${inputCls} mt-0.5`} /></label>
+                <label title="Frais payés au courtier à chaque achat ou vente.">Frais de transaction %<input type="number" min="0" max="5" step="0.05" value={commission} onChange={(e) => setCommission(Number(e.target.value))} className={`${inputCls} mt-0.5`} /></label>
+                <label title="Petite différence entre le prix attendu et le prix réellement obtenu à l'exécution.">Coût d'écart de prix (slippage) %<input type="number" min="0" max="5" step="0.05" value={slippage} onChange={(e) => setSlippage(Number(e.target.value))} className={`${inputCls} mt-0.5`} /></label>
               </div>
             </div>
           </Card>
 
-          <Card title="Stratégies">
+          <Card title="2. Stratégies">
             <div className="space-y-2.5">
               {catalog.map((c) => (
                 <div key={c.type}>
@@ -261,6 +272,9 @@ export default function BacktestPage({ currentUser }) {
                     <span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: STRATEGY_COLOR[c.type] }} />
                     {c.label}
                   </label>
+                  {STRATEGY_SIMPLE_DESC[c.type] && (
+                    <p className="text-[10px] text-slate-400 pl-[18px] mt-0.5">{STRATEGY_SIMPLE_DESC[c.type]}</p>
+                  )}
                   {selected.includes(c.type) && (
                     <ParamInputs
                       info={c}
@@ -271,17 +285,18 @@ export default function BacktestPage({ currentUser }) {
                 </div>
               ))}
             </div>
+            <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400 mt-3 mb-1">3. Lancer</div>
             <button
               onClick={run}
               disabled={!selected.length || loading}
-              className="mt-3 w-full flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold bg-[#38BDF8] text-[#0B1120] disabled:opacity-40"
+              className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold bg-[#38BDF8] text-[#0B1120] disabled:opacity-40"
             >
               {loading ? <RefreshCw size={13} className="animate-spin" /> : <Play size={13} />}
               {loading ? 'Calcul en cours…' : 'Lancer le backtest'}
             </button>
           </Card>
 
-          <div className="flex items-start gap-1.5 text-[11px] text-slate-500 px-1">
+          <div className="flex items-start gap-1.5 text-[11px] text-slate-400 px-1">
             <Info size={13} className="mt-0.5 shrink-0" />
             <span>
               Les décisions sont prises à la clôture et exécutées à l'ouverture suivante, frais et slippage compris.
@@ -293,8 +308,8 @@ export default function BacktestPage({ currentUser }) {
         {/* ── Résultats ─────────────────────────────────────────── */}
         <div className="space-y-3 min-w-0">
           {!result && (
-            <div className="border border-dashed border-[#1E293B] rounded-xl p-8 text-center text-xs text-slate-500">
-              Choisissez un actif, une période et des stratégies, puis lancez le backtest.
+            <div className="border border-dashed border-[#1E293B] rounded-xl p-8 text-center text-xs text-slate-400">
+              Suivez les 3 étapes à gauche : choisissez un actif et une période, cochez une ou plusieurs stratégies, puis cliquez sur « Lancer le backtest ».
             </div>
           )}
 
@@ -308,7 +323,7 @@ export default function BacktestPage({ currentUser }) {
 
               <Card
                 title={`Valeur du portefeuille · ${result.symbol} · ${result.startDate} → ${result.endDate}`}
-                right={<span className="text-[10px] text-slate-500">{result.tradingDays} séances</span>}
+                right={<span className="text-[10px] text-slate-400">{result.tradingDays} séances</span>}
               >
                 <div className="flex flex-wrap gap-x-4 gap-y-1 mb-1 text-[11px]">
                   {series.map((s) => (
@@ -327,7 +342,7 @@ export default function BacktestPage({ currentUser }) {
               <Card title="Comparaison des performances">
                 <div className="overflow-x-auto">
                   <table className="w-full text-[11px]">
-                    <thead className="text-slate-500">
+                    <thead className="text-slate-400">
                       <tr>
                         <th className="text-left px-2 py-1">Stratégie</th>
                         {METRICS.map((m) => <th key={m.key} title={m.hint} className="text-right px-2 py-1 whitespace-nowrap">{m.label}</th>)}
@@ -358,26 +373,26 @@ export default function BacktestPage({ currentUser }) {
                     </tbody>
                   </table>
                 </div>
-                <p className="mt-1.5 text-[10px] text-slate-500">
+                <p className="mt-1.5 text-[10px] text-slate-400">
                   En vert : meilleure valeur de la colonne. Montants en devise de l'actif. Cliquez sur une stratégie pour voir ses transactions.
                 </p>
               </Card>
 
               {focused && (
-                <Card title={`Transactions · ${focused.label}`} right={<span className="text-[10px] text-slate-500">{focused.metrics.trades} au total</span>}>
+                <Card title={`Transactions · ${focused.label}`} right={<span className="text-[10px] text-slate-400">{focused.metrics.trades} au total</span>}>
                   {focused.trades.length === 0 ? (
-                    <div className="text-xs text-slate-500">Aucune transaction sur la période.</div>
+                    <div className="text-xs text-slate-400">Aucune transaction sur la période.</div>
                   ) : (
                     <div className="overflow-x-auto max-h-72 overflow-y-auto">
                       <table className="w-full text-[11px]">
-                        <thead className="text-slate-500 sticky top-0 bg-[#0F172A]">
+                        <thead className="text-slate-400 sticky top-0 bg-[#0F172A]">
                           <tr>
                             <th className="text-left px-2 py-1">Entrée</th>
                             <th className="text-right px-2 py-1">Prix</th>
                             <th className="text-left px-2 py-1">Sortie</th>
                             <th className="text-right px-2 py-1">Prix</th>
                             <th className="text-right px-2 py-1">Quantité</th>
-                            <th className="text-right px-2 py-1">P&L</th>
+                            <th className="text-right px-2 py-1" title="Profit & Loss : gain ou perte net réalisé sur cette transaction.">P&L</th>
                             <th className="text-right px-2 py-1">Rendement</th>
                           </tr>
                         </thead>

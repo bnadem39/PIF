@@ -18,21 +18,21 @@ export default function MarketWatch({ assets = [], selectedAsset, onSelectAsset,
   const getSignalBadge = (sig) => {
     if (!sig || sig.pBuy == null) {
       return (
-        <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-500 border border-slate-700/60">
+        <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700/60">
           IA —
         </span>
       );
     }
     if (sig.signal === 1) {
       return (
-        <span title={`P(hausse) ${Math.round(sig.pBuy * 100)} %`} className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-950/90 text-emerald-400 border border-emerald-700/80">
+        <span title={`P(hausse) ${Math.round(sig.pBuy * 100)} %`} className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-950/90 text-emerald-400 border border-emerald-700/80">
           ACHAT {Math.round(sig.pBuy * 100)}%
         </span>
       );
     }
     if (sig.signal === -1) {
       return (
-        <span title={`P(baisse) ${Math.round(sig.pSell * 100)} %`} className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-rose-950/90 text-rose-400 border border-rose-700/80">
+        <span title={`P(baisse) ${Math.round(sig.pSell * 100)} %`} className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-rose-950/90 text-rose-400 border border-rose-700/80">
           VENTE {Math.round(sig.pSell * 100)}%
         </span>
       );
@@ -40,7 +40,7 @@ export default function MarketWatch({ assets = [], selectedAsset, onSelectAsset,
     return (
       <span
         title={`P(hausse) ${Math.round(sig.pBuy * 100)} % · P(baisse) ${Math.round(sig.pSell * 100)} % : sous le seuil de 60 %`}
-        className="text-[9px] font-mono font-medium px-1.5 py-0.5 rounded bg-slate-800/80 text-slate-400 border border-slate-700/50"
+        className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-slate-800/80 text-slate-400 border border-slate-700/50"
       >
         ATTENTE
       </span>
@@ -135,17 +135,17 @@ export default function MarketWatch({ assets = [], selectedAsset, onSelectAsset,
                     </span>
                     {getSignalBadge(signalData)}
                     {asset.ticker === 'WIFAK' && (
-                      <span className="bg-emerald-950 text-emerald-400 border border-emerald-800 text-[9px] px-1 py-0.2 rounded font-semibold flex items-center gap-0.5">
+                      <span className="bg-emerald-950 text-emerald-400 border border-emerald-800 text-[10px] px-1 py-0.2 rounded font-semibold flex items-center gap-0.5">
                         <ShieldCheck size={10} /> Islamique
                       </span>
                     )}
                     {asset.category === 'CRYPTO' && (
-                      <span className="bg-amber-950 text-amber-400 border border-amber-800 text-[9px] px-1 py-0.2 rounded font-semibold">
+                      <span className="bg-amber-950 text-amber-400 border border-amber-800 text-[10px] px-1 py-0.2 rounded font-semibold">
                         Crypto
                       </span>
                     )}
                     {asset.category === 'US_EQUITY' && (
-                      <span className="bg-sky-950 text-sky-400 border border-sky-800 text-[9px] px-1 py-0.2 rounded font-semibold">
+                      <span className="bg-sky-950 text-sky-400 border border-sky-800 text-[10px] px-1 py-0.2 rounded font-semibold">
                         US
                       </span>
                     )}
@@ -164,7 +164,7 @@ export default function MarketWatch({ assets = [], selectedAsset, onSelectAsset,
                     <div className="h-3 w-10 rounded bg-[#1E293B] animate-pulse ml-auto" />
                   </div>
                 ) : notListed ? (
-                  <div className="text-right shrink-0 text-[10px] text-slate-500">Pas encore coté<br />à cette date</div>
+                  <div className="text-right shrink-0 text-[10px] text-slate-400">Pas encore coté<br />à cette date</div>
                 ) : (
                 <div className="text-right shrink-0">
                   <div className="font-mono text-xs font-semibold text-slate-100">

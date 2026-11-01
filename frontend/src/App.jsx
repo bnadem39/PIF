@@ -333,8 +333,8 @@ export default function App() {
   return (
     <div className="flex flex-col h-screen w-screen bg-[#080C14] text-[#F8FAFC] overflow-hidden font-sans">
       {/* 1. BARRE DE NAVIGATION SUPÉRIEURE */}
-      <header className="h-12 bg-[#0F172A] border-b border-[#1E293B] px-4 flex items-center justify-between shrink-0 select-none">
-        <div className="flex items-center gap-3">
+      <header className="h-12 bg-[#0F172A] border-b border-[#1E293B] px-4 flex items-center justify-between gap-2 shrink-0 select-none">
+        <div className="flex items-center gap-3 shrink-0">
           <div className="flex items-center gap-2 bg-[#0284C7]/20 text-[#38BDF8] border border-[#0284C7]/40 px-2.5 py-1 rounded-lg">
             <Terminal size={17} />
             <span className="font-extrabold tracking-wider text-sm whitespace-nowrap">PIF MARKET TIME-LAPSE</span>
@@ -345,7 +345,7 @@ export default function App() {
         </div>
 
         {/* Onglets de navigation */}
-        <nav className="flex items-center gap-1">
+        <nav className="flex items-center gap-1 overflow-x-auto min-w-0">
           {NAV_ITEMS.filter((item) => !item.adminOnly || currentUser?.role === 'ROLE_ADMIN').map((item) => {
             const Icon = item.icon;
             const isActive = item.path === '/'
@@ -370,7 +370,7 @@ export default function App() {
         </nav>
 
         {/* Actions header & Profil utilisateur */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 shrink-0">
           {/* Bouton Visualiseur Données CSV */}
           <button
             onClick={() => setIsCsvInspectorOpen(true)}
@@ -405,11 +405,11 @@ export default function App() {
               {/* Bouton Déconnexion */}
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-rose-950/50 hover:bg-rose-900/80 text-rose-300 border border-rose-800/60 transition-all font-mono"
-                title="Se déconnecter de la session courante"
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 border border-[#334155] hover:text-rose-400 hover:border-rose-500/60 hover:bg-rose-950/20 transition-all font-mono shrink-0"
+                title="Se déconnecter"
               >
                 <LogOut size={13} />
-                <span className="hidden sm:inline">Déconnexion</span>
+                <span>Déconnexion</span>
               </button>
             </div>
           ) : (

@@ -330,7 +330,7 @@ export default function AiCopilotWidget({
                               <span className="text-[11px] font-bold text-slate-200">
                                 {opp.confidence_pct}%
                               </span>
-                              <span className="text-[9px] text-slate-500 block">
+                              <span className="text-[9px] text-slate-400 block">
                                 {opp.risk_reward || 'R/R 1:2'}
                               </span>
                             </div>
@@ -435,7 +435,7 @@ export default function AiCopilotWidget({
                     </div>
                   )}
                 </div>
-                <span className="text-[9px] text-slate-500 mt-0.5 px-1">{msg.time}</span>
+                <span className="text-[9px] text-slate-400 mt-0.5 px-1">{msg.time}</span>
               </div>
             ))}
             {isSending && (

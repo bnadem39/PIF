@@ -135,12 +135,9 @@ export default function PortfolioAnalyticsView({
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-[#1E293B]">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-extrabold text-white tracking-wide">
+            <h1 className="text-base font-extrabold text-white tracking-wide">
               Espace Portefeuille & Tableau de Bord Risque
             </h1>
-            <span className="bg-[#0284C7]/20 text-[#38BDF8] border border-[#0284C7]/40 text-[11px] font-mono px-2 py-0.5 rounded font-bold">
-              PostgreSQL • BigDecimal(15,3)
-            </span>
           </div>
           <p className="text-xs text-slate-400 mt-0.5 font-mono">
             Date simulée active : <strong className="text-sky-400">{simulatedDate || 'Initiale'}</strong> • Taux de frais courtage : 0.15%
@@ -332,11 +329,11 @@ export default function PortfolioAnalyticsView({
                   : auditData.risk_level === 'HIGH' || auditData.risk_level === 'VERY HIGH'
                   ? 'bg-rose-950/80 text-rose-400 border-rose-800'
                   : 'bg-amber-950/80 text-amber-400 border-amber-800'
-              }`}>
+              }`} title="Évaluation globale du risque de votre portefeuille actuel par l'auditeur IA.">
                 Niveau de Risque : {auditData.risk_level}
               </span>
 
-              <span className="text-[11px] font-mono font-bold px-2.5 py-1 rounded-md bg-slate-900 text-sky-400 border border-slate-700">
+              <span className="text-[11px] font-mono font-bold px-2.5 py-1 rounded-md bg-slate-900 text-sky-400 border border-slate-700" title="Suggestion de rééquilibrage proposée par l'auditeur IA pour réduire le risque.">
                 Arbitrage Conseillé : {auditData.arbitrage_advice}
               </span>
 
@@ -346,7 +343,7 @@ export default function PortfolioAnalyticsView({
                 </span>
               )}
 
-              <span className="text-[10px] font-mono text-slate-500 ml-auto">
+              <span className="text-[10px] font-mono text-slate-400 ml-auto">
                 Latence : {auditData.latency_ms}ms • Date : {auditData.simulated_date}
               </span>
             </div>
@@ -357,7 +354,7 @@ export default function PortfolioAnalyticsView({
 
             {auditData.sources && auditData.sources.length > 0 && (
               <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-mono flex-wrap">
-                <span className="text-slate-500">Références :</span>
+                <span className="text-slate-400">Références :</span>
                 {auditData.sources.map((src, i) => (
                   <span key={i} className="px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300">
                     {src}
@@ -376,7 +373,7 @@ export default function PortfolioAnalyticsView({
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Activity size={16} className="text-[#38BDF8]" />
-              <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+              <h2 className="text-sm font-bold text-white uppercase tracking-wider" title="Évolution de la valeur totale de votre portefeuille (cash + positions) au fil du temps.">
                 Courbe d'Équité (Equity Curve)
               </h2>
             </div>
@@ -421,7 +418,7 @@ export default function PortfolioAnalyticsView({
                 })()}
               </svg>
             ) : (
-              <div className="flex items-center justify-center h-full text-slate-500 font-mono text-xs">
+              <div className="flex items-center justify-center h-full text-slate-400 font-mono text-xs">
                 Aucune transaction clôturée pour tracer la courbe d'équité.
               </div>
             )}
@@ -450,7 +447,7 @@ export default function PortfolioAnalyticsView({
               </div>
 
               <div className="bg-[#080C14] border border-[#1E293B] p-2.5 rounded-lg flex items-center justify-between">
-                <span className="text-slate-400">Max Drawdown</span>
+                <span className="text-slate-400" title="La plus grosse baisse subie par votre portefeuille depuis un sommet, avant de remonter.">Max Drawdown</span>
                 <span className="font-bold text-rose-400 text-sm">-{Number(maxDrawdown).toFixed(2)}%</span>
               </div>
 
@@ -460,9 +457,9 @@ export default function PortfolioAnalyticsView({
               </div>
 
               <div className="bg-[#080C14] border border-[#1E293B] p-2.5 rounded-lg flex items-center justify-between">
-                <span className="text-slate-400">Ratio Gain / Perte</span>
+                <span className="text-slate-400" title="Nombre de ventes clôturées avec un gain, comparé au nombre clôturées avec une perte.">Ratio Gain / Perte</span>
                 <span className="font-bold text-emerald-400">{winningTrades}</span>
-                <span className="text-slate-500">/</span>
+                <span className="text-slate-400">/</span>
                 <span className="font-bold text-rose-400">{losingTrades}</span>
               </div>
             </div>
@@ -483,7 +480,7 @@ export default function PortfolioAnalyticsView({
               Positions Ouvertes en Portefeuille ({portfolio?.positions?.length || 0})
             </h2>
           </div>
-          <span className="text-[11px] font-mono text-slate-400">
+          <span className="text-[11px] font-mono text-slate-400" title="PRU = Prix de Revient Unitaire : le prix moyen payé pour vos actions d'un même actif, pondéré par les quantités achetées.">
             Formule PRU : Σ(Qi × Pi) / ΣQi
           </span>
         </div>
@@ -494,14 +491,14 @@ export default function PortfolioAnalyticsView({
               <tr>
                 <th className="py-2.5 px-3">Actif</th>
                 <th className="py-2.5 px-3 text-right">Quantité</th>
-                <th className="py-2.5 px-3 text-right">PRU (Coût Moyen)</th>
+                <th className="py-2.5 px-3 text-right" title="Prix de Revient Unitaire : le prix moyen payé pour cet actif.">PRU (Coût Moyen)</th>
                 <th className="py-2.5 px-3 text-right">Cours Simulé</th>
                 <th className="py-2.5 px-3 text-right">Valeur Marché</th>
                 <th className="py-2.5 px-3 text-right">P&L Latent (TND)</th>
                 <th className="py-2.5 px-3 text-right">P&L Latent (%)</th>
-                <th className="py-2.5 px-3 text-center">Stop-Loss (SL)</th>
-                <th className="py-2.5 px-3 text-center">Take-Profit (TP)</th>
-                <th className="py-2.5 px-3 text-center">Trailing Stop</th>
+                <th className="py-2.5 px-3 text-center" title="Stop-Loss : prix de vente automatique déclenché pour limiter une perte.">Stop-Loss (SL)</th>
+                <th className="py-2.5 px-3 text-center" title="Take-Profit : prix de vente automatique déclenché pour sécuriser un gain.">Take-Profit (TP)</th>
+                <th className="py-2.5 px-3 text-center" title="Trailing Stop : stop-loss qui remonte automatiquement avec le prix pour protéger les gains déjà acquis.">Trailing Stop</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#1E293B]">
@@ -561,7 +558,7 @@ export default function PortfolioAnalyticsView({
                 })
               ) : (
                 <tr>
-                  <td colSpan="10" className="py-6 text-center text-slate-500 font-mono text-xs">
+                  <td colSpan="10" className="py-6 text-center text-slate-400 font-mono text-xs">
                     Aucune position ouverte actuellement. Passez un ordre d'achat dans le terminal.
                   </td>
                 </tr>
@@ -613,7 +610,7 @@ export default function PortfolioAnalyticsView({
                   const isPnlPos = tx.realizedPnl >= 0;
                   return (
                     <tr key={tx.id} className="hover:bg-[#1E293B]/40 transition-colors">
-                      <td className="py-2 px-3 text-slate-500">#{tx.id}</td>
+                      <td className="py-2 px-3 text-slate-400">#{tx.id}</td>
                       <td className="py-2 px-3 text-slate-300 font-semibold">{tx.simulatedDate}</td>
                       <td className="py-2 px-3 font-bold text-[#38BDF8]">{tx.symbol}</td>
                       <td className="py-2 px-3">
@@ -646,7 +643,7 @@ export default function PortfolioAnalyticsView({
                 })
               ) : (
                 <tr>
-                  <td colSpan="8" className="py-6 text-center text-slate-500 font-mono text-xs">
+                  <td colSpan="8" className="py-6 text-center text-slate-400 font-mono text-xs">
                     Aucune transaction enregistrée. Les ordres exécutés apparaîtront ici avec horodatage d'audit.
                   </td>
                 </tr>

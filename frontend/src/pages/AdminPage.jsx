@@ -53,7 +53,7 @@ function Kpi({ label, value, sub }) {
     <div className="bg-[#0F172A] border border-[#1E293B] rounded-xl px-3 py-2">
       <div className="text-[11px] text-slate-400">{label}</div>
       <div className="text-xl font-extrabold font-mono text-slate-100">{value}</div>
-      {sub && <div className="text-[10px] text-slate-500">{sub}</div>}
+      {sub && <div className="text-[10px] text-slate-400">{sub}</div>}
     </div>
   );
 }
@@ -72,7 +72,7 @@ function Overview() {
   useEffect(load, [load]);
 
   if (error) return <div className="text-xs text-rose-400">{error}</div>;
-  if (!stats) return <div className="text-xs text-slate-500">Chargement…</div>;
+  if (!stats) return <div className="text-xs text-slate-400">Chargement…</div>;
   const max = Math.max(1, ...stats.activity30d.map((d) => d.count));
 
   return (
@@ -101,7 +101,7 @@ function Overview() {
               </div>
             ))}
           </div>
-          <div className="flex justify-between text-[10px] font-mono text-slate-500 mt-1">
+          <div className="flex justify-between text-[10px] font-mono text-slate-400 mt-1">
             {stats.activity30d.filter((_, i) => i % 5 === 0).map((d) => <span key={d.date}>{d.date.slice(5)}</span>)}
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-1 mt-2 text-[11px]">
@@ -113,8 +113,8 @@ function Overview() {
           </div>
         </Card>
 
-        <Card title="Service IA" right={<Cpu size={13} className="text-slate-500" />}>
-          {!ai ? <div className="text-xs text-slate-500">…</div> : (
+        <Card title="Service IA" right={<Cpu size={13} className="text-slate-400" />}>
+          {!ai ? <div className="text-xs text-slate-400">…</div> : (
             <div className="space-y-1.5 text-[11px]">
               <div className="flex justify-between"><span className="text-slate-400">État</span><b className="text-slate-200">{ai.status}</b></div>
               {Object.entries(ai.components || {}).map(([k, v]) => (
@@ -126,10 +126,10 @@ function Overview() {
               {ai.model_info && (
                 <>
                   <div className="flex justify-between"><span className="text-slate-400">Modèle entraîné le</span><span className="text-slate-200">{String(ai.model_info.trained_at || '').slice(0, 10)}</span></div>
-                  <div className="flex justify-between"><span className="text-slate-400">Exactitude (validation croisée)</span><span className="text-slate-200 font-mono">{pct(ai.model_info.cv_mean_accuracy)}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-400" title="Précision moyenne du modèle, mesurée en le testant plusieurs fois sur des données qu'il n'a pas vues à l'entraînement.">Exactitude (validation croisée)</span><span className="text-slate-200 font-mono">{pct(ai.model_info.cv_mean_accuracy)}</span></div>
                 </>
               )}
-              <p className="text-[10px] text-slate-500 pt-1">
+              <p className="text-[10px] text-slate-400 pt-1">
                 Le RAG et le LLM sont optionnels : sans eux, les analyses sont produites par le moteur quantitatif.
               </p>
             </div>
@@ -185,7 +185,7 @@ function UsersTab({ currentUser }) {
   return (
     <Card title={`Comptes (${rows.length})`} right={
       <div className="relative w-56">
-        <Search size={12} className="absolute left-2 top-2 text-slate-500" />
+        <Search size={12} className="absolute left-2 top-2 text-slate-400" />
         <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="E-mail ou nom" className={`${inputCls} pl-6`} />
       </div>
     }>
@@ -193,7 +193,7 @@ function UsersTab({ currentUser }) {
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
           <thead>
-            <tr className="text-slate-500 text-left">
+            <tr className="text-slate-400 text-left">
               <th className="font-normal py-1">Utilisateur</th>
               <th className="font-normal">Rôle</th>
               <th className="font-normal">Statut</th>
@@ -213,7 +213,7 @@ function UsersTab({ currentUser }) {
                 <tr key={u.id} className={`border-t border-[#1E293B] ${u.enabled ? 'text-slate-300' : 'text-slate-500'}`}>
                   <td className="py-1.5">
                     <div className="text-slate-200">{u.fullName || '—'}</div>
-                    <div className="text-[10px] text-slate-500">{u.email}</div>
+                    <div className="text-[10px] text-slate-400">{u.email}</div>
                   </td>
                   <td>
                     <select
@@ -253,7 +253,7 @@ function UsersTab({ currentUser }) {
           </tbody>
         </table>
       </div>
-      <p className="text-[10px] text-slate-500 mt-2">
+      <p className="text-[10px] text-slate-400 mt-2">
         Un compte désactivé ne peut plus se connecter et ses jetons en cours sont refusés. Chaque modification est tracée dans le journal d'audit.
       </p>
     </Card>
@@ -273,7 +273,7 @@ function SentimentBadge({ label, score }) {
 }
 
 function Terms({ terms }) {
-  if (!terms?.length) return <span className="text-[10px] text-slate-500">Aucun terme du lexique détecté.</span>;
+  if (!terms?.length) return <span className="text-[10px] text-slate-400">Aucun terme du lexique détecté.</span>;
   return (
     <div className="flex flex-wrap gap-1">
       {terms.map((t, i) => (
@@ -380,11 +380,11 @@ function NewsTab() {
             <div className="rounded-lg border border-[#1E293B] p-2 space-y-1">
               <SentimentBadge label={preview.label} score={preview.score} />
               <Terms terms={preview.terms} />
-              <div className="text-[10px] text-slate-500">Méthode : {preview.method}</div>
+              <div className="text-[10px] text-slate-400">Méthode : {preview.method}</div>
             </div>
           )}
           {error && <div className="text-xs text-rose-400">{error}</div>}
-          <p className="text-[10px] text-slate-500">
+          <p className="text-[10px] text-slate-400">
             Saisissez de vraies actualités avec leur date réelle : elles n'apparaissent dans la simulation qu'à partir de cette date,
             et leur sentiment alimente l'analyse de l'agent IA.
           </p>
@@ -392,14 +392,14 @@ function NewsTab() {
       </Card>
 
       <Card title={`Actualités publiées (${rows.length})`}>
-        {rows.length === 0 && <div className="text-xs text-slate-500">Aucune actualité pour l'instant.</div>}
+        {rows.length === 0 && <div className="text-xs text-slate-400">Aucune actualité pour l'instant.</div>}
         <div className="space-y-2">
           {rows.map((a) => (
             <div key={a.id} className="rounded-lg border border-[#1E293B] p-2">
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <div className="text-xs text-slate-200 font-semibold">{a.title}</div>
-                  <div className="text-[10px] text-slate-500">
+                  <div className="text-[10px] text-slate-400">
                     {a.publishedDate} · {a.source || 'source non précisée'} · {a.symbols.length ? a.symbols.join(', ') : 'marché'}
                     {a.url && <> · <a href={a.url} target="_blank" rel="noreferrer" className="text-[#38BDF8] hover:underline">lien</a></>}
                   </div>
@@ -435,7 +435,7 @@ function LearningTab() {
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="text-slate-500 text-left">
+              <tr className="text-slate-400 text-left">
                 <th className="font-normal py-1">Type</th>
                 <th className="font-normal">Contenu</th>
                 <th className="font-normal text-right">Apprenants</th>
@@ -463,7 +463,7 @@ function LearningTab() {
           </table>
         </div>
       )}
-      <p className="text-[10px] text-slate-500 mt-2">
+      <p className="text-[10px] text-slate-400 mt-2">
         Les cours, quiz, scénarios et défis sont versionnés dans <code>backend/src/main/resources/learning/catalog.json</code>, validé au démarrage.
         Pour un scénario, la réussite compte les apprenants ayant pris la meilleure décision.
       </p>

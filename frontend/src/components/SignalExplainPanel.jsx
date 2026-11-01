@@ -68,7 +68,7 @@ export default function SignalExplainPanel({ symbol, date, isPlaying }) {
         </button>
       </div>
 
-      {isPlaying && <div className="text-[11px] text-slate-500">Mettez la simulation en pause pour expliquer le signal du jour.</div>}
+      {isPlaying && <div className="text-[11px] text-slate-400">Mettez la simulation en pause pour expliquer le signal du jour.</div>}
       {error && <div className="text-[11px] text-rose-400">{error}</div>}
 
       {data && (
@@ -93,7 +93,7 @@ export default function SignalExplainPanel({ symbol, date, isPlaying }) {
                 <span key={k} style={{ color: CLASS_COLOR[k] }}>{CLASS_LABEL[k]} {(data.probabilities[k] * 100).toFixed(0)} %</span>
               ))}
             </div>
-            <div className="text-[10px] text-slate-500">
+            <div className="text-[10px] text-slate-400">
               Un signal d'achat ou de vente n'est émis que si sa probabilité atteint {Math.round(data.threshold * 100)} %.
             </div>
           </div>
@@ -107,13 +107,13 @@ export default function SignalExplainPanel({ symbol, date, isPlaying }) {
 
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[11px] font-bold uppercase tracking-wide text-slate-400">Contributions (SHAP)</span>
+              <span className="text-[11px] font-bold uppercase tracking-wide text-slate-400" title="SHAP : méthode qui calcule combien chaque indicateur (RSI, MACD...) a pesé dans la décision du modèle.">Contributions (SHAP)</span>
               <div className="flex gap-1">
                 {['buy', 'sell'].map((k) => (
                   <button
                     key={k}
                     onClick={() => setView(k)}
-                    className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${view === k ? 'bg-[#1E293B] text-white' : 'text-slate-500 hover:text-slate-300'}`}
+                    className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${view === k ? 'bg-[#1E293B] text-white' : 'text-slate-400 hover:text-slate-300'}`}
                   >
                     P({k === 'buy' ? 'hausse' : 'baisse'})
                   </button>
@@ -128,7 +128,7 @@ export default function SignalExplainPanel({ symbol, date, isPlaying }) {
                   <div key={r.feature} title={`${r.label} = ${formatValue(r.value)} · contribution ${r.contribution > 0 ? '+' : ''}${r.contribution.toFixed(3)} (log-odds)`}>
                     <div className="flex justify-between text-[10px]">
                       <span className="text-slate-300 truncate pr-2">{r.label}</span>
-                      <span className="font-mono text-slate-500 shrink-0">{formatValue(r.value)}</span>
+                      <span className="font-mono text-slate-400 shrink-0">{formatValue(r.value)}</span>
                     </div>
                     <div className="relative h-2 bg-[#0B1120] rounded">
                       <div className="absolute top-0 bottom-0 w-px bg-slate-600" style={{ left: '50%' }} />
@@ -145,7 +145,7 @@ export default function SignalExplainPanel({ symbol, date, isPlaying }) {
                 );
               })}
             </div>
-            <p className="text-[10px] text-slate-500 mt-2 leading-snug">
+            <p className="text-[10px] text-slate-400 mt-2 leading-snug">
               À droite, la variable pousse vers {view === 'buy' ? 'la hausse' : 'la baisse'} ; à gauche, elle s'y oppose.
               Valeurs de Shapley exactes calculées sur les arbres XGBoost, en log-odds. Le « score de momentum » est un proxy RSI/MACD utilisé à l'entraînement.
             </p>
@@ -166,17 +166,17 @@ export default function SignalExplainPanel({ symbol, date, isPlaying }) {
           )}
         </div>
         {news.length === 0 ? (
-          <div className="text-[10px] text-slate-500">Aucune actualité publiée sur {symbol} au cours des 30 jours précédant le {date}.</div>
+          <div className="text-[10px] text-slate-400">Aucune actualité publiée sur {symbol} au cours des 30 jours précédant le {date}.</div>
         ) : (
           <>
-            <div className="text-[10px] text-slate-500">
+            <div className="text-[10px] text-slate-400">
               {newsAgg?.articles ?? 0} article(s) sur 30 jours, les plus récents pèsent davantage (demi-vie 7 jours).
             </div>
             <ul className="space-y-1.5">
               {news.map((n) => (
                 <li key={n.id} className="border-l-2 pl-2" style={{ borderColor: SENT_COLOR[n.sentimentLabel] }}>
                   <div className="text-[11px] text-slate-200 leading-snug">{n.title}</div>
-                  <div className="text-[10px] text-slate-500 font-mono">
+                  <div className="text-[10px] text-slate-400 font-mono">
                     {n.publishedDate}{n.source ? ` · ${n.source}` : ''} · {n.sentimentScore > 0 ? '+' : ''}{n.sentimentScore.toFixed(2)}
                   </div>
                 </li>
@@ -192,10 +192,10 @@ export default function SignalExplainPanel({ symbol, date, isPlaying }) {
             <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-400">
               <Activity size={12} /> Séances anormales
             </span>
-            <span className="text-[10px] font-mono text-slate-500">{anomalies.count} depuis le début</span>
+            <span className="text-[10px] font-mono text-slate-400">{anomalies.count} depuis le début</span>
           </div>
           {anomalies.anomalies.length === 0 ? (
-            <div className="text-[10px] text-slate-500">Aucune séance anormale détectée jusqu'au {date}.</div>
+            <div className="text-[10px] text-slate-400">Aucune séance anormale détectée jusqu'au {date}.</div>
           ) : (
             <ul className="space-y-1.5">
               {anomalies.anomalies.slice(0, 5).map((a) => (
@@ -208,7 +208,7 @@ export default function SignalExplainPanel({ symbol, date, isPlaying }) {
               ))}
             </ul>
           )}
-          <div className="text-[10px] text-slate-500">
+          <div className="text-[10px] text-slate-400">
             Une séance est signalée quand son rendement, son volume ou son amplitude s'écarte d'au moins {anomalies.threshold} écarts-types
             de la médiane des {anomalies.window} séances précédentes.
           </div>

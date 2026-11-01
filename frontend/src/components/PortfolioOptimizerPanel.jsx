@@ -39,7 +39,10 @@ function FrontierChart({ result }) {
       {ticks(x0, x1, 4).map((t) => (
         <text key={`x${t}`} x={sx(t)} y={H - P.b + 13} fontSize="9" fill="#64748B" textAnchor="middle">{(t * 100).toFixed(0)}%</text>
       ))}
-      <text x={(W + P.l) / 2} y={H - 3} fontSize="9" fill="#94A3B8" textAnchor="middle">Volatilité annualisée</text>
+      <text x={(W + P.l) / 2} y={H - 3} fontSize="9" fill="#94A3B8" textAnchor="middle">
+        Volatilité annualisée
+        <title>Amplitude des variations de prix sur un an : plus c'est élevé, plus le risque est important.</title>
+      </text>
       {y0 < 0 && y1 > 0 && <line x1={P.l} x2={W - P.r} y1={sy(0)} y2={sy(0)} stroke="#334155" strokeDasharray="3 3" />}
       {result.frontier.length > 1 && (
         <polyline
@@ -120,7 +123,7 @@ export default function PortfolioOptimizerPanel({ simulatedDate, heldSymbols = [
       <div className="px-4 py-3 bg-[#0A0E17] border-b border-[#1E293B] flex items-center gap-2">
         <Target size={16} className="text-[#38BDF8]" />
         <h2 className="text-xs font-bold text-white uppercase tracking-wider">Optimiseur de portefeuille (Markowitz)</h2>
-        <span className="text-[10px] text-slate-500 ml-auto">Cours connus au {simulatedDate}</span>
+        <span className="text-[10px] text-slate-400 ml-auto">Cours connus au {simulatedDate}</span>
       </div>
 
       <div className="p-4 grid grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)] gap-4">
@@ -132,12 +135,12 @@ export default function PortfolioOptimizerPanel({ simulatedDate, heldSymbols = [
               {symbols.map((s) => (
                 <span key={s} className="flex items-center gap-1 bg-[#1E293B] text-slate-200 font-mono text-[11px] px-1.5 py-0.5 rounded">
                   {s}
-                  <button onClick={() => setSymbols(symbols.filter((x) => x !== s))} className="text-slate-500 hover:text-rose-400" aria-label={`Retirer ${s}`}>
+                  <button onClick={() => setSymbols(symbols.filter((x) => x !== s))} className="text-slate-400 hover:text-rose-400" aria-label={`Retirer ${s}`}>
                     <X size={11} />
                   </button>
                 </span>
               ))}
-              {symbols.length === 0 && <span className="text-[11px] text-slate-500">Vide : les positions détenues seront utilisées.</span>}
+              {symbols.length === 0 && <span className="text-[11px] text-slate-400">Vide : les positions détenues seront utilisées.</span>}
             </div>
             <div className="relative">
               <input
@@ -186,15 +189,17 @@ export default function PortfolioOptimizerPanel({ simulatedDate, heldSymbols = [
             <Play size={13} /> {loading ? 'Calcul…' : 'Optimiser'}
           </button>
           {error && <div className="text-[11px] text-rose-400">{error}</div>}
-          <p className="text-[10px] text-slate-500 leading-snug">
-            Rendements et risques estimés sur l'historique passé uniquement (covariance de Ledoit-Wolf, sans vente à découvert).
+          <p className="text-[10px] text-slate-400 leading-snug">
+            Rendements et risques estimés sur l'historique passé uniquement (
+            <span title="Méthode statistique qui rend le calcul des risques plus fiable quand on a beaucoup d'actifs et peu d'historique.">covariance de Ledoit-Wolf</span>
+            , sans vente à découvert).
             Les performances passées ne préjugent pas des performances futures.
           </p>
         </div>
 
         {/* Résultats */}
         {!result ? (
-          <div className="flex items-center justify-center text-xs text-slate-500 border border-dashed border-[#1E293B] rounded-lg min-h-[200px] p-4 text-center">
+          <div className="flex items-center justify-center text-xs text-slate-400 border border-dashed border-[#1E293B] rounded-lg min-h-[200px] p-4 text-center">
             Choisissez au moins deux actifs, ou laissez vide pour optimiser vos positions, puis lancez le calcul.
           </div>
         ) : (
@@ -211,13 +216,16 @@ export default function PortfolioOptimizerPanel({ simulatedDate, heldSymbols = [
                       <span className="w-2 h-2 rounded-full" style={{ background: COLORS[p.name] }} />{NAMES[p.name]}
                     </div>
                     <div className="text-[10px] font-mono text-slate-400 mt-0.5">
-                      R {pct(p.expected_return)} · σ {pct(p.volatility)} · Sharpe <b className="text-slate-200">{p.sharpe.toFixed(2)}</b>
+                      R {pct(p.expected_return)} · σ {pct(p.volatility)} ·{' '}
+                      <span title="Ratio de Sharpe : rendement obtenu par unité de risque pris. Plus il est élevé, meilleur est le couple rendement/risque.">
+                        Sharpe <b className="text-slate-200">{p.sharpe.toFixed(2)}</b>
+                      </span>
                     </div>
                   </button>
                 ))}
               </div>
               <FrontierChart result={result} />
-              <div className="text-[10px] text-slate-500">
+              <div className="text-[10px] text-slate-400">
                 {result.observations} séances communes du {result.from} au {result.date}. Points gris : actifs seuls ; courbe : frontière efficiente.
               </div>
             </div>
@@ -227,11 +235,11 @@ export default function PortfolioOptimizerPanel({ simulatedDate, heldSymbols = [
                 <div className="text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-2">Allocation · {NAMES[selected.name]}</div>
                 <table className="w-full text-[11px]">
                   <thead>
-                    <tr className="text-slate-500 text-left">
+                    <tr className="text-slate-400 text-left">
                       <th className="font-normal pb-1">Actif</th>
                       <th className="font-normal pb-1 text-right">Poids</th>
                       {current && selected.name !== 'current' && <th className="font-normal pb-1 text-right">Actuel</th>}
-                      <th className="font-normal pb-1 text-right">Part du risque</th>
+                      <th className="font-normal pb-1 text-right" title="Part du risque total du portefeuille qui provient de cet actif (un actif peu pondéré peut quand même peser lourd s'il est très volatil).">Part du risque</th>
                     </tr>
                   </thead>
                   <tbody>

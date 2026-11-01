@@ -146,7 +146,7 @@ export default function OrderBookTape({ selectedAsset, price }) {
           </div>
         </div>
       )}
-      <p className="px-3 py-2 border-t border-[#1E293B] text-[10px] text-slate-500 leading-snug">
+      <p className="px-3 py-2 border-t border-[#1E293B] text-[10px] text-slate-400 leading-snug">
         Carnet et trades simulés autour du cours de la date simulée : la BVMT ne publie pas l'historique du carnet d'ordres.
       </p>
     </aside>
