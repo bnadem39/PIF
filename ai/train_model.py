@@ -263,22 +263,57 @@ def cross_validate_timeseries(X: pd.DataFrame, y: pd.Series, gap: int = 0):
         acc   = accuracy_score(y_val, y_pred)
         f1_m  = f1_score(y_val, y_pred, average="macro", zero_division=0)
         f1_w  = f1_score(y_val, y_pred, average="weighted", zero_division=0)
-        p_buy = precision_score(y_val, y_pred, labels=[2], average=None, zero_division=0)[0]
-        p_sel = precision_score(y_val, y_pred, labels=[0], average=None, zero_division=0)[0]
+
+        # Précision et rappel de chaque classe (ordre [0,1,2] = Vente, Neutre, Achat)
+        precision_pc = precision_score(y_val, y_pred, labels=[0, 1, 2], average=None, zero_division=0)
+        recall_pc    = recall_score(y_val, y_pred, labels=[0, 1, 2], average=None, zero_division=0)
+        p_sel, p_neu, p_buy = (float(v) for v in precision_pc)
+        r_sel, r_neu, r_buy = (float(v) for v in recall_pc)
 
         # AUC multi-classes One-vs-Rest (macro) : peut être non définie si une classe est absente du fold de validation
         try:
             auc = float(roc_auc_score(y_val, y_prob, multi_class="ovr", average="macro", labels=[0, 1, 2]))
         except ValueError as e:
-            log.warning(f"  Fold {fold_idx + 1}: AUC non calculable ({e})")
+            log.warning(f"  Fold {fold_idx + 1}: AUC macro non calculable ({e})")
             auc = None
+
+        # AUC par classe (un contre tous), calculée à la main pour avoir le détail par classe
+        auc_sell = _binary_auc_safe((y_val == 0).astype(int), y_prob[:, 0])
+        auc_neu  = _binary_auc_safe((y_val == 1).astype(int), y_prob[:, 1])
+        auc_buy  = _binary_auc_safe((y_val == 2).astype(int), y_prob[:, 2])
+
+        # AUC directionnelle : Achat contre Vente uniquement, sur les lignes dont la vraie classe n'est pas Neutre
+        dir_mask = y_val != 1
+        if dir_mask.sum() > 0 and len(np.unique(y_val[dir_mask])) > 1:
+            auc_directional = _binary_auc_safe((y_val[dir_mask] == 2).astype(int), y_prob[dir_mask, 2])
+        else:
+            auc_directional = None
+
+        # Précision directionnelle : parmi les lignes où la vraie classe ET la prédiction sont Achat ou Vente
+        # (on exclut Neutre des deux côtés), la part où le sens prédit correspond au sens réel
+        pred_dir_mask = dir_mask & (y_pred != 1)
+        directional_precision = (
+            float(accuracy_score(y_val[pred_dir_mask], y_pred[pred_dir_mask]))
+            if pred_dir_mask.sum() > 0 else None
+        )
 
         # Répartition des classes du fold de validation (Vente / Neutre / Achat)
         val_dist = pd.Series(y_val).value_counts(normalize=True).reindex([0, 1, 2], fill_value=0.0)
 
         log.info(
-            f"  Fold {fold_idx + 1}/{N_SPLITS} | Accuracy={acc:.4f} | AUC={'N/A' if auc is None else f'{auc:.4f}'} | "
-            f"F1-Macro={f1_m:.4f} | F1-Weighted={f1_w:.4f} | Prec(+1)={p_buy:.4f} | Prec(-1)={p_sel:.4f} | Iter={model.best_iteration}"
+            f"  Fold {fold_idx + 1}/{N_SPLITS} | Accuracy={acc:.4f} | AUC(macro)={'N/A' if auc is None else f'{auc:.4f}'} | "
+            f"F1-Macro={f1_m:.4f} | F1-Weighted={f1_w:.4f} | Iter={model.best_iteration}"
+        )
+        log.info(
+            f"    AUC par classe -> Vente={'N/A' if auc_sell is None else f'{auc_sell:.4f}'} | "
+            f"Neutre={'N/A' if auc_neu is None else f'{auc_neu:.4f}'} | "
+            f"Achat={'N/A' if auc_buy is None else f'{auc_buy:.4f}'} | "
+            f"AUC directionnelle (Achat/Vente)={'N/A' if auc_directional is None else f'{auc_directional:.4f}'}"
+        )
+        log.info(
+            f"    Précision/Rappel -> Vente: P={p_sel:.4f} R={r_sel:.4f} | Neutre: P={p_neu:.4f} R={r_neu:.4f} | "
+            f"Achat: P={p_buy:.4f} R={r_buy:.4f} | Précision directionnelle="
+            f"{'N/A' if directional_precision is None else f'{directional_precision:.4f}'}"
         )
         log.info(
             f"    Répartition validation -> Vente={val_dist[0]:.1%} | Neutre={val_dist[1]:.1%} | Achat={val_dist[2]:.1%}"
@@ -288,10 +323,17 @@ def cross_validate_timeseries(X: pd.DataFrame, y: pd.Series, gap: int = 0):
             "fold": fold_idx + 1,
             "accuracy": float(acc),
             "auc": auc,
+            "auc_per_class": {"sell": auc_sell, "neutral": auc_neu, "buy": auc_buy},
+            "auc_directional": auc_directional,
             "f1_macro": float(f1_m),
             "f1_weighted": float(f1_w),
-            "precision_buy": float(p_buy),
-            "precision_sell": float(p_sel),
+            "precision_buy": p_buy,
+            "precision_sell": p_sel,
+            "precision_neutral": p_neu,
+            "recall_buy": r_buy,
+            "recall_sell": r_sel,
+            "recall_neutral": r_neu,
+            "directional_precision": directional_precision,
             "best_iteration": int(model.best_iteration),
             "val_class_distribution": {
                 "sell": float(val_dist[0]),
@@ -309,13 +351,40 @@ def cross_validate_timeseries(X: pd.DataFrame, y: pd.Series, gap: int = 0):
 
     auc_values = [r["auc"] for r in cv_results if r["auc"] is not None]
     log.info("[CV] Résumé des métriques 3-classes :")
-    log.info(f"  Accuracy Moyenne     = {np.mean([r['accuracy'] for r in cv_results]):.4f} ± {np.std([r['accuracy'] for r in cv_results]):.4f}")
+    log.info(f"  Accuracy Moyenne         = {np.mean([r['accuracy'] for r in cv_results]):.4f} ± {np.std([r['accuracy'] for r in cv_results]):.4f}")
     if auc_values:
-        log.info(f"  AUC Moyenne (OvR)    = {np.mean(auc_values):.4f} ± {np.std(auc_values):.4f}")
+        log.info(f"  AUC Moyenne (OvR macro)  = {np.mean(auc_values):.4f} ± {np.std(auc_values):.4f}")
     else:
-        log.info("  AUC Moyenne (OvR)    = N/A (non calculable sur aucun fold)")
-    log.info(f"  F1-Macro Moyen       = {np.mean([r['f1_macro'] for r in cv_results]):.4f} ± {np.std([r['f1_macro'] for r in cv_results]):.4f}")
-    log.info(f"  F1-Weighted Moyen    = {np.mean([r['f1_weighted'] for r in cv_results]):.4f} ± {np.std([r['f1_weighted'] for r in cv_results]):.4f}")
+        log.info("  AUC Moyenne (OvR macro)  = N/A (non calculable sur aucun fold)")
+
+    mean_auc_sell = _safe_mean([r["auc_per_class"]["sell"] for r in cv_results])
+    mean_auc_neu  = _safe_mean([r["auc_per_class"]["neutral"] for r in cv_results])
+    mean_auc_buy  = _safe_mean([r["auc_per_class"]["buy"] for r in cv_results])
+    mean_auc_dir  = _safe_mean([r["auc_directional"] for r in cv_results])
+    mean_dir_prec = _safe_mean([r["directional_precision"] for r in cv_results])
+
+    def _fmt(v):
+        return "N/A" if v is None else f"{v:.4f}"
+
+    log.info(f"  AUC Moyenne par classe   -> Vente={_fmt(mean_auc_sell)} | Neutre={_fmt(mean_auc_neu)} | Achat={_fmt(mean_auc_buy)}")
+    log.info(f"  AUC Directionnelle Moy.  = {_fmt(mean_auc_dir)} (Achat vs Vente, hors Neutre)")
+    log.info(f"  F1-Macro Moyen           = {np.mean([r['f1_macro'] for r in cv_results]):.4f} ± {np.std([r['f1_macro'] for r in cv_results]):.4f}")
+    log.info(f"  F1-Weighted Moyen        = {np.mean([r['f1_weighted'] for r in cv_results]):.4f} ± {np.std([r['f1_weighted'] for r in cv_results]):.4f}")
+    log.info(
+        "  Précision Moyenne       -> Vente={:.4f} | Neutre={:.4f} | Achat={:.4f}".format(
+            np.mean([r["precision_sell"] for r in cv_results]),
+            np.mean([r["precision_neutral"] for r in cv_results]),
+            np.mean([r["precision_buy"] for r in cv_results]),
+        )
+    )
+    log.info(
+        "  Rappel Moyen            -> Vente={:.4f} | Neutre={:.4f} | Achat={:.4f}".format(
+            np.mean([r["recall_sell"] for r in cv_results]),
+            np.mean([r["recall_neutral"] for r in cv_results]),
+            np.mean([r["recall_buy"] for r in cv_results]),
+        )
+    )
+    log.info(f"  Précision Directionnelle Moy. = {_fmt(mean_dir_prec)} (Achat/Vente prédits sur Achat/Vente réels)")
 
     # Baseline "toujours la classe majoritaire" (du train du dernier fold) + matrice de confusion du dernier fold
     majority_idx = int(pd.Series(y_train).value_counts().idxmax())
