@@ -215,13 +215,13 @@ def compute_features(df: pd.DataFrame) -> pd.DataFrame:
         vol_s = grp["volume"].rolling(20, min_periods=1).std().replace(0, 1).fillna(1)
         grp["volume_zscore"]   = ((grp["volume"] - vol_m) / vol_s).astype("float32")
 
-        # NLP FinBERT Sentiment score [-1.0, +1.0]
-        if "sentiment_score" in grp.columns and grp["sentiment_score"].notna().any():
-            grp["sentiment_score"] = grp["sentiment_score"].clip(-1.0, 1.0).astype("float32")
+        # Proxy de momentum (RSI/MACD), faute de flux d'actualités réel disponible à l'entraînement
+        if "momentum_proxy_score" in grp.columns and grp["momentum_proxy_score"].notna().any():
+            grp["momentum_proxy_score"] = grp["momentum_proxy_score"].clip(-1.0, 1.0).astype("float32")
         else:
             norm_rsi = (grp["rsi_14"] - 50.0) / 25.0
             norm_macd = grp["macd_hist"] / (c * 0.01 + 1e-9)
-            grp["sentiment_score"] = np.tanh(0.6 * norm_rsi + 0.4 * norm_macd).astype("float32")
+            grp["momentum_proxy_score"] = np.tanh(0.6 * norm_rsi + 0.4 * norm_macd).astype("float32")
 
         frames.append(grp)
     out = pd.concat(frames, ignore_index=True)

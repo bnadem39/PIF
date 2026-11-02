@@ -1,5 +1,5 @@
 {
-  "trained_at": "2026-10-17T02:51:34.720058",
+  "trained_at": "2026-11-02T07:28:25.208415",
   "model_type": "XGBClassifier (3-Classes multi:softprob)",
   "feature_cols": [
     "rsi_14",
@@ -21,7 +21,7 @@
     "lag_return_2",
     "lag_return_3",
     "volume_zscore",
-    "sentiment_score"
+    "momentum_proxy_score"
   ],
   "hyperparams": {
     "objective": "multi:softprob",
@@ -52,82 +52,110 @@
   "cv_results": [
     {
       "fold": 1,
-      "accuracy": 0.4881143076824502,
-      "f1_macro": 0.3874651750174025,
-      "f1_weighted": 0.5320186846797649,
-      "precision_buy": 0.188249666814749,
-      "precision_sell": 0.21811207014659542,
-      "best_iteration": 293
+      "accuracy": 0.48734523235246824,
+      "auc": 0.6264585279487318,
+      "f1_macro": 0.3876534427384229,
+      "f1_weighted": 0.531512231044696,
+      "precision_buy": 0.1891440035666518,
+      "precision_sell": 0.2176342327609703,
+      "best_iteration": 319,
+      "val_class_distribution": {
+        "sell": 0.16632899179932464,
+        "neutral": 0.7026853191831485,
+        "buy": 0.13098568901752694
+      }
     },
     {
       "fold": 2,
-      "accuracy": 0.4967322355353367,
-      "f1_macro": 0.4164339406976012,
-      "f1_weighted": 0.5291749131266184,
-      "precision_buy": 0.23290453622207177,
-      "precision_sell": 0.26704240472356416,
-      "best_iteration": 255
+      "accuracy": 0.4965428525486413,
+      "auc": 0.6390473645268524,
+      "f1_macro": 0.41586221220219377,
+      "f1_weighted": 0.5290755933162368,
+      "precision_buy": 0.231580153546465,
+      "precision_sell": 0.2664981373070782,
+      "best_iteration": 200,
+      "val_class_distribution": {
+        "sell": 0.17189258723267406,
+        "neutral": 0.6702685319183148,
+        "buy": 0.1578388808490111
+      }
     },
     {
       "fold": 3,
-      "accuracy": 0.4840456205548792,
-      "f1_macro": 0.41419384967688444,
-      "f1_weighted": 0.5188902484274551,
-      "precision_buy": 0.23895750471006907,
-      "precision_sell": 0.2581967213114754,
-      "best_iteration": 326
+      "accuracy": 0.4804952564721016,
+      "auc": 0.6453985320968231,
+      "f1_macro": 0.4113879194084505,
+      "f1_weighted": 0.5155828566044927,
+      "precision_buy": 0.23539267015706805,
+      "precision_sell": 0.25738019169329074,
+      "best_iteration": 264,
+      "val_class_distribution": {
+        "sell": 0.17157099212091975,
+        "neutral": 0.6639331082167551,
+        "buy": 0.16449589966232514
+      }
     },
     {
       "fold": 4,
-      "accuracy": 0.5222336131223169,
-      "f1_macro": 0.4272319835261726,
-      "f1_weighted": 0.5496366781490819,
-      "precision_buy": 0.248901259888661,
-      "precision_sell": 0.26658624849215923,
-      "best_iteration": 599
+      "accuracy": 0.5215307927319505,
+      "auc": 0.6467269713855163,
+      "f1_macro": 0.4272820563164535,
+      "f1_weighted": 0.5487881376614754,
+      "precision_buy": 0.25,
+      "precision_sell": 0.2668525703200776,
+      "best_iteration": 599,
+      "val_class_distribution": {
+        "sell": 0.17179610869914777,
+        "neutral": 0.6669239427560701,
+        "buy": 0.16127994854478211
+      }
     },
     {
       "fold": 5,
-      "accuracy": 0.5120458768501314,
-      "f1_macro": 0.4298285645175303,
-      "f1_weighted": 0.5455409472003363,
-      "precision_buy": 0.2590440042699561,
-      "precision_sell": 0.2542713567839196,
-      "best_iteration": 451
+      "accuracy": 0.5124618105804791,
+      "auc": 0.6622109020566844,
+      "f1_macro": 0.4285901761781778,
+      "f1_weighted": 0.5454172550318851,
+      "precision_buy": 0.2554418166843158,
+      "precision_sell": 0.2560927929102046,
+      "best_iteration": 313,
+      "val_class_distribution": {
+        "sell": 0.15748512622608135,
+        "neutral": 0.6696896607171571,
+        "buy": 0.17282521305676155
+      }
     }
   ],
-  "cv_mean_accuracy": 0.5006343307490229,
-  "cv_mean_f1_macro": 0.4150307026871182,
+  "cv_mean_accuracy": 0.4996751889371282,
+  "cv_mean_auc": 0.6439684596029216,
+  "cv_mean_f1_macro": 0.41415516136873964,
   "final_evaluation": {
-    "accuracy": 0.5160446366597256,
-    "f1_macro": 0.4314800825069863,
-    "f1_weighted": 0.5481277474597995,
+    "accuracy": 0.5162803162267184,
+    "f1_macro": 0.4312378692450529,
+    "f1_weighted": 0.5484234438046386,
     "confusion_matrix": [
       [
-        2447,
-        1773,
-        1646
+        2435,
+        1748,
+        1656
       ],
       [
-        5215,
-        14326,
-        5524
+        5182,
+        14297,
+        5503
       ],
       [
-        1924,
-        2046,
-        2557
+        1906,
+        2055,
+        2533
       ]
     ],
-    "classification_report": "              precision    recall  f1-score   support\n\n  Vente (-1)     0.2553    0.4171    0.3167      5866\n  Neutre (0)     0.7895    0.5716    0.6631     25065\n  Achat (+1)     0.2629    0.3918    0.3146      6527\n\n    accuracy                         0.5160     37458\n   macro avg     0.4359    0.4602    0.4315     37458\nweighted avg     0.6141    0.5160    0.5481     37458\n",
+    "classification_report": "              precision    recall  f1-score   support\n\n  Vente (-1)     0.2557    0.4170    0.3170      5839\n  Neutre (0)     0.7899    0.5723    0.6637     24982\n  Achat (+1)     0.2613    0.3901    0.3130      6494\n\n    accuracy                         0.5163     37315\n   macro avg     0.4356    0.4598    0.4312     37315\nweighted avg     0.6143    0.5163    0.5484     37315\n",
     "classes": [
       -1,
       0,
       1
     ]
   },
-  "confidence_threshold": 0.6,
-  "calibration_note": "Signaux Achat (+1) et Vente (-1) filtrés avec confiance >= 60%. Sous ce seuil, les observations sont classées Neutre (0) pour éliminer les faux positifs.",
-  "validation_start_date": "2020-06-19",
-  "validation_start_note": "Calculé a posteriori (2026-10-30) : 80 % chronologiques des 186 572 échantillons du pipeline."
+  "validation_start_date": "2020-06-19"
 }

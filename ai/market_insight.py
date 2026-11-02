@@ -22,7 +22,7 @@ from data_pipeline import compute_features
 
 router = APIRouter(prefix="/api/ai/insight", tags=["insight"])
 
-# Libellés lisibles ; sentiment_score est un proxy de momentum (RSI/MACD) faute de flux d'actualités à l'entraînement
+# Libellés lisibles ; momentum_proxy_score est un proxy de momentum (RSI/MACD) faute de flux d'actualités à l'entraînement
 FEATURE_LABELS = {
     "rsi_14": "RSI 14 jours",
     "macd": "MACD",
@@ -43,7 +43,7 @@ FEATURE_LABELS = {
     "lag_return_2": "Rendement à J-2",
     "lag_return_3": "Rendement à J-3",
     "volume_zscore": "Volume anormal (z-score)",
-    "sentiment_score": "Score de momentum (proxy RSI/MACD)",
+    "momentum_proxy_score": "Score de momentum (proxy RSI/MACD)",
 }
 CLASSES = {"sell": 0, "neutral": 1, "buy": 2}   # ordre des colonnes de predict_proba : [-1, 0, +1]
 

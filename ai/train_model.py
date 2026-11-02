@@ -32,7 +32,7 @@ from sklearn.preprocessing import RobustScaler
 from sklearn.utils.class_weight import compute_sample_weight
 from sklearn.metrics import (
     accuracy_score, f1_score, precision_score, recall_score,
-    classification_report, confusion_matrix
+    classification_report, confusion_matrix, roc_auc_score
 )
 import xgboost as xgb
 import joblib
@@ -74,8 +74,8 @@ FEATURE_COLS = [
     "log_return_1d", "lag_return_1", "lag_return_2", "lag_return_3",
     # Dynamique de Volume
     "volume_zscore",
-    # Score de Sentiment NLP FinBERT [-1.0, +1.0]
-    "sentiment_score",
+    # Proxy de momentum (RSI/MACD), faute de flux d'actualités réel disponible à l'entraînement
+    "momentum_proxy_score",
 ]
 TARGET_COL = "target_direction"
 
@@ -108,6 +108,20 @@ XGBOOST_PARAMS = {
 
 N_SPLITS   = 5   # Folds temporels TimeSeriesSplit
 EARLY_STOP = 50  # Arrêt précoce strict sur validation
+
+
+def _binary_auc_safe(y_true_bin, scores):
+    """AUC binaire, ou None si non définie (une seule classe présente dans y_true_bin)."""
+    try:
+        return float(roc_auc_score(y_true_bin, scores))
+    except ValueError:
+        return None
+
+
+def _safe_mean(values):
+    """Moyenne en ignorant les None (folds où la métrique n'était pas calculable)."""
+    vals = [v for v in values if v is not None]
+    return float(np.mean(vals)) if vals else None
 
 
 def ensure_features(df: pd.DataFrame) -> pd.DataFrame:
@@ -164,10 +178,10 @@ def ensure_features(df: pd.DataFrame) -> pd.DataFrame:
             vol_s = grp["volume"].rolling(20, min_periods=1).std().replace(0, 1).fillna(1)
             grp["volume_zscore"] = ((grp["volume"] - vol_m) / vol_s).astype("float32")
 
-        if "sentiment_score" not in grp.columns:
+        if "momentum_proxy_score" not in grp.columns:
             norm_rsi = (grp["rsi_14"] - 50.0) / 25.0
             norm_macd = grp["macd_hist"] / (c * 0.01 + 1e-9)
-            grp["sentiment_score"] = np.tanh(0.6 * norm_rsi + 0.4 * norm_macd).astype("float32")
+            grp["momentum_proxy_score"] = np.tanh(0.6 * norm_rsi + 0.4 * norm_macd).astype("float32")
 
         frames.append(grp)
 
@@ -184,14 +198,16 @@ def prepare_data(df: pd.DataFrame, ticker: str = None, return_dates: bool = Fals
 
     df = ensure_features(df)
 
-    # Tri temporel strict par date (pas de shuffle / lookahead bias)
-    df = df.sort_values("date").reset_index(drop=True)
+    # Tri temporel strict par (date, ticker) : chaque fold de validation doit être
+    # strictement postérieur à son entraînement, quel que soit le ticker (pas de shuffle / lookahead bias)
+    df = df.sort_values(["date", "ticker"]).reset_index(drop=True)
 
     X = df[FEATURE_COLS].astype("float32")
     y = df[TARGET_COL].astype("int8")
 
     valid_mask = X.notna().all(axis=1) & y.notna()
     dates = df.loc[valid_mask, "date"].reset_index(drop=True)
+    tickers = df.loc[valid_mask, "ticker"].reset_index(drop=True)
     X = X[valid_mask].reset_index(drop=True)
     y = y[valid_mask].reset_index(drop=True)
 
@@ -202,14 +218,18 @@ def prepare_data(df: pd.DataFrame, ticker: str = None, return_dates: bool = Fals
     )
 
     if return_dates:
-        return X, y, dates
+        return X, y, dates, tickers
     return X, y
 
 
-def cross_validate_timeseries(X: pd.DataFrame, y: pd.Series):
-    """Validation croisée temporelle 3-classes avec TimeSeriesSplit."""
-    log.info(f"[CV] TimeSeriesSplit 3-Classes ({N_SPLITS} folds chronologiques)")
-    tscv = TimeSeriesSplit(n_splits=N_SPLITS)
+def cross_validate_timeseries(X: pd.DataFrame, y: pd.Series, gap: int = 0):
+    """Validation croisée temporelle 3-classes avec TimeSeriesSplit.
+
+    gap (en nombre de lignes) sépare la fin de chaque train de son validation,
+    pour couvrir l'horizon de 5 jours sur lequel la cible regarde devant (anti-fuite temporelle).
+    """
+    log.info(f"[CV] TimeSeriesSplit 3-Classes ({N_SPLITS} folds chronologiques, gap={gap} lignes)")
+    tscv = TimeSeriesSplit(n_splits=N_SPLITS, gap=gap)
 
     # Mappage des labels {-1, 0, 1} vers {0, 1, 2}
     y_xgb = y.map(CLASS_TO_IDX).to_numpy()
@@ -246,19 +266,38 @@ def cross_validate_timeseries(X: pd.DataFrame, y: pd.Series):
         p_buy = precision_score(y_val, y_pred, labels=[2], average=None, zero_division=0)[0]
         p_sel = precision_score(y_val, y_pred, labels=[0], average=None, zero_division=0)[0]
 
+        # AUC multi-classes One-vs-Rest (macro) : peut être non définie si une classe est absente du fold de validation
+        try:
+            auc = float(roc_auc_score(y_val, y_prob, multi_class="ovr", average="macro", labels=[0, 1, 2]))
+        except ValueError as e:
+            log.warning(f"  Fold {fold_idx + 1}: AUC non calculable ({e})")
+            auc = None
+
+        # Répartition des classes du fold de validation (Vente / Neutre / Achat)
+        val_dist = pd.Series(y_val).value_counts(normalize=True).reindex([0, 1, 2], fill_value=0.0)
+
         log.info(
-            f"  Fold {fold_idx + 1}/{N_SPLITS} | Accuracy={acc:.4f} | F1-Macro={f1_m:.4f} | "
-            f"F1-Weighted={f1_w:.4f} | Prec(+1)={p_buy:.4f} | Prec(-1)={p_sel:.4f} | Iter={model.best_iteration}"
+            f"  Fold {fold_idx + 1}/{N_SPLITS} | Accuracy={acc:.4f} | AUC={'N/A' if auc is None else f'{auc:.4f}'} | "
+            f"F1-Macro={f1_m:.4f} | F1-Weighted={f1_w:.4f} | Prec(+1)={p_buy:.4f} | Prec(-1)={p_sel:.4f} | Iter={model.best_iteration}"
+        )
+        log.info(
+            f"    Répartition validation -> Vente={val_dist[0]:.1%} | Neutre={val_dist[1]:.1%} | Achat={val_dist[2]:.1%}"
         )
 
         cv_results.append({
             "fold": fold_idx + 1,
             "accuracy": float(acc),
+            "auc": auc,
             "f1_macro": float(f1_m),
             "f1_weighted": float(f1_w),
             "precision_buy": float(p_buy),
             "precision_sell": float(p_sel),
             "best_iteration": int(model.best_iteration),
+            "val_class_distribution": {
+                "sell": float(val_dist[0]),
+                "neutral": float(val_dist[1]),
+                "buy": float(val_dist[2]),
+            },
         })
 
         if f1_m > best_score:
@@ -268,23 +307,45 @@ def cross_validate_timeseries(X: pd.DataFrame, y: pd.Series):
         del X_train_sc, X_val_sc
         gc.collect()
 
+    auc_values = [r["auc"] for r in cv_results if r["auc"] is not None]
     log.info("[CV] Résumé des métriques 3-classes :")
     log.info(f"  Accuracy Moyenne     = {np.mean([r['accuracy'] for r in cv_results]):.4f} ± {np.std([r['accuracy'] for r in cv_results]):.4f}")
+    if auc_values:
+        log.info(f"  AUC Moyenne (OvR)    = {np.mean(auc_values):.4f} ± {np.std(auc_values):.4f}")
+    else:
+        log.info("  AUC Moyenne (OvR)    = N/A (non calculable sur aucun fold)")
     log.info(f"  F1-Macro Moyen       = {np.mean([r['f1_macro'] for r in cv_results]):.4f} ± {np.std([r['f1_macro'] for r in cv_results]):.4f}")
     log.info(f"  F1-Weighted Moyen    = {np.mean([r['f1_weighted'] for r in cv_results]):.4f} ± {np.std([r['f1_weighted'] for r in cv_results]):.4f}")
+
+    # Baseline "toujours la classe majoritaire" (du train du dernier fold) + matrice de confusion du dernier fold
+    majority_idx = int(pd.Series(y_train).value_counts().idxmax())
+    baseline_pred = np.full_like(y_val, majority_idx)
+    baseline_acc = accuracy_score(y_val, baseline_pred)
+    cm_last = confusion_matrix(y_val, y_pred, labels=[0, 1, 2])
+    log.info(
+        f"[CV] Baseline (toujours \"{CLASS_NAMES[majority_idx]}\", classe majoritaire du train) "
+        f"sur la validation du dernier fold : Accuracy={baseline_acc:.4f}"
+    )
+    log.info(
+        "[CV] Matrice de confusion du dernier fold (lignes=réel, colonnes=prédit, ordre Vente/Neutre/Achat) :\n"
+        f"{cm_last}"
+    )
 
     return cv_results, best_fold_model
 
 
-def train_final_model(X: pd.DataFrame, y: pd.Series):
+def train_final_model(X: pd.DataFrame, y: pd.Series, gap: int = 0):
     """
-    Entraînement final sur 80% passé avec validation sur 20% futur (chronologique).
+    Entraînement final sur 80% passé avec validation sur les 20% de dates les plus récentes (chronologique).
+    gap (en nombre de lignes) est retiré de la fin du train pour couvrir l'horizon de 5 jours de la cible :
+    la validation reste bien les 20% les plus récents, c'est le train qui s'arrête plus tôt.
     """
-    log.info("[TRAIN] Entraînement final 3-Classes (80% Train chronologique / 20% Val)...")
+    log.info(f"[TRAIN] Entraînement final 3-Classes (80% Train chronologique / 20% Val le plus récent, gap={gap} lignes)...")
 
     split_idx = int(len(X) * 0.80)
-    X_tr, X_val = X.iloc[:split_idx], X.iloc[split_idx:]
-    y_tr, y_val = y.iloc[:split_idx], y.iloc[split_idx:]
+    train_end = max(0, split_idx - gap)
+    X_tr, X_val = X.iloc[:train_end], X.iloc[split_idx:]
+    y_tr, y_val = y.iloc[:train_end], y.iloc[split_idx:]
 
     y_tr_xgb  = y_tr.map(CLASS_TO_IDX).to_numpy()
     y_val_xgb = y_val.map(CLASS_TO_IDX).to_numpy()
@@ -365,6 +426,10 @@ def save_model(model, scaler, cv_results: list, feature_cols: list, eval_summary
         "classes": [-1, 0, 1],
         "cv_results": cv_results,
         "cv_mean_accuracy": float(np.mean([r["accuracy"] for r in cv_results])),
+        "cv_mean_auc": (
+            float(np.mean([r["auc"] for r in cv_results if r["auc"] is not None]))
+            if any(r["auc"] is not None for r in cv_results) else None
+        ),
         "cv_mean_f1_macro": float(np.mean([r["f1_macro"] for r in cv_results])),
         "final_evaluation": eval_summary,
         # Le modèle a vu toutes les données antérieures : un backtest du signal IA n'est honnête qu'après cette date
@@ -450,14 +515,20 @@ def main():
     log.info("=" * 70)
 
     df = load_processed(Path(args.data_path))
-    X, y, dates = prepare_data(df, ticker=args.ticker, return_dates=True)
+    X, y, dates, tickers = prepare_data(df, ticker=args.ticker, return_dates=True)
     validation_start = str(pd.Timestamp(dates.iloc[int(len(X) * 0.80)]).date())
 
+    # Écart (gap) entre train et validation = horizon de la cible (5 jours de bourse), en nombre de lignes.
+    # En multi-actifs, une "journée de bourse" correspond à ~n_tickers lignes dans le jeu trié (date, ticker).
+    n_tickers = max(1, tickers.nunique())
+    gap_rows = 5 * n_tickers
+    log.info(f"[GAP] Horizon cible = 5 jours de bourse | Tickers = {n_tickers} | Gap = {gap_rows} lignes")
+
     # 1. Validation croisée temporelle
-    cv_results, _ = cross_validate_timeseries(X, y)
+    cv_results, _ = cross_validate_timeseries(X, y, gap=gap_rows)
 
     # 2. Entraînement final
-    final_model, final_scaler, eval_summary = train_final_model(X, y)
+    final_model, final_scaler, eval_summary = train_final_model(X, y, gap=gap_rows)
 
     # 3. Sauvegarde multi-format
     save_model(final_model, final_scaler, cv_results, FEATURE_COLS, eval_summary, validation_start)
