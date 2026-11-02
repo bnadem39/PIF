@@ -18,7 +18,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from backtest_signals import CandleIn, _model
-from data_pipeline import compute_features
+from data_pipeline import compute_features, apply_relative_to_market_return
 
 router = APIRouter(prefix="/api/ai/insight", tags=["insight"])
 
@@ -62,6 +62,9 @@ def explain_last(candles: pd.DataFrame, model, scaler, feature_cols, threshold: 
     feats = compute_features(df).sort_values("date").reset_index(drop=True)
     if feats.empty:
         raise ValueError("Historique insuffisant pour calculer les indicateurs.")
+    # Un seul ticker ici : compute_features() ne peut pas voir la coupe transversale du marché,
+    # relative_to_market_return est donc recalculée à partir de la moyenne de marché précalculée.
+    feats = apply_relative_to_market_return(feats)
     raw = feats[feature_cols].astype("float64").replace([np.inf, -np.inf], np.nan).fillna(0.0)
     last_raw = raw.iloc[[-1]]
     x = scaler.transform(last_raw.astype("float32"))

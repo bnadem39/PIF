@@ -215,6 +215,25 @@ def compute_features(df: pd.DataFrame) -> pd.DataFrame:
         vol_s = grp["volume"].rolling(20, min_periods=1).std().replace(0, 1).fillna(1)
         grp["volume_zscore"]   = ((grp["volume"] - vol_m) / vol_s).astype("float32")
 
+        # Rendements cumulés sur 5/10/20 séances (strictement rétrospectifs : close actuel vs close N jours avant)
+        grp["cum_return_5d"]  = (c / c.shift(5).replace(0, np.nan) - 1).fillna(0).astype("float32")
+        grp["cum_return_10d"] = (c / c.shift(10).replace(0, np.nan) - 1).fillna(0).astype("float32")
+        grp["cum_return_20d"] = (c / c.shift(20).replace(0, np.nan) - 1).fillna(0).astype("float32")
+
+        # Ratio de volatilité court terme (5j) / moyen terme (30j, déjà calculée ci-dessus)
+        vol_5d = (log_ret.rolling(5, min_periods=2).std().fillna(0) * np.sqrt(252) * 100)
+        grp["volatility_ratio_5_30"] = (vol_5d / (grp["volatility_30d"].astype("float64") + 1e-9)).astype("float32")
+
+        # Distance au plus haut / plus bas sur 52 semaines (~252 séances), fenêtre glissante se terminant à la séance actuelle
+        roll_high_252 = h.rolling(252, min_periods=20).max()
+        roll_low_252  = l.rolling(252, min_periods=20).min()
+        grp["dist_to_52w_high"] = ((c - roll_high_252) / (roll_high_252 + 1e-9)).astype("float32")
+        grp["dist_to_52w_low"]  = ((c - roll_low_252) / (roll_low_252 + 1e-9)).astype("float32")
+
+        # Volume relatif court terme (5j) / moyen terme (20j, moyenne déjà calculée ci-dessus)
+        vol_ma5 = grp["volume"].rolling(5, min_periods=1).mean()
+        grp["relative_volume_5_20"] = (vol_ma5 / (vol_m + 1e-9)).astype("float32")
+
         # Proxy de momentum (RSI/MACD), faute de flux d'actualités réel disponible à l'entraînement
         if "momentum_proxy_score" in grp.columns and grp["momentum_proxy_score"].notna().any():
             grp["momentum_proxy_score"] = grp["momentum_proxy_score"].clip(-1.0, 1.0).astype("float32")
@@ -226,6 +245,12 @@ def compute_features(df: pd.DataFrame) -> pd.DataFrame:
         frames.append(grp)
     out = pd.concat(frames, ignore_index=True)
     del frames
+
+    # Rendement relatif au marché : rendement du jour du ticker moins la moyenne de TOUS les tickers
+    # à la MÊME date (coupe transversale du même jour, aucune donnée d'un autre jour n'est utilisée)
+    market_avg_return = out.groupby("date")["log_return_1d"].transform("mean")
+    out["relative_to_market_return"] = (out["log_return_1d"] - market_avg_return).astype("float32")
+
     gc.collect()
     return out
 
@@ -294,6 +319,54 @@ def load_processed(path: Path = OUTPUT_PATH) -> pd.DataFrame:
     if not path.exists():
         raise FileNotFoundError(f"Dataset not found: {path}. Run run_pipeline() first.")
     return pd.read_parquet(path, engine="pyarrow")
+
+
+# Moyenne de marché précalculée par date (build_market_return.py), utilisée à l'inférence à un seul
+# ticker pour corriger relative_to_market_return (voir apply_relative_to_market_return ci-dessous).
+MARKET_RETURN_PATH = AI_DIR / "models" / "market_return_by_date.csv"
+_market_return_cache: Optional[dict] = None
+
+
+def load_market_return_lookup() -> dict:
+    """Charge ai/models/market_return_by_date.csv en dict {date (AAAA-MM-JJ): moyenne de marché}."""
+    global _market_return_cache
+    if _market_return_cache is None:
+        if MARKET_RETURN_PATH.exists():
+            table = pd.read_csv(MARKET_RETURN_PATH, dtype={"date": str})
+            _market_return_cache = dict(zip(table["date"], table["market_avg_return_1d"]))
+        else:
+            log.warning(f"[MARKET] Fichier introuvable : {MARKET_RETURN_PATH}. Exécutez build_market_return.py.")
+            _market_return_cache = {}
+    return _market_return_cache
+
+
+def apply_relative_to_market_return(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Recalcule relative_to_market_return à partir de la moyenne de marché précalculée par date.
+
+    À l'entraînement (compute_features sur tous les tickers), cette variable compare le rendement du
+    ticker à la moyenne réelle de TOUS les tickers à la même date. À l'inférence sur un seul ticker,
+    compute_features() ne voit pas cette coupe transversale et retombe à 0.0 (le ticker comparé à
+    lui-même). Cette fonction corrige la colonne après coup, sans toucher à compute_features() ni au
+    modèle. Si une date est absente du fichier précalculé, replie sur 0.0 et logue un avertissement.
+    """
+    lookup = load_market_return_lookup()
+    date_str = (
+        df["date"].dt.strftime("%Y-%m-%d")
+        if np.issubdtype(df["date"].dtype, np.datetime64)
+        else df["date"].astype(str)
+    )
+
+    missing_dates = sorted(set(date_str) - set(lookup.keys()))
+    if missing_dates:
+        log.warning(
+            f"[MARKET] Moyenne de marché absente pour {len(missing_dates)} date(s) "
+            f"(ex. {missing_dates[:3]}) -> repli sur 0.0 pour relative_to_market_return."
+        )
+
+    market_avg = date_str.map(lookup).fillna(0.0).astype("float64")
+    df["relative_to_market_return"] = (df["log_return_1d"].astype("float64") - market_avg).astype("float32")
+    return df
 
 
 if __name__ == "__main__":

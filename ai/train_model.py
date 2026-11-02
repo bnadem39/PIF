@@ -76,6 +76,16 @@ FEATURE_COLS = [
     "volume_zscore",
     # Proxy de momentum (RSI/MACD), faute de flux d'actualités réel disponible à l'entraînement
     "momentum_proxy_score",
+    # Rendements cumulés multi-horizons (strictement rétrospectifs)
+    "cum_return_5d", "cum_return_10d", "cum_return_20d",
+    # Force relative au marché (coupe transversale à la même date, aucune fuite temporelle)
+    "relative_to_market_return",
+    # Régime de volatilité (court terme / moyen terme)
+    "volatility_ratio_5_30",
+    # Position dans le range 52 semaines
+    "dist_to_52w_high", "dist_to_52w_low",
+    # Volume relatif court terme / moyen terme
+    "relative_volume_5_20",
 ]
 TARGET_COL = "target_direction"
 
@@ -177,6 +187,37 @@ def ensure_features(df: pd.DataFrame) -> pd.DataFrame:
             vol_m = grp["volume"].rolling(20, min_periods=1).mean()
             vol_s = grp["volume"].rolling(20, min_periods=1).std().replace(0, 1).fillna(1)
             grp["volume_zscore"] = ((grp["volume"] - vol_m) / vol_s).astype("float32")
+
+        if "cum_return_5d" not in grp.columns:
+            grp["cum_return_5d"] = (c / c.shift(5).replace(0, np.nan) - 1).fillna(0).astype("float32")
+        if "cum_return_10d" not in grp.columns:
+            grp["cum_return_10d"] = (c / c.shift(10).replace(0, np.nan) - 1).fillna(0).astype("float32")
+        if "cum_return_20d" not in grp.columns:
+            grp["cum_return_20d"] = (c / c.shift(20).replace(0, np.nan) - 1).fillna(0).astype("float32")
+
+        if "volatility_ratio_5_30" not in grp.columns:
+            vol_30d_ref = grp["volatility_30d"] if "volatility_30d" in grp.columns else (
+                log_ret.rolling(30, min_periods=5).std().fillna(0) * np.sqrt(252) * 100
+            )
+            vol_5d = (log_ret.rolling(5, min_periods=2).std().fillna(0) * np.sqrt(252) * 100)
+            grp["volatility_ratio_5_30"] = (vol_5d / (vol_30d_ref.astype("float64") + 1e-9)).astype("float32")
+
+        if "dist_to_52w_high" not in grp.columns or "dist_to_52w_low" not in grp.columns:
+            roll_high_252 = h.rolling(252, min_periods=20).max()
+            roll_low_252  = l.rolling(252, min_periods=20).min()
+            grp["dist_to_52w_high"] = ((c - roll_high_252) / (roll_high_252 + 1e-9)).astype("float32")
+            grp["dist_to_52w_low"]  = ((c - roll_low_252) / (roll_low_252 + 1e-9)).astype("float32")
+
+        if "relative_volume_5_20" not in grp.columns:
+            vol_m20 = grp["volume"].rolling(20, min_periods=1).mean()
+            vol_ma5 = grp["volume"].rolling(5, min_periods=1).mean()
+            grp["relative_volume_5_20"] = (vol_ma5 / (vol_m20 + 1e-9)).astype("float32")
+
+        if "relative_to_market_return" not in grp.columns:
+            # Repli neutre : ce calcul par ticker isolé ne voit pas la coupe transversale des autres
+            # tickers à la même date (contrairement à data_pipeline.compute_features) ; 0.0 = "ni au-dessus
+            # ni en-dessous du marché", une valeur neutre plutôt qu'une estimation biaisée.
+            grp["relative_to_market_return"] = np.float32(0.0)
 
         if "momentum_proxy_score" not in grp.columns:
             norm_rsi = (grp["rsi_14"] - 50.0) / 25.0
