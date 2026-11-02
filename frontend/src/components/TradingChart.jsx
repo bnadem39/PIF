@@ -213,8 +213,9 @@ export default function TradingChart({
     });
 
     const handleResize = () => {
-      if (container && chart) {
+      if (container && chart && container.clientWidth > 0 && container.clientHeight > 0) {
         chart.applyOptions({ width: container.clientWidth, height: container.clientHeight });
+        chart.timeScale().fitContent();
       }
     };
     const resizeObserver = new ResizeObserver(() => handleResize());
@@ -673,7 +674,7 @@ export default function TradingChart({
 
           {/* Cadence Interactive */}
           <div className="flex items-center gap-0.5 bg-[#080C14] p-1 rounded-lg border border-[#1E293B] font-mono text-[11px]">
-            <span className="text-slate-400 text-[10px] px-1 font-semibold hidden md:inline">Cadence :</span>
+            <span className="text-slate-400 text-[10px] px-1 font-semibold hidden md:inline">Vitesse (Cadence) :</span>
             {[
               { speed: 0.5, label: 'x0.5' },
               { speed: 1, label: 'x1' },
@@ -709,7 +710,7 @@ export default function TradingChart({
               title="Afficher les courbes de rendement comparatif (%) de tous les actifs se propageant ensemble"
             >
               <LineChart size={14} />
-              <span>Multi-Courbes (%)</span>
+              <span>Comparer les actifs (Multi-Courbes)</span>
             </button>
 
             <button
@@ -757,7 +758,7 @@ export default function TradingChart({
           <div className="flex items-center gap-2 overflow-x-auto py-0.5 scrollbar-none w-full">
             <span className="text-[11px] text-slate-400 font-bold shrink-0 flex items-center gap-1">
               <Sparkles size={12} className="text-amber-400" />
-              <span>Actifs synchronisés :</span>
+              <span>Actifs comparés ensemble :</span>
             </span>
             <div className="flex items-center gap-1.5 overflow-x-auto">
               {(matrixData?.symbols || []).map((sym, idx) => {
@@ -770,6 +771,7 @@ export default function TradingChart({
                 return (
                   <button
                     key={sym}
+                    title={`Cliquer pour afficher ${sym} dans le graphique`}
                     onClick={() => {
                       if (onSelectAsset) {
                         const meta = matrixData?.assetMetadata?.[sym] || {};

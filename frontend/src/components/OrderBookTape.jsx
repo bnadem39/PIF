@@ -67,8 +67,8 @@ export default function OrderBookTape({ selectedAsset, price }) {
       </div>
 
       {activeTab === 'BOOK' ? (
-        <div className="flex-1 flex flex-col p-2 text-[11px] font-mono overflow-hidden">
-          <div className="grid grid-cols-3 text-slate-400 font-semibold px-2 py-1 text-[10px] uppercase">
+        <div className="flex-1 flex flex-col p-2 text-[13px] font-mono overflow-hidden">
+          <div className="grid grid-cols-3 text-slate-400 font-semibold px-2 py-1 text-xs uppercase">
             <span>Prix ({selectedAsset.currency})</span>
             <span className="text-right">Taille</span>
             <span className="text-right">Total</span>
@@ -98,9 +98,9 @@ export default function OrderBookTape({ selectedAsset, price }) {
                   minimumFractionDigits: selectedAsset.currency === 'TND' ? 3 : 2
                 })}
               </span>
-              <span className="text-[10px] text-slate-400">{selectedAsset.currency}</span>
+              <span className="text-xs text-slate-400">{selectedAsset.currency}</span>
             </div>
-            <div className="text-[10px] text-slate-400">
+            <div className="text-xs text-slate-400">
               Spread: <strong className="text-slate-200">{orderBook.spread}</strong> ({orderBook.spreadPercent}%)
             </div>
           </div>
@@ -123,8 +123,8 @@ export default function OrderBookTape({ selectedAsset, price }) {
           </div>
         </div>
       ) : (
-        <div className="flex-1 flex flex-col p-2 text-[11px] font-mono overflow-y-auto">
-          <div className="grid grid-cols-3 text-slate-400 font-semibold px-2 py-1 text-[10px] uppercase border-b border-[#1E293B]">
+        <div className="flex-1 flex flex-col p-2 text-[13px] font-mono overflow-y-auto">
+          <div className="grid grid-cols-3 text-slate-400 font-semibold px-2 py-1 text-xs uppercase border-b border-[#1E293B]">
             <span>Prix ({selectedAsset.currency})</span>
             <span className="text-right">Taille</span>
             <span className="text-right">Heure</span>
@@ -146,7 +146,7 @@ export default function OrderBookTape({ selectedAsset, price }) {
           </div>
         </div>
       )}
-      <p className="px-3 py-2 border-t border-[#1E293B] text-[10px] text-slate-500 leading-snug">
+      <p className="px-3 py-2 border-t border-[#1E293B] text-xs text-slate-400 leading-snug">
         Carnet et trades simulés autour du cours de la date simulée : la BVMT ne publie pas l'historique du carnet d'ordres.
       </p>
     </aside>

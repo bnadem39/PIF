@@ -241,3 +241,34 @@ Chaque pull request et chaque push sur `main` lancent ces vérifications (`.gith
 | Le frontend ne joint pas l'API | Le backend doit tourner sur le port 8080 (le proxy Vite y redirige `/api`) |
 
 Pour arrêter la base : `docker compose down` (les données sont conservées dans le volume `pif_postgres_data`).
+
+
+## Améliorations de l'interface et de la fiabilité (novembre 2026)
+
+Ces changements portent sur l'affichage et la fiabilité de l'interface. Aucun calcul, aucun appel serveur et aucun port n'ont été modifiés.
+
+### Correctifs
+- Le time-lapse ne repart plus de zéro quand on change de page : le Terminal reste actif en arrière-plan.
+- Les résultats de Backtesting, Stress Testing et Actuariat sont conservés quand on change de page, et réinitialisés quand on change de compte.
+- Un conflit de clés React qui faisait apparaître des pages les unes sous les autres est corrigé.
+
+### Lisibilité
+- Textes de 9 à 11 px agrandis dans toute l'application (12 et 13 px au minimum).
+- Menu avec le nom de chaque page, une infobulle et un onglet actif plus marqué.
+- Bouton de déconnexion plus discret, avec icône et infobulle.
+- Watchlist : prix plus gros, dates en JJ/MM/AAAA, infobulles sur les badges.
+- Pied de page : cash, valeur totale et P&L en grands chiffres.
+
+### Clarté
+- Ligne d'aide en trois étapes en haut du Terminal (fermable).
+- Libellés simplifiés et infobulles en français sur les termes techniques (Sharpe, Gini, CET1, LCR, Stop-Loss).
+- Écrans vides guidés, avec un bouton vers le Terminal dans le Portefeuille.
+- En-tête commun (titre et phrase d'explication) sur les pages principales.
+
+### Nouveautés visibles
+- Backtesting : trois cartes de verdict au-dessus du tableau (meilleure stratégie, Signal IA, phrase de comparaison).
+- Stress Testing : cartes vertes, orange ou rouges selon la part de banques hors seuils, avec légende.
+
+### Limites connues et suite
+- Précision du modèle IA d'environ 50 % en validation croisée : le Signal IA fait moins bien que l'achat-conservation.
+- À faire : améliorer le modèle (validation walk-forward), traduire les messages d'erreur d'authentification, désactiver le bouton Optimiser avec moins de 2 actifs, afficher un vrai statut de connexion.

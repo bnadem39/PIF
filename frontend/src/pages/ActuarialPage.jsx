@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Umbrella, Calculator, PieChart, Layers, RefreshCw, Info } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 import {
   getActuarialPortfolio,
   getActuarialModels,
@@ -32,18 +33,18 @@ function Card({ title, children, right }) {
   );
 }
 
-function Stat({ label, value, hint }) {
+function Stat({ label, value, hint, title }) {
   return (
-    <div className="rounded-lg border border-[#1E293B] px-2.5 py-2">
-      <div className="text-[10px] text-slate-500">{label}</div>
+    <div className="rounded-lg border border-[#1E293B] px-2.5 py-2" title={title}>
+      <div className="text-xs text-slate-400">{label}</div>
       <div className="text-sm font-bold text-slate-100 font-mono">{value}</div>
-      {hint && <div className="text-[10px] text-slate-500">{hint}</div>}
+      {hint && <div className="text-xs text-slate-400">{hint}</div>}
     </div>
   );
 }
 
 function Field({ label, children }) {
-  return <label className="block text-[11px] text-slate-400">{label}{children}</label>;
+  return <label className="block text-[13px] text-slate-400">{label}{children}</label>;
 }
 
 /** Coefficient multiplicateur : barre centrée sur 1 (échelle log), rouge > 1 (plus de risque), vert < 1. */
@@ -135,13 +136,13 @@ function PricingTab({ portfolio, models }) {
                   <Card key={k} title={title}>
                     <div className="space-y-1">
                       {quote.breakdown[k].map((s) => (
-                        <div key={s.factor} className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_64px] items-center gap-2 text-[11px]">
+                        <div key={s.factor} className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_64px] items-center gap-2 text-[13px]">
                           <span className="text-slate-300 truncate">{s.label}</span>
                           {s.factor === 'base' ? <span /> : <RelBar value={s.value} />}
                           <span className="font-mono text-right text-slate-200">{s.factor === 'base' ? fmt(s.value, d) : `× ${s.value.toFixed(2)}`}</span>
                         </div>
                       ))}
-                      <div className="flex justify-between border-t border-[#1E293B] pt-1 text-[11px] font-bold text-slate-100">
+                      <div className="flex justify-between border-t border-[#1E293B] pt-1 text-[13px] font-bold text-slate-100">
                         <span>Résultat (produit)</span>
                         <span className="font-mono">{fmt(k === 'frequency' ? quote.frequency : quote.severity, d)}</span>
                       </div>
@@ -157,23 +158,23 @@ function PricingTab({ portfolio, models }) {
       {models && (
         <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] gap-3 items-start">
           <Card title="Comparaison des modèles (échantillon de test)">
-            <table className="w-full text-[11px]">
-              <thead className="text-slate-500">
+            <table className="w-full text-[13px]">
+              <thead className="text-slate-400">
                 <tr><th className="text-left py-1">Indicateur</th><th className="text-right">GLM</th><th className="text-right">Boosting</th></tr>
               </thead>
               <tbody className="text-slate-300">
                 {[
                   ['Déviance fréquence', 'frequency_deviance', (v) => v.toFixed(4), -1],
                   ['Déviance sévérité', 'severity_deviance', (v) => v.toFixed(4), -1],
-                  ['Gini (segmentation)', 'gini', (v) => v.toFixed(3), 1],
+                  ['Gini (segmentation)', 'gini', (v) => v.toFixed(3), 1, 'Mesure la capacité du modèle à bien distinguer les profils à risque : plus proche de 1, meilleur est le modèle.'],
                   ['Prédit / observé', 'predicted_to_actual', (v) => v.toFixed(3), 0]
-                ].map(([l, k, f, better]) => {
+                ].map(([l, k, f, better, hint]) => {
                   const g = c.glm[k];
                   const b = c.gbm[k];
                   const glmBest = better > 0 ? g > b : better < 0 ? g < b : Math.abs(g - 1) < Math.abs(b - 1);
                   return (
                     <tr key={k} className="border-t border-[#1E293B]">
-                      <td className="py-1">{l}</td>
+                      <td className="py-1" title={hint}>{l}</td>
                       <td className={`text-right font-mono ${glmBest ? 'text-emerald-300 font-bold' : ''}`}>{f(g)}</td>
                       <td className={`text-right font-mono ${!glmBest ? 'text-emerald-300 font-bold' : ''}`}>{f(b)}</td>
                     </tr>
@@ -181,7 +182,7 @@ function PricingTab({ portfolio, models }) {
                 })}
               </tbody>
             </table>
-            <p className="mt-2 text-[10px] text-slate-500">
+            <p className="mt-2 text-xs text-slate-400">
               Déviance du modèle nul (même fréquence pour tous) : {c.null.frequency_deviance.toFixed(4)}.
               Apprentissage sur {fmt(models.train_size)} contrats, test sur {fmt(models.test_size)}.
               Le GLM sert de tarif : chaque coefficient s'explique à l'assuré et au régulateur.
@@ -190,14 +191,14 @@ function PricingTab({ portfolio, models }) {
 
           <Card title="Coefficients multiplicateurs du GLM">
             <div className="overflow-x-auto max-h-96 overflow-y-auto">
-              <table className="w-full text-[11px]">
-                <thead className="text-slate-500 sticky top-0 bg-[#0F172A]">
+              <table className="w-full text-[13px]">
+                <thead className="text-slate-400 sticky top-0 bg-[#0F172A]">
                   <tr>
                     <th className="text-left px-1 py-1">Variable</th>
                     <th className="text-left px-1">Modalité</th>
-                    <th className="text-right px-1">Fréquence [IC 95 %]</th>
+                    <th className="text-right px-1" title="Intervalle dans lequel la vraie valeur a 95 % de chances de se trouver, compte tenu de l'incertitude statistique.">Fréquence [IC 95 %]</th>
                     <th className="text-right px-1">Vrai</th>
-                    <th className="text-right px-1">Coût moyen [IC 95 %]</th>
+                    <th className="text-right px-1" title="Intervalle dans lequel la vraie valeur a 95 % de chances de se trouver, compte tenu de l'incertitude statistique.">Coût moyen [IC 95 %]</th>
                     <th className="text-right px-1">Vrai</th>
                   </tr>
                 </thead>
@@ -223,7 +224,7 @@ function PricingTab({ portfolio, models }) {
                 </tbody>
               </table>
             </div>
-            <p className="mt-1.5 text-[10px] text-slate-500">
+            <p className="mt-1.5 text-xs text-slate-400">
               « Vrai » : paramètre utilisé pour générer le portefeuille synthétique ; un bon modèle le retrouve dans son intervalle de confiance.
               En gris : non significatif (p &gt; 5 %). Bonus-malus : élasticité (λ ∝ (BM/100)^β).
             </p>
@@ -273,7 +274,7 @@ function MarginsTab({ portfolio }) {
           <div className="flex gap-1 col-span-2 md:col-span-1">
             {[['conventional', 'Conventionnel'], ['takaful', 'Takaful']].map(([v, l]) => (
               <button key={v} onClick={() => setMode(v)}
-                className={`flex-1 px-2 py-1 rounded border text-[11px] ${mode === v ? 'border-[#38BDF8] text-[#38BDF8]' : 'border-[#334155] text-slate-400'}`}>{l}</button>
+                className={`flex-1 px-2 py-1 rounded border text-[13px] ${mode === v ? 'border-[#38BDF8] text-[#38BDF8]' : 'border-[#334155] text-slate-400'}`}>{l}</button>
             ))}
           </div>
           {takaful && (
@@ -284,7 +285,7 @@ function MarginsTab({ portfolio }) {
           )}
         </div>
         {takaful && (
-          <p className="mt-2 text-[10px] text-slate-500">
+          <p className="mt-2 text-xs text-slate-400">
             Modèle wakala : les cotisations alimentent le fonds des participants, l'opérateur prélève une commission de gestion.
             Un excédent du fonds est en partie redistribué ; un déficit est couvert par un prêt sans intérêt de l'opérateur (qard hassan).
           </p>
@@ -310,8 +311,8 @@ function MarginsTab({ portfolio }) {
 
           <Card title={`Rentabilité par ${data.segment_label.toLowerCase()}`}>
             <div className="overflow-x-auto">
-              <table className="w-full text-[11px]">
-                <thead className="text-slate-500">
+              <table className="w-full text-[13px]">
+                <thead className="text-slate-400">
                   <tr>
                     <th className="text-left px-2 py-1">Segment</th>
                     <th className="text-right px-2">Contrats</th>
@@ -362,7 +363,7 @@ function MarginsTab({ portfolio }) {
                 </tbody>
               </table>
             </div>
-            <p className="mt-1.5 text-[10px] text-slate-500">
+            <p className="mt-1.5 text-xs text-slate-400">
               Montants annuels en TND. Ligne pointillée : S/P d'équilibre (1 − frais). Rouge : segment déficitaire au tarif actuel.
             </p>
           </Card>
@@ -424,15 +425,15 @@ function ReservingTab() {
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-1 xl:grid-cols-[360px_minmax(0,1fr)] gap-3 items-start">
-        <Card title="Triangle des paiements (incrémentaux)" right={<button onClick={loadDefault} className="text-[10px] text-slate-500 hover:text-slate-300">Exemple</button>}>
+        <Card title="Triangle des paiements (incrémentaux)" right={<button onClick={loadDefault} className="text-xs text-slate-400 hover:text-slate-300">Exemple</button>}>
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             rows={11}
             spellCheck={false}
-            className="w-full bg-[#1E293B] border border-[#334155] rounded px-2 py-1 text-[10px] font-mono text-slate-200 whitespace-pre"
+            className="w-full bg-[#1E293B] border border-[#334155] rounded px-2 py-1 text-xs font-mono text-slate-200 whitespace-pre"
           />
-          <p className="text-[10px] text-slate-500 mb-2">
+          <p className="text-xs text-slate-400 mb-2">
             Une ligne par année de survenance, une colonne par année de développement (séparateur : tabulation, espace ou point-virgule).
             Collez directement depuis un tableur.
           </p>
@@ -452,12 +453,12 @@ function ReservingTab() {
               <Stat label="Paiements à date" value={fmt(data.total.latest)} />
               <Stat label="Charge ultime estimée" value={fmt(data.total.ultimate)} />
               <Stat label="Provision (IBNR)" value={fmt(data.total.reserve)} hint={source} />
-              <Stat label="Erreur de Mack" value={fmt(data.total.mack_se)} hint={`${pct(data.total.mack_se / data.total.reserve)} de la provision`} />
+              <Stat label="Erreur de Mack" value={fmt(data.total.mack_se)} hint={`${pct(data.total.mack_se / data.total.reserve)} de la provision`} title="Méthode statistique (Mack) qui estime l'incertitude autour du montant de provision calculé." />
             </div>
             <Card title="Provision par année de survenance (± 2 erreurs de Mack)">
               <div className="space-y-1">
                 {data.rows.map((r) => (
-                  <div key={r.origin} className="grid grid-cols-[40px_minmax(0,1fr)_96px_56px] items-center gap-2 text-[11px]">
+                  <div key={r.origin} className="grid grid-cols-[40px_minmax(0,1fr)_96px_56px] items-center gap-2 text-[13px]">
                     <span className="text-slate-400">An {r.origin}</span>
                     <div className="relative h-3">
                       <div className="absolute inset-y-0 left-0 bg-[#38BDF8] rounded-sm" style={{ width: `${(r.reserve / maxReserve) * 100}%` }} />
@@ -471,7 +472,7 @@ function ReservingTab() {
                   </div>
                 ))}
               </div>
-              <p className="mt-1.5 text-[10px] text-slate-500">Dernière colonne : coefficient de variation (erreur de Mack / provision).</p>
+              <p className="mt-1.5 text-xs text-slate-400">Dernière colonne : coefficient de variation (erreur de Mack / provision).</p>
             </Card>
           </div>
         )}
@@ -480,8 +481,8 @@ function ReservingTab() {
       {data && (
         <Card title="Triangle complété par Chain Ladder">
           <div className="overflow-x-auto">
-            <table className="w-full text-[10px] font-mono">
-              <thead className="text-slate-500">
+            <table className="w-full text-xs font-mono">
+              <thead className="text-slate-400">
                 <tr>
                   <th className="text-left px-1.5 py-1 font-sans">Survenance</th>
                   {Array.from({ length: n }, (_, k) => <th key={k} className="text-right px-1.5">{k + 1}</th>)}
@@ -507,7 +508,7 @@ function ReservingTab() {
               </tbody>
             </table>
           </div>
-          <p className="mt-1.5 text-[10px] text-slate-500">
+          <p className="mt-1.5 text-xs text-slate-400">
             Montants cumulés. En bleu : projections. Facteur de développement k = Σ C(i, k+1) / Σ C(i, k) sur les années observées.
           </p>
         </Card>
@@ -541,13 +542,12 @@ export default function ActuarialPage({ currentUser }) {
 
   return (
     <main className="flex-1 overflow-y-auto p-4 space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-slate-100">
-          <Umbrella size={18} className="text-[#38BDF8]" />
-          <h1 className="text-base font-extrabold">Actuariat · assurance automobile</h1>
-        </div>
-        {portfolio && (
-          <div className="flex items-start gap-1.5 text-[11px] text-amber-300/90 max-w-2xl">
+      <PageHeader
+        icon={Umbrella}
+        title="Actuariat · assurance automobile"
+        subtitle="Calculez le prix d'une assurance auto et la provision pour sinistres à partir de données simulées."
+        right={portfolio && (
+          <div className="flex items-start gap-1.5 text-[13px] text-amber-300/90 max-w-2xl">
             <Info size={13} className="mt-0.5 shrink-0" />
             <span>
               Portefeuille synthétique de {fmt(portfolio.policies)} contrats ({fmt(portfolio.claims)} sinistres, fréquence {fmt(portfolio.frequency, 3)},
@@ -555,7 +555,7 @@ export default function ActuarialPage({ currentUser }) {
             </span>
           </div>
         )}
-      </div>
+      />
 
       <div className="flex gap-1">
         {TABS.map(({ key, label, icon: Icon }) => (

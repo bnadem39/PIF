@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Landmark, Play, RefreshCw, Save, Trash2, Info, BrainCircuit } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 import {
   getStressScenarios,
   getStressBanks,
@@ -29,6 +30,12 @@ const STATUS_STYLE = {
   RESILIENTE: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40'
 };
 const MODEL_LABEL = { ridge: 'Ridge', random_forest: 'Forêt aléatoire', xgboost: 'XGBoost' };
+// Explication simple de chaque modèle d'IA, affichée au survol (aucun changement de calcul)
+const MODEL_HINT = {
+  ridge: 'Modèle statistique simple et stable, qui trouve la relation la plus directe entre les données.',
+  random_forest: "Combine de nombreux arbres de décision pour une prédiction plus robuste qu'un seul modèle.",
+  xgboost: "Modèle d'apprentissage automatique avancé, souvent le plus précis mais plus complexe."
+};
 const TARGET_LABEL = { npl_increase: 'Hausse des créances douteuses', credit_loss_rate: 'Taux de perte de crédit' };
 
 const pct = (v, d = 1) => (v == null ? '-' : `${(v * 100).toFixed(d)} %`);
@@ -48,7 +55,7 @@ function Card({ title, children, right }) {
 
 function StatusChip({ status }) {
   return (
-    <span className={`px-1.5 py-0.5 rounded border text-[10px] font-bold ${STATUS_STYLE[status] || ''}`}>{status}</span>
+    <span className={`px-1.5 py-0.5 rounded border text-xs font-bold ${STATUS_STYLE[status] || ''}`}>{status}</span>
   );
 }
 
@@ -59,7 +66,7 @@ function Cet1Bars({ results, minRatio }) {
   return (
     <div className="space-y-1.5">
       {results.map((r) => (
-        <div key={r.bank_id} className="grid grid-cols-[64px_1fr_120px] items-center gap-2 text-[11px]">
+        <div key={r.bank_id} className="grid grid-cols-[64px_1fr_120px] items-center gap-2 text-[13px]">
           <span className="font-mono" style={{ color: TYPE_COLOR[r.bank_type] }}>{r.bank_id}</span>
           <div className="relative h-4 bg-[#1E293B]/50 rounded">
             <div className="absolute top-0 h-1.5 rounded bg-slate-500/70" style={{ width: x(r.before.cet1_ratio) }} />
@@ -74,7 +81,7 @@ function Cet1Bars({ results, minRatio }) {
           </span>
         </div>
       ))}
-      <div className="flex gap-4 pt-1 text-[10px] text-slate-500">
+      <div className="flex gap-4 pt-1 text-xs text-slate-400">
         <span><span className="inline-block w-3 h-1.5 bg-slate-500/70 mr-1" />Avant</span>
         <span><span className="inline-block w-3 h-2 mr-1" style={{ background: TYPE_COLOR.conventional }} />Après (conv.)</span>
         <span><span className="inline-block w-3 h-2 mr-1" style={{ background: TYPE_COLOR.islamic }} />Après (isl.)</span>
@@ -91,7 +98,7 @@ function DivergingBars({ rows, format, oneSided = false }) {
     return (
       <div className="space-y-1">
         {rows.map((r) => (
-          <div key={r.key} className="grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_40px] items-center gap-2 text-[11px]">
+          <div key={r.key} className="grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_40px] items-center gap-2 text-[13px]">
             <span className="text-slate-300 truncate" title={r.label}>{r.label}</span>
             <div className="h-2.5 rounded-sm bg-[#38BDF8]" style={{ width: `${(r.value / max) * 100}%` }} />
             <span className="font-mono text-right text-slate-300">{format(r.value)}</span>
@@ -103,7 +110,7 @@ function DivergingBars({ rows, format, oneSided = false }) {
   return (
     <div className="space-y-1">
       {rows.map((r) => (
-        <div key={r.key} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)_64px] items-center gap-2 text-[11px]">
+        <div key={r.key} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)_64px] items-center gap-2 text-[13px]">
           <span className="text-slate-300 truncate" title={r.hint || r.label}>{r.label}</span>
           <div className="relative h-3">
             <div className="absolute inset-y-0 left-1/2 border-l border-slate-600" />
@@ -121,48 +128,89 @@ function DivergingBars({ rows, format, oneSided = false }) {
   );
 }
 
+// Niveau du feu tricolore : vert (aucune banque hors seuils), orange (une partie), rouge (la majorité)
+function vulnerabilityLevel(vulnerable, count) {
+  if (!count || vulnerable === 0) return 'ok';
+  if (vulnerable > count / 2) return 'critical';
+  return 'warning';
+}
+const LEVEL_STYLE = {
+  ok: 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300',
+  warning: 'bg-amber-500/15 border-amber-500/40 text-amber-300',
+  critical: 'bg-rose-500/15 border-rose-500/40 text-rose-300'
+};
+const LEVEL_LABEL = {
+  ok: 'Aucune banque hors seuils',
+  warning: 'Une partie des banques sont hors seuils',
+  critical: 'La majorité des banques sont hors seuils'
+};
+
 function TypeSummary({ summary, minRatio }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-      {['conventional', 'islamic'].filter((t) => summary?.[t]).map((t) => {
-        const s = summary[t];
-        return (
-          <div key={t} className="rounded-lg border border-[#1E293B] p-2.5" style={{ borderLeft: `3px solid ${TYPE_COLOR[t]}` }}>
-            <div className="text-xs font-bold text-slate-100 mb-1.5">Banques {TYPE_LABEL[t].toLowerCase()}s ({s.count})</div>
-            <dl className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
-              <dt className="text-slate-500">CET1 moyen</dt>
-              <dd className={`font-mono text-right ${s.avg_cet1_after < minRatio ? 'text-rose-300' : 'text-slate-200'}`}>
-                {pct(s.avg_cet1_before)} → {pct(s.avg_cet1_after)}
-              </dd>
-              <dt className="text-slate-500">LCR moyen après</dt>
-              <dd className="font-mono text-right text-slate-200">{s.avg_lcr_after.toFixed(2)}</dd>
-              <dt className="text-slate-500">NPL moyen après</dt>
-              <dd className="font-mono text-right text-slate-200">{pct(s.avg_npl_after)}</dd>
-              <dt className="text-slate-500">Perte de crédit</dt>
-              <dd className="font-mono text-right text-slate-200">{pct(s.avg_credit_loss_rate, 2)}</dd>
-              <dt className="text-slate-500">Hors seuils</dt>
-              <dd className="font-mono text-right text-slate-200">{s.vulnerable} / {s.count}</dd>
-            </dl>
-          </div>
-        );
-      })}
+    <div className="space-y-3">
+      {/* Feux tricolores : vue d'ensemble immédiate par groupe de banques */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {['conventional', 'islamic'].filter((t) => summary?.[t]).map((t) => {
+          const s = summary[t];
+          const level = vulnerabilityLevel(s.vulnerable, s.count);
+          return (
+            <div key={t} className={`rounded-xl border p-4 ${LEVEL_STYLE[level]}`}>
+              <div className="text-xs font-semibold uppercase tracking-wide opacity-80">Banques {TYPE_LABEL[t].toLowerCase()}s</div>
+              <div className="text-2xl font-bold mt-1">{s.vulnerable} sur {s.count} hors seuils</div>
+              <div className="text-xs mt-1 opacity-90">{LEVEL_LABEL[level]}</div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400">
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block shrink-0" /> Aucune banque hors seuils</span>
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block shrink-0" /> Une partie hors seuils</span>
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-rose-400 inline-block shrink-0" /> La majorité hors seuils</span>
+      </div>
+      <p className="text-xs text-slate-400">« Hors seuils » signifie que la banque ne respecte plus le ratio de solvabilité minimal choisi, une fois le choc simulé appliqué.</p>
+
+      {/* Détails chiffrés par groupe, inchangés */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {['conventional', 'islamic'].filter((t) => summary?.[t]).map((t) => {
+          const s = summary[t];
+          return (
+            <div key={t} className="rounded-lg border border-[#1E293B] p-2.5" style={{ borderLeft: `3px solid ${TYPE_COLOR[t]}` }}>
+              <div className="text-xs font-bold text-slate-100 mb-1.5">Banques {TYPE_LABEL[t].toLowerCase()}s ({s.count})</div>
+              <dl className="grid grid-cols-2 gap-x-3 gap-y-1 text-[13px]">
+                <dt className="text-slate-400" title="CET1 : part de fonds propres très solides que la banque détient par rapport à ses risques. Plus c'est haut, plus elle est solide.">CET1 moyen</dt>
+                <dd className={`font-mono text-right ${s.avg_cet1_after < minRatio ? 'text-rose-300' : 'text-slate-200'}`}>
+                  {pct(s.avg_cet1_before)} → {pct(s.avg_cet1_after)}
+                </dd>
+                <dt className="text-slate-400" title="LCR : capacité de la banque à faire face à ses sorties de cash sur 30 jours en cas de crise.">LCR moyen après</dt>
+                <dd className="font-mono text-right text-slate-200">{s.avg_lcr_after.toFixed(2)}</dd>
+                <dt className="text-slate-400" title="NPL : part des prêts accordés qui ne sont plus remboursés normalement (créances douteuses).">NPL moyen après</dt>
+                <dd className="font-mono text-right text-slate-200">{pct(s.avg_npl_after)}</dd>
+                <dt className="text-slate-400">Perte de crédit</dt>
+                <dd className="font-mono text-right text-slate-200">{pct(s.avg_credit_loss_rate, 2)}</dd>
+                <dt className="text-slate-400">Hors seuils</dt>
+                <dd className="font-mono text-right text-slate-200">{s.vulnerable} / {s.count}</dd>
+              </dl>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
 
 function ModelsPanel({ models }) {
-  if (!models) return <div className="text-xs text-slate-500">Chargement des modèles…</div>;
+  if (!models) return <div className="text-xs text-slate-400">Chargement des modèles…</div>;
   return (
     <div className="space-y-3">
-      <p className="text-[11px] text-slate-500">
+      <p className="text-[13px] text-slate-400">
         Validation croisée à 5 plis sur {models.n_samples.toLocaleString('fr-FR')} observations
         ({models.data_source === 'synthetic' ? 'données synthétiques' : models.data_source}). Le meilleur R² est retenu.
       </p>
-      <table className="w-full text-[11px]">
-        <thead className="text-slate-500">
+      <table className="w-full text-[13px]">
+        <thead className="text-slate-400">
           <tr>
-            <th className="text-left py-1">Cible (R²)</th>
-            {Object.keys(MODEL_LABEL).map((m) => <th key={m} className="text-right py-1">{MODEL_LABEL[m]}</th>)}
+            <th className="text-left py-1" title="R² : part de la variation réelle que le modèle arrive à expliquer (1 = parfait, 0 = aucune explication).">Cible (R²)</th>
+            {Object.keys(MODEL_LABEL).map((m) => <th key={m} title={MODEL_HINT[m]} className="text-right py-1">{MODEL_LABEL[m]}</th>)}
           </tr>
         </thead>
         <tbody>
@@ -179,7 +227,7 @@ function ModelsPanel({ models }) {
         </tbody>
       </table>
       <div>
-        <div className="text-[11px] text-slate-400 mb-1">Importance globale SHAP (taux de perte de crédit)</div>
+        <div className="text-[13px] text-slate-400 mb-1" title="SHAP : méthode qui calcule combien chaque variable a pesé dans la prédiction du modèle.">Importance globale SHAP (taux de perte de crédit)</div>
         <DivergingBars
           rows={(models.global_importance.credit_loss_rate || []).slice(0, 8).map((g) => ({
             key: g.feature, label: g.label, value: g.importance
@@ -287,13 +335,12 @@ export default function StressTestPage({ currentUser }) {
 
   return (
     <main className="flex-1 overflow-y-auto p-4 space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-slate-100">
-          <Landmark size={18} className="text-[#38BDF8]" />
-          <h1 className="text-base font-extrabold">AI Stress Testing bancaire</h1>
-        </div>
-        {banksInfo?.illustrative && (
-          <div className="flex items-start gap-1.5 text-[11px] text-amber-300/90 max-w-2xl">
+      <PageHeader
+        icon={Landmark}
+        title="AI Stress Testing bancaire"
+        subtitle="Simulez l'effet d'une crise économique sur un portefeuille bancaire, pour mieux comprendre les risques."
+        right={banksInfo?.illustrative && (
+          <div className="flex items-start gap-1.5 text-[13px] text-amber-300/90 max-w-2xl">
             <Info size={13} className="mt-0.5 shrink-0" />
             <span>
               Profils bancaires illustratifs et modèles entraînés sur données synthétiques : résultats pédagogiques,
@@ -301,7 +348,7 @@ export default function StressTestPage({ currentUser }) {
             </span>
           </div>
         )}
-      </div>
+      />
 
       {error && <div className="text-xs text-rose-400">{error}</div>}
 
@@ -319,7 +366,7 @@ export default function StressTestPage({ currentUser }) {
                   />
                   <span className="flex-1">{s.name}</span>
                   {!s.preset && isAdmin && (
-                    <button onClick={() => removeScenario(s.id)} className="text-slate-500 hover:text-rose-400" title="Supprimer">
+                    <button onClick={() => removeScenario(s.id)} className="text-slate-400 hover:text-rose-400" title="Supprimer">
                       <Trash2 size={12} />
                     </button>
                   )}
@@ -334,12 +381,12 @@ export default function StressTestPage({ currentUser }) {
 
           {useCustom && (
             <Card title="Chocs personnalisés" right={
-              <button onClick={() => setShocks(DEFAULT_SHOCKS)} className="text-[10px] text-slate-500 hover:text-slate-300">Réinitialiser</button>
+              <button onClick={() => setShocks(DEFAULT_SHOCKS)} className="text-xs text-slate-400 hover:text-slate-300">Réinitialiser</button>
             }>
               <div className="space-y-2">
                 {SHOCK_FIELDS.map((f) => (
                   <div key={f.key}>
-                    <div className="flex justify-between text-[11px] text-slate-400">
+                    <div className="flex justify-between text-[13px] text-slate-400">
                       <span>{f.label}</span>
                       <span className="font-mono text-slate-200">{shocks[f.key]}</span>
                     </div>
@@ -352,7 +399,7 @@ export default function StressTestPage({ currentUser }) {
                 ))}
                 {isAdmin && (
                   <div className="pt-2 border-t border-[#1E293B] space-y-1.5">
-                    <div className="text-[11px] text-slate-400">Enregistrer ce scénario (admin)</div>
+                    <div className="text-[13px] text-slate-400">Enregistrer ce scénario (admin)</div>
                     <input
                       placeholder="CODE" value={newScenario.code}
                       onChange={(e) => setNewScenario({ ...newScenario, code: e.target.value })}
@@ -382,11 +429,11 @@ export default function StressTestPage({ currentUser }) {
                 {[['all', 'Toutes'], ['conventional', 'Conventionnelles'], ['islamic', 'Islamiques']].map(([v, l]) => (
                   <button
                     key={v} onClick={() => setBankType(v)}
-                    className={`flex-1 px-2 py-1 rounded border text-[11px] ${bankType === v ? 'border-[#38BDF8] text-[#38BDF8]' : 'border-[#334155] text-slate-400'}`}
+                    className={`flex-1 px-2 py-1 rounded border text-[13px] ${bankType === v ? 'border-[#38BDF8] text-[#38BDF8]' : 'border-[#334155] text-slate-400'}`}
                   >{l}</button>
                 ))}
               </div>
-              <label className="flex items-center justify-between gap-2 text-[11px] text-slate-400">
+              <label className="flex items-center justify-between gap-2 text-[13px] text-slate-400">
                 Ratio de solvabilité minimal
                 <select
                   value={minRatio} onChange={(e) => setMinRatio(Number(e.target.value))}
@@ -405,7 +452,7 @@ export default function StressTestPage({ currentUser }) {
             </div>
           </Card>
 
-          <Card title="Modèles IA" right={<BrainCircuit size={14} className="text-slate-500" />}>
+          <Card title="Modèles IA" right={<BrainCircuit size={14} className="text-slate-400" />}>
             <ModelsPanel models={models} />
           </Card>
         </div>
@@ -413,8 +460,10 @@ export default function StressTestPage({ currentUser }) {
         {/* ── Résultats ─────────────────────────────────────────── */}
         <div className="space-y-3 min-w-0">
           {!sc && (
-            <div className="border border-dashed border-[#1E293B] rounded-xl p-8 text-center text-xs text-slate-500">
-              Choisissez un ou plusieurs scénarios puis lancez le stress test.
+            <div className="border border-dashed border-[#1E293B] rounded-xl p-10 text-center flex flex-col items-center gap-2">
+              <Landmark size={28} className="text-slate-600" />
+              <p className="text-sm text-slate-300">Aucun stress test lancé pour le moment.</p>
+              <p className="text-xs text-slate-400 max-w-sm">Choisissez un ou plusieurs scénarios puis lancez le stress test.</p>
             </div>
           )}
 
@@ -435,7 +484,7 @@ export default function StressTestPage({ currentUser }) {
                 <TypeSummary summary={sc.summary_by_type} minRatio={minRatio} />
                 {sc.type_comparison && (
                   <div className="mt-3">
-                    <div className="text-[11px] text-slate-400 mb-1">
+                    <div className="text-[13px] text-slate-400 mb-1">
                       Pourquoi {sc.type_comparison.conventional_bank} perd plus (ou moins) que {sc.type_comparison.islamic_bank} :
                       écart SHAP sur le taux de perte de crédit (positif = plus de pertes côté conventionnel)
                     </div>
@@ -453,13 +502,13 @@ export default function StressTestPage({ currentUser }) {
 
               <Card title="Résultats par banque">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-[11px]">
-                    <thead className="text-slate-500">
+                  <table className="w-full text-[13px]">
+                    <thead className="text-slate-400">
                       <tr>
                         <th className="text-left px-2 py-1">Banque</th>
-                        <th className="text-right px-2 py-1">CET1</th>
-                        <th className="text-right px-2 py-1">LCR</th>
-                        <th className="text-right px-2 py-1">NPL</th>
+                        <th className="text-right px-2 py-1" title="Part de fonds propres très solides par rapport aux risques pris : plus c'est haut, plus la banque est solide.">CET1</th>
+                        <th className="text-right px-2 py-1" title="Capacité de la banque à faire face à ses sorties de cash sur 30 jours en cas de crise.">LCR</th>
+                        <th className="text-right px-2 py-1" title="Part des prêts qui ne sont plus remboursés normalement (créances douteuses).">NPL</th>
                         <th className="text-right px-2 py-1">Pertes nettes</th>
                         <th className="text-right px-2 py-1">Besoin en capital</th>
                         <th className="text-left px-2 py-1">Statut</th>
@@ -486,7 +535,7 @@ export default function StressTestPage({ currentUser }) {
                     </tbody>
                   </table>
                 </div>
-                <p className="mt-1.5 text-[10px] text-slate-500">Montants en millions TND. Cliquez sur une banque pour son détail.</p>
+                <p className="mt-1.5 text-xs text-slate-400">Montants en millions TND. Cliquez sur une banque pour son détail.</p>
               </Card>
 
               {bank && (
@@ -496,14 +545,14 @@ export default function StressTestPage({ currentUser }) {
                       rows={bank.waterfall.map((w) => ({ key: w.key, label: w.label, value: w.value }))}
                       format={(v) => `${v >= 0 ? '+' : ''}${Math.round(v)}`}
                     />
-                    <div className="mt-2 text-[11px] text-slate-400 font-mono">
+                    <div className="mt-2 text-[13px] text-slate-400 font-mono">
                       CET1 {mtnd(bank.before.cet1)} → {mtnd(bank.after.cet1)} · RWA {mtnd(bank.before.rwa)} → {mtnd(bank.after.rwa)}
                     </div>
                   </Card>
                   <Card title={`Explication SHAP · ${bank.name}`}>
                     {bank.explanation ? (
                       <>
-                        <div className="text-[11px] text-slate-400 mb-1.5">
+                        <div className="text-[13px] text-slate-400 mb-1.5">
                           Taux de perte de crédit prédit {pct(bank.explanation.prediction, 2)} (moyenne des scénarios d'entraînement {pct(bank.explanation.base_value, 2)}).
                           Chaque barre (en points de %) montre l'écart dû à un facteur par rapport à cette moyenne : rouge = plus de pertes, vert = moins.
                         </div>
@@ -514,7 +563,7 @@ export default function StressTestPage({ currentUser }) {
                           format={(v) => `${v >= 0 ? '+' : ''}${(v * 100).toFixed(2)}`}
                         />
                       </>
-                    ) : <div className="text-xs text-slate-500">Pas d'explication disponible.</div>}
+                    ) : <div className="text-xs text-slate-400">Pas d'explication disponible.</div>}
                   </Card>
                 </div>
               )}

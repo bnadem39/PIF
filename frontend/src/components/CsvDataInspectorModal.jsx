@@ -155,7 +155,7 @@ export default function CsvDataInspectorModal({
                 <h2 className="text-base font-extrabold text-white tracking-wide">
                   VISUALISEUR DE DONNÉES CSV & ARCHIVES DE MARCHÉ
                 </h2>
-                <span className="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded font-mono font-bold">
+                <span className="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded font-mono font-bold">
                   4 FICHIERS CSV DISPONIBLES
                 </span>
               </div>
@@ -185,7 +185,7 @@ export default function CsvDataInspectorModal({
 
         {/* 2. BANDEAU DES FICHIERS CSV DÉTECTÉS */}
         <div className="px-5 py-2.5 bg-[#080D1A] border-b border-[#1E293B] flex items-center gap-3 overflow-x-auto text-xs shrink-0 select-none">
-          <span className="text-slate-400 font-mono text-[11px] uppercase tracking-wider shrink-0 flex items-center gap-1">
+          <span className="text-slate-400 font-mono text-[13px] uppercase tracking-wider shrink-0 flex items-center gap-1">
             <Database size={13} className="text-[#38BDF8]" /> Sources CSV :
           </span>
           {csvFiles.map((file, idx) => (
@@ -195,11 +195,11 @@ export default function CsvDataInspectorModal({
             >
               <HardDrive size={12} className="text-slate-400" />
               <span className="font-bold text-slate-200">{file.fileName}</span>
-              <span className="text-[10px] text-slate-400">({file.fileSizeFormatted})</span>
-              <span className="text-[10px] bg-slate-800 text-sky-400 px-1 rounded">
+              <span className="text-xs text-slate-400">({file.fileSizeFormatted})</span>
+              <span className="text-xs bg-slate-800 text-sky-400 px-1 rounded">
                 {file.recordsCount?.toLocaleString()} lignes
               </span>
-              <span className="text-[10px] text-emerald-400 font-semibold">{file.dateRange}</span>
+              <span className="text-xs text-emerald-400 font-semibold">{file.dateRange}</span>
             </div>
           ))}
         </div>
@@ -321,33 +321,33 @@ export default function CsvDataInspectorModal({
         {stats && stats.count > 0 && (
           <div className="px-5 py-3 bg-[#080D1A] border-b border-[#1E293B] grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 shrink-0 font-mono">
             <div className="bg-[#0F172A] p-2.5 rounded-lg border border-[#1E293B]">
-              <div className="text-[10px] text-slate-400 uppercase">Séances Cotées</div>
+              <div className="text-xs text-slate-400 uppercase">Séances Cotées</div>
               <div className="text-sm font-bold text-white mt-0.5">
                 {stats.count} séances
               </div>
-              <div className="text-[9px] text-slate-400 mt-0.5 truncate">
+              <div className="text-xs text-slate-400 mt-0.5 truncate">
                 {stats.firstDate} → {stats.lastDate}
               </div>
             </div>
 
             <div className="bg-[#0F172A] p-2.5 rounded-lg border border-[#1E293B]">
-              <div className="text-[10px] text-slate-400 uppercase">Ouverture Année</div>
+              <div className="text-xs text-slate-400 uppercase">Ouverture Année</div>
               <div className="text-sm font-bold text-white mt-0.5">
                 {stats.firstOpen?.toFixed(precision)} {currentAssetObj.currency}
               </div>
-              <div className="text-[9px] text-slate-400 mt-0.5">Premier cours</div>
+              <div className="text-xs text-slate-400 mt-0.5">Premier cours</div>
             </div>
 
             <div className="bg-[#0F172A] p-2.5 rounded-lg border border-[#1E293B]">
-              <div className="text-[10px] text-slate-400 uppercase">Clôture Année</div>
+              <div className="text-xs text-slate-400 uppercase">Clôture Année</div>
               <div className="text-sm font-bold text-white mt-0.5">
                 {stats.lastClose?.toFixed(precision)} {currentAssetObj.currency}
               </div>
-              <div className="text-[9px] text-slate-400 mt-0.5">Dernier cours</div>
+              <div className="text-xs text-slate-400 mt-0.5">Dernier cours</div>
             </div>
 
             <div className="bg-[#0F172A] p-2.5 rounded-lg border border-[#1E293B]">
-              <div className="text-[10px] text-slate-400 uppercase">Performance Annuelle</div>
+              <div className="text-xs text-slate-400 uppercase">Performance Annuelle</div>
               <div
                 className={`text-sm font-extrabold mt-0.5 flex items-center gap-1 ${
                   isPositivePerf ? 'text-emerald-400' : 'text-rose-400'
@@ -357,31 +357,31 @@ export default function CsvDataInspectorModal({
                 {isPositivePerf ? '+' : ''}
                 {stats.changePercent?.toFixed(2)}%
               </div>
-              <div className="text-[9px] text-slate-400 mt-0.5">Variation nette</div>
+              <div className="text-xs text-slate-400 mt-0.5">Variation nette</div>
             </div>
 
             <div className="bg-[#0F172A] p-2.5 rounded-lg border border-[#1E293B]">
-              <div className="text-[10px] text-slate-400 uppercase">Plus Haut Annuel</div>
+              <div className="text-xs text-slate-400 uppercase">Plus Haut Annuel</div>
               <div className="text-sm font-bold text-emerald-400 mt-0.5">
                 {stats.maxHigh?.toFixed(precision)} {currentAssetObj.currency}
               </div>
-              <div className="text-[9px] text-slate-400 mt-0.5">Plafond historique</div>
+              <div className="text-xs text-slate-400 mt-0.5">Plafond historique</div>
             </div>
 
             <div className="bg-[#0F172A] p-2.5 rounded-lg border border-[#1E293B]">
-              <div className="text-[10px] text-slate-400 uppercase">Plus Bas Annuel</div>
+              <div className="text-xs text-slate-400 uppercase">Plus Bas Annuel</div>
               <div className="text-sm font-bold text-rose-400 mt-0.5">
                 {stats.minLow?.toFixed(precision)} {currentAssetObj.currency}
               </div>
-              <div className="text-[9px] text-slate-400 mt-0.5">Plancher historique</div>
+              <div className="text-xs text-slate-400 mt-0.5">Plancher historique</div>
             </div>
 
             <div className="bg-[#0F172A] p-2.5 rounded-lg border border-[#1E293B]">
-              <div className="text-[10px] text-slate-400 uppercase">Volume Échangé</div>
+              <div className="text-xs text-slate-400 uppercase">Volume Échangé</div>
               <div className="text-sm font-bold text-sky-400 mt-0.5 truncate">
                 {Number(stats.totalVolume || 0).toLocaleString()}
               </div>
-              <div className="text-[9px] text-slate-400 mt-0.5 truncate">
+              <div className="text-xs text-slate-400 mt-0.5 truncate">
                 Moy: {Number(stats.avgVolume || 0).toLocaleString()}
               </div>
             </div>
@@ -413,7 +413,7 @@ export default function CsvDataInspectorModal({
 
           {rawDataResult?.rows && rawDataResult.rows.length > 0 && (
             <table className="w-full text-left border-collapse text-xs font-mono select-text">
-              <thead className="bg-[#0F172A] sticky top-0 z-10 text-[11px] text-slate-400 uppercase border-b border-[#1E293B]">
+              <thead className="bg-[#0F172A] sticky top-0 z-10 text-[13px] text-slate-400 uppercase border-b border-[#1E293B]">
                 <tr>
                   <th className="py-2.5 px-4 font-semibold">Date</th>
                   <th className="py-2.5 px-4 font-semibold text-right">Ouv. (Open)</th>
@@ -464,7 +464,7 @@ export default function CsvDataInspectorModal({
                       </td>
                       <td className="py-2 px-4 text-center">
                         <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold ${
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold ${
                             isUp
                               ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-800/60'
                               : isDown

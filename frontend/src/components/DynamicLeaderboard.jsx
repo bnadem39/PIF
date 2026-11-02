@@ -90,28 +90,28 @@ export default function DynamicLeaderboard({
   return (
     <aside className="w-80 md:w-96 bg-[#0B0F19] border-l border-[#1E293B] flex flex-col h-full overflow-hidden select-none font-sans shrink-0">
       {/* 1. EN-TÊTE DU LEADERBOARD */}
-      <div className="p-3 bg-[#0F172A] border-b border-[#1E293B] flex flex-col gap-2.5 shadow-sm">
+      <div className="p-4 bg-[#0F172A] border-b border-[#1E293B] flex flex-col gap-2.5 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30">
               <Trophy size={16} />
             </div>
             <div>
-              <h2 className="text-xs font-black text-white tracking-wide uppercase flex items-center gap-1.5">
+              <h2 className="text-sm font-semibold text-white tracking-wide uppercase flex items-center gap-1.5">
                 Leaderboard Rendement YTD
                 <span className="flex h-2 w-2 relative">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
               </h2>
-              <p className="text-[10px] text-slate-400 font-mono">
+              <p className="text-[13px] text-slate-300 font-mono">
                 Simulation au : <strong className="text-sky-400">{simulatedDate || '---'}</strong>
               </p>
             </div>
           </div>
 
           <div className="text-right font-mono">
-            <span className="text-[10px] bg-[#0284C7]/20 text-[#38BDF8] border border-[#0284C7]/40 px-2 py-0.5 rounded font-bold">
+            <span className="text-xs bg-[#0284C7]/20 text-[#38BDF8] border border-[#0284C7]/40 px-2 py-0.5 rounded font-bold">
               {currentIndex + 1} / {totalDays || 0} séances
             </span>
           </div>
@@ -119,7 +119,7 @@ export default function DynamicLeaderboard({
 
         {/* Filtres de catégorie & recherche rapide */}
         <div className="flex items-center gap-1.5 pt-1">
-          <div className="flex items-center bg-[#080C14] rounded-lg p-0.5 border border-[#1E293B] flex-1 text-[11px] font-mono">
+          <div className="flex items-center bg-[#080C14] rounded-lg p-0.5 border border-[#1E293B] flex-1 text-xs font-mono">
             {[
               { id: 'ALL', label: 'Tous' },
               { id: 'BVMT', label: 'BVMT' },
@@ -146,14 +146,14 @@ export default function DynamicLeaderboard({
               placeholder="Chercher..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#080C14] border border-[#1E293B] rounded-lg pl-7 pr-2 py-1 text-[11px] text-slate-200 placeholder-slate-500 outline-none focus:border-[#38BDF8]"
+              className="w-full bg-[#080C14] border border-[#1E293B] rounded-lg pl-7 pr-2 py-1 text-xs text-slate-200 placeholder-slate-500 outline-none focus:border-[#38BDF8]"
             />
           </div>
         </div>
       </div>
 
       {/* 2. ENTÊTE DU TABLEAU */}
-      <div className="grid grid-cols-12 px-3 py-1.5 bg-[#080C14] text-[10px] font-mono font-bold text-slate-400 border-b border-[#1E293B] uppercase tracking-wider">
+      <div className="grid grid-cols-12 px-3 py-1.5 bg-[#080C14] text-[13px] font-mono font-bold text-slate-300 border-b border-[#1E293B] uppercase tracking-wider">
         <div className="col-span-2 text-center">Rang</div>
         <div className="col-span-4">Actif / Prix</div>
         <div className="col-span-4 text-right">Rendement YTD</div>
@@ -177,25 +177,25 @@ export default function DynamicLeaderboard({
 
             // Médaille spéciale pour le podium #1, #2, #3
             let rankBadge = (
-              <span className="font-mono text-[11px] font-bold text-slate-400">
+              <span className="font-mono text-[13px] font-bold text-slate-300">
                 #{rank}
               </span>
             );
             if (rank === 1) {
               rankBadge = (
-                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gradient-to-br from-amber-300 to-amber-600 text-slate-950 font-black text-[10px] shadow-sm shadow-amber-500/30">
+                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gradient-to-br from-amber-300 to-amber-600 text-slate-950 font-black text-xs shadow-sm shadow-amber-500/30">
                   1
                 </span>
               );
             } else if (rank === 2) {
               rankBadge = (
-                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gradient-to-br from-slate-200 to-slate-400 text-slate-950 font-black text-[10px] shadow-sm">
+                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gradient-to-br from-slate-200 to-slate-400 text-slate-950 font-black text-xs shadow-sm">
                   2
                 </span>
               );
             } else if (rank === 3) {
               rankBadge = (
-                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gradient-to-br from-amber-600 to-amber-800 text-amber-100 font-black text-[10px] shadow-sm">
+                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gradient-to-br from-amber-600 to-amber-800 text-amber-100 font-black text-xs shadow-sm">
                   3
                 </span>
               );
@@ -231,7 +231,7 @@ export default function DynamicLeaderboard({
                       {asset.symbol}
                     </span>
                     <span
-                      className={`text-[8px] font-bold px-1 rounded uppercase tracking-wider ${
+                      className={`text-[13px] font-bold px-1 rounded uppercase tracking-wider ${
                         isCrypto
                           ? 'bg-purple-950/80 text-purple-300 border border-purple-800/60'
                           : 'bg-sky-950/80 text-sky-300 border border-sky-800/60'
@@ -240,9 +240,9 @@ export default function DynamicLeaderboard({
                       {isCrypto ? 'Crypto' : 'BVMT'}
                     </span>
                   </div>
-                  <div className="text-[10px] font-mono text-slate-300 font-bold truncate">
+                  <div className="text-sm font-mono text-slate-100 font-bold truncate">
                     {asset.currentPrice.toFixed(precision)}{' '}
-                    <span className="text-[9px] text-slate-400 font-normal">{asset.currency}</span>
+                    <span className="text-[13px] text-slate-400 font-normal">{asset.currency}</span>
                   </div>
                 </div>
 
@@ -250,7 +250,7 @@ export default function DynamicLeaderboard({
                 <div className="col-span-4 flex flex-col items-end pr-1.5 font-mono">
                   {/* Badge de Rendement Cumulé YTD Fluo */}
                   <div
-                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-black transition-all ${
+                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-sm font-black transition-all ${
                       isPositive
                         ? 'bg-emerald-950/90 text-emerald-400 border border-emerald-600/70 shadow-sm shadow-emerald-950'
                         : 'bg-rose-950/90 text-rose-400 border border-rose-600/70 shadow-sm shadow-rose-950'
@@ -285,7 +285,7 @@ export default function DynamicLeaderboard({
                         onSelectAsset(asset);
                       }
                     }}
-                    className="p-1 px-1.5 bg-[#0284C7]/20 hover:bg-[#0284C7] text-[#38BDF8] hover:text-white border border-[#0284C7]/50 rounded text-[10px] font-bold font-mono transition-all flex items-center gap-0.5 shadow-sm active:scale-95"
+                    className="p-1 px-1.5 bg-[#0284C7]/20 hover:bg-[#0284C7] text-[#38BDF8] hover:text-white border border-[#0284C7]/50 rounded text-xs font-bold font-mono transition-all flex items-center gap-0.5 shadow-sm active:scale-95"
                     title={`Trader immédiatement ${asset.symbol}`}
                   >
                     <Zap size={10} />
@@ -299,7 +299,7 @@ export default function DynamicLeaderboard({
       </div>
 
       {/* 4. FOOTER RÉCAPITULATIF DU LEADERBOARD */}
-      <div className="p-2.5 bg-[#0F172A] border-t border-[#1E293B] flex items-center justify-between text-[10px] font-mono text-slate-400">
+      <div className="p-2.5 bg-[#0F172A] border-t border-[#1E293B] flex items-center justify-between text-[13px] font-mono text-slate-300">
         <div className="flex items-center gap-1 text-emerald-400 font-bold">
           <Sparkles size={12} />
           <span>Synchronisation 100% Temps Réel</span>
