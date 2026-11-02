@@ -197,6 +197,7 @@ public class TradingService {
             position = optPos.get();
             int oldQty = position.getQuantity();
             BigDecimal oldPru = position.getAverageCostPrice();
+            BigDecimal oldTotalBuyFees = position.getTotalBuyFees() != null ? position.getTotalBuyFees() : BigDecimal.ZERO;
 
             newQuantity = oldQty + quantity;
 
@@ -208,10 +209,13 @@ public class TradingService {
 
             position.setQuantity(newQuantity);
             position.setAverageCostPrice(newPru);
+            // Frais d'achat cumulés sur la quantité détenue, pour répartition au prorata lors d'une vente partielle
+            position.setTotalBuyFees(oldTotalBuyFees.add(fees).setScale(3, RoundingMode.HALF_UP));
         } else {
             position = new Position(user, symbol, quantity, price);
             newQuantity = quantity;
             newPru = price;
+            position.setTotalBuyFees(fees);
         }
 
         // Enregistrement des seuils de protection SL/TP/Trailing Stop
@@ -277,15 +281,22 @@ public class TradingService {
 
         BigDecimal qtyBd = new BigDecimal(quantity);
         BigDecimal pru = position.getAverageCostPrice();
+        BigDecimal oldQtyBd = new BigDecimal(heldQuantity);
+        BigDecimal totalBuyFees = position.getTotalBuyFees() != null ? position.getTotalBuyFees() : BigDecimal.ZERO;
 
         BigDecimal grossProceeds = price.multiply(qtyBd).setScale(3, RoundingMode.HALF_UP);
         BigDecimal fees = grossProceeds.multiply(FEE_RATE).setScale(3, RoundingMode.HALF_UP);
         BigDecimal netProceeds = grossProceeds.subtract(fees).setScale(3, RoundingMode.HALF_UP);
 
-        // Calcul du P&L Réalisé : Q_vendue * (P_exécution - PRU) - Frais_vente
+        // Frais d'achat alloués au prorata de la quantité vendue (échelle intermédiaire 6 pour limiter l'arrondi)
+        BigDecimal buyFeesAllocated = totalBuyFees.multiply(qtyBd)
+                .divide(oldQtyBd, 6, RoundingMode.HALF_UP)
+                .setScale(3, RoundingMode.HALF_UP);
+
+        // Calcul du P&L Réalisé : Q_vendue * (P_exécution - PRU) - Frais_vente - Frais_achat_proportionnels
         BigDecimal priceDiff = price.subtract(pru);
         BigDecimal grossPnl = priceDiff.multiply(qtyBd).setScale(3, RoundingMode.HALF_UP);
-        BigDecimal realizedPnl = grossPnl.subtract(fees).setScale(3, RoundingMode.HALF_UP);
+        BigDecimal realizedPnl = grossPnl.subtract(fees).subtract(buyFeesAllocated).setScale(3, RoundingMode.HALF_UP);
 
         // Crédit du compte cash
         BigDecimal newCashBalance = user.getCashBalance().add(netProceeds).setScale(3, RoundingMode.HALF_UP);
@@ -300,6 +311,8 @@ public class TradingService {
             resultingPru = BigDecimal.ZERO.setScale(3, RoundingMode.HALF_UP);
         } else {
             position.setQuantity(remainingQuantity);
+            // Frais d'achat restants, répartis sur la quantité encore détenue
+            position.setTotalBuyFees(totalBuyFees.subtract(buyFeesAllocated).setScale(3, RoundingMode.HALF_UP));
             positionRepository.save(position);
             resultingPru = pru;
         }
@@ -362,7 +375,10 @@ public class TradingService {
 
             BigDecimal marketValue = currPrice.multiply(qtyBd).setScale(3, RoundingMode.HALF_UP);
             BigDecimal costBasis = pru.multiply(qtyBd).setScale(3, RoundingMode.HALF_UP);
-            BigDecimal unrealizedPnl = marketValue.subtract(costBasis).setScale(3, RoundingMode.HALF_UP);
+            // Les frais d'achat déjà payés (non encore réalisés) réduisent le P&L latent, pour que
+            // P&L réalisés + P&L latent égale exactement la variation de la valeur totale du compte.
+            BigDecimal remainingBuyFees = pos.getTotalBuyFees() != null ? pos.getTotalBuyFees() : BigDecimal.ZERO;
+            BigDecimal unrealizedPnl = marketValue.subtract(costBasis).subtract(remainingBuyFees).setScale(3, RoundingMode.HALF_UP);
 
             BigDecimal unrealizedPnlPercent = costBasis.compareTo(BigDecimal.ZERO) > 0
                     ? unrealizedPnl.divide(costBasis, 4, RoundingMode.HALF_UP).multiply(new BigDecimal("100")).setScale(2, RoundingMode.HALF_UP)

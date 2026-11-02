@@ -32,7 +32,7 @@ from sklearn.preprocessing import RobustScaler
 from sklearn.utils.class_weight import compute_sample_weight
 from sklearn.metrics import (
     accuracy_score, f1_score, precision_score, recall_score,
-    classification_report, confusion_matrix
+    classification_report, confusion_matrix, roc_auc_score
 )
 import xgboost as xgb
 import joblib
@@ -74,8 +74,18 @@ FEATURE_COLS = [
     "log_return_1d", "lag_return_1", "lag_return_2", "lag_return_3",
     # Dynamique de Volume
     "volume_zscore",
-    # Score de Sentiment NLP FinBERT [-1.0, +1.0]
-    "sentiment_score",
+    # Proxy de momentum (RSI/MACD), faute de flux d'actualités réel disponible à l'entraînement
+    "momentum_proxy_score",
+    # Rendements cumulés multi-horizons (strictement rétrospectifs)
+    "cum_return_5d", "cum_return_10d", "cum_return_20d",
+    # Force relative au marché (coupe transversale à la même date, aucune fuite temporelle)
+    "relative_to_market_return",
+    # Régime de volatilité (court terme / moyen terme)
+    "volatility_ratio_5_30",
+    # Position dans le range 52 semaines
+    "dist_to_52w_high", "dist_to_52w_low",
+    # Volume relatif court terme / moyen terme
+    "relative_volume_5_20",
 ]
 TARGET_COL = "target_direction"
 
@@ -108,6 +118,20 @@ XGBOOST_PARAMS = {
 
 N_SPLITS   = 5   # Folds temporels TimeSeriesSplit
 EARLY_STOP = 50  # Arrêt précoce strict sur validation
+
+
+def _binary_auc_safe(y_true_bin, scores):
+    """AUC binaire, ou None si non définie (une seule classe présente dans y_true_bin)."""
+    try:
+        return float(roc_auc_score(y_true_bin, scores))
+    except ValueError:
+        return None
+
+
+def _safe_mean(values):
+    """Moyenne en ignorant les None (folds où la métrique n'était pas calculable)."""
+    vals = [v for v in values if v is not None]
+    return float(np.mean(vals)) if vals else None
 
 
 def ensure_features(df: pd.DataFrame) -> pd.DataFrame:
@@ -164,10 +188,41 @@ def ensure_features(df: pd.DataFrame) -> pd.DataFrame:
             vol_s = grp["volume"].rolling(20, min_periods=1).std().replace(0, 1).fillna(1)
             grp["volume_zscore"] = ((grp["volume"] - vol_m) / vol_s).astype("float32")
 
-        if "sentiment_score" not in grp.columns:
+        if "cum_return_5d" not in grp.columns:
+            grp["cum_return_5d"] = (c / c.shift(5).replace(0, np.nan) - 1).fillna(0).astype("float32")
+        if "cum_return_10d" not in grp.columns:
+            grp["cum_return_10d"] = (c / c.shift(10).replace(0, np.nan) - 1).fillna(0).astype("float32")
+        if "cum_return_20d" not in grp.columns:
+            grp["cum_return_20d"] = (c / c.shift(20).replace(0, np.nan) - 1).fillna(0).astype("float32")
+
+        if "volatility_ratio_5_30" not in grp.columns:
+            vol_30d_ref = grp["volatility_30d"] if "volatility_30d" in grp.columns else (
+                log_ret.rolling(30, min_periods=5).std().fillna(0) * np.sqrt(252) * 100
+            )
+            vol_5d = (log_ret.rolling(5, min_periods=2).std().fillna(0) * np.sqrt(252) * 100)
+            grp["volatility_ratio_5_30"] = (vol_5d / (vol_30d_ref.astype("float64") + 1e-9)).astype("float32")
+
+        if "dist_to_52w_high" not in grp.columns or "dist_to_52w_low" not in grp.columns:
+            roll_high_252 = h.rolling(252, min_periods=20).max()
+            roll_low_252  = l.rolling(252, min_periods=20).min()
+            grp["dist_to_52w_high"] = ((c - roll_high_252) / (roll_high_252 + 1e-9)).astype("float32")
+            grp["dist_to_52w_low"]  = ((c - roll_low_252) / (roll_low_252 + 1e-9)).astype("float32")
+
+        if "relative_volume_5_20" not in grp.columns:
+            vol_m20 = grp["volume"].rolling(20, min_periods=1).mean()
+            vol_ma5 = grp["volume"].rolling(5, min_periods=1).mean()
+            grp["relative_volume_5_20"] = (vol_ma5 / (vol_m20 + 1e-9)).astype("float32")
+
+        if "relative_to_market_return" not in grp.columns:
+            # Repli neutre : ce calcul par ticker isolé ne voit pas la coupe transversale des autres
+            # tickers à la même date (contrairement à data_pipeline.compute_features) ; 0.0 = "ni au-dessus
+            # ni en-dessous du marché", une valeur neutre plutôt qu'une estimation biaisée.
+            grp["relative_to_market_return"] = np.float32(0.0)
+
+        if "momentum_proxy_score" not in grp.columns:
             norm_rsi = (grp["rsi_14"] - 50.0) / 25.0
             norm_macd = grp["macd_hist"] / (c * 0.01 + 1e-9)
-            grp["sentiment_score"] = np.tanh(0.6 * norm_rsi + 0.4 * norm_macd).astype("float32")
+            grp["momentum_proxy_score"] = np.tanh(0.6 * norm_rsi + 0.4 * norm_macd).astype("float32")
 
         frames.append(grp)
 
@@ -184,14 +239,16 @@ def prepare_data(df: pd.DataFrame, ticker: str = None, return_dates: bool = Fals
 
     df = ensure_features(df)
 
-    # Tri temporel strict par date (pas de shuffle / lookahead bias)
-    df = df.sort_values("date").reset_index(drop=True)
+    # Tri temporel strict par (date, ticker) : chaque fold de validation doit être
+    # strictement postérieur à son entraînement, quel que soit le ticker (pas de shuffle / lookahead bias)
+    df = df.sort_values(["date", "ticker"]).reset_index(drop=True)
 
     X = df[FEATURE_COLS].astype("float32")
     y = df[TARGET_COL].astype("int8")
 
     valid_mask = X.notna().all(axis=1) & y.notna()
     dates = df.loc[valid_mask, "date"].reset_index(drop=True)
+    tickers = df.loc[valid_mask, "ticker"].reset_index(drop=True)
     X = X[valid_mask].reset_index(drop=True)
     y = y[valid_mask].reset_index(drop=True)
 
@@ -202,14 +259,18 @@ def prepare_data(df: pd.DataFrame, ticker: str = None, return_dates: bool = Fals
     )
 
     if return_dates:
-        return X, y, dates
+        return X, y, dates, tickers
     return X, y
 
 
-def cross_validate_timeseries(X: pd.DataFrame, y: pd.Series):
-    """Validation croisée temporelle 3-classes avec TimeSeriesSplit."""
-    log.info(f"[CV] TimeSeriesSplit 3-Classes ({N_SPLITS} folds chronologiques)")
-    tscv = TimeSeriesSplit(n_splits=N_SPLITS)
+def cross_validate_timeseries(X: pd.DataFrame, y: pd.Series, gap: int = 0):
+    """Validation croisée temporelle 3-classes avec TimeSeriesSplit.
+
+    gap (en nombre de lignes) sépare la fin de chaque train de son validation,
+    pour couvrir l'horizon de 5 jours sur lequel la cible regarde devant (anti-fuite temporelle).
+    """
+    log.info(f"[CV] TimeSeriesSplit 3-Classes ({N_SPLITS} folds chronologiques, gap={gap} lignes)")
+    tscv = TimeSeriesSplit(n_splits=N_SPLITS, gap=gap)
 
     # Mappage des labels {-1, 0, 1} vers {0, 1, 2}
     y_xgb = y.map(CLASS_TO_IDX).to_numpy()
@@ -243,22 +304,83 @@ def cross_validate_timeseries(X: pd.DataFrame, y: pd.Series):
         acc   = accuracy_score(y_val, y_pred)
         f1_m  = f1_score(y_val, y_pred, average="macro", zero_division=0)
         f1_w  = f1_score(y_val, y_pred, average="weighted", zero_division=0)
-        p_buy = precision_score(y_val, y_pred, labels=[2], average=None, zero_division=0)[0]
-        p_sel = precision_score(y_val, y_pred, labels=[0], average=None, zero_division=0)[0]
+
+        # Précision et rappel de chaque classe (ordre [0,1,2] = Vente, Neutre, Achat)
+        precision_pc = precision_score(y_val, y_pred, labels=[0, 1, 2], average=None, zero_division=0)
+        recall_pc    = recall_score(y_val, y_pred, labels=[0, 1, 2], average=None, zero_division=0)
+        p_sel, p_neu, p_buy = (float(v) for v in precision_pc)
+        r_sel, r_neu, r_buy = (float(v) for v in recall_pc)
+
+        # AUC multi-classes One-vs-Rest (macro) : peut être non définie si une classe est absente du fold de validation
+        try:
+            auc = float(roc_auc_score(y_val, y_prob, multi_class="ovr", average="macro", labels=[0, 1, 2]))
+        except ValueError as e:
+            log.warning(f"  Fold {fold_idx + 1}: AUC macro non calculable ({e})")
+            auc = None
+
+        # AUC par classe (un contre tous), calculée à la main pour avoir le détail par classe
+        auc_sell = _binary_auc_safe((y_val == 0).astype(int), y_prob[:, 0])
+        auc_neu  = _binary_auc_safe((y_val == 1).astype(int), y_prob[:, 1])
+        auc_buy  = _binary_auc_safe((y_val == 2).astype(int), y_prob[:, 2])
+
+        # AUC directionnelle : Achat contre Vente uniquement, sur les lignes dont la vraie classe n'est pas Neutre
+        dir_mask = y_val != 1
+        if dir_mask.sum() > 0 and len(np.unique(y_val[dir_mask])) > 1:
+            auc_directional = _binary_auc_safe((y_val[dir_mask] == 2).astype(int), y_prob[dir_mask, 2])
+        else:
+            auc_directional = None
+
+        # Précision directionnelle : parmi les lignes où la vraie classe ET la prédiction sont Achat ou Vente
+        # (on exclut Neutre des deux côtés), la part où le sens prédit correspond au sens réel
+        pred_dir_mask = dir_mask & (y_pred != 1)
+        directional_precision = (
+            float(accuracy_score(y_val[pred_dir_mask], y_pred[pred_dir_mask]))
+            if pred_dir_mask.sum() > 0 else None
+        )
+
+        # Répartition des classes du fold de validation (Vente / Neutre / Achat)
+        val_dist = pd.Series(y_val).value_counts(normalize=True).reindex([0, 1, 2], fill_value=0.0)
 
         log.info(
-            f"  Fold {fold_idx + 1}/{N_SPLITS} | Accuracy={acc:.4f} | F1-Macro={f1_m:.4f} | "
-            f"F1-Weighted={f1_w:.4f} | Prec(+1)={p_buy:.4f} | Prec(-1)={p_sel:.4f} | Iter={model.best_iteration}"
+            f"  Fold {fold_idx + 1}/{N_SPLITS} | Accuracy={acc:.4f} | AUC(macro)={'N/A' if auc is None else f'{auc:.4f}'} | "
+            f"F1-Macro={f1_m:.4f} | F1-Weighted={f1_w:.4f} | Iter={model.best_iteration}"
+        )
+        log.info(
+            f"    AUC par classe -> Vente={'N/A' if auc_sell is None else f'{auc_sell:.4f}'} | "
+            f"Neutre={'N/A' if auc_neu is None else f'{auc_neu:.4f}'} | "
+            f"Achat={'N/A' if auc_buy is None else f'{auc_buy:.4f}'} | "
+            f"AUC directionnelle (Achat/Vente)={'N/A' if auc_directional is None else f'{auc_directional:.4f}'}"
+        )
+        log.info(
+            f"    Précision/Rappel -> Vente: P={p_sel:.4f} R={r_sel:.4f} | Neutre: P={p_neu:.4f} R={r_neu:.4f} | "
+            f"Achat: P={p_buy:.4f} R={r_buy:.4f} | Précision directionnelle="
+            f"{'N/A' if directional_precision is None else f'{directional_precision:.4f}'}"
+        )
+        log.info(
+            f"    Répartition validation -> Vente={val_dist[0]:.1%} | Neutre={val_dist[1]:.1%} | Achat={val_dist[2]:.1%}"
         )
 
         cv_results.append({
             "fold": fold_idx + 1,
             "accuracy": float(acc),
+            "auc": auc,
+            "auc_per_class": {"sell": auc_sell, "neutral": auc_neu, "buy": auc_buy},
+            "auc_directional": auc_directional,
             "f1_macro": float(f1_m),
             "f1_weighted": float(f1_w),
-            "precision_buy": float(p_buy),
-            "precision_sell": float(p_sel),
+            "precision_buy": p_buy,
+            "precision_sell": p_sel,
+            "precision_neutral": p_neu,
+            "recall_buy": r_buy,
+            "recall_sell": r_sel,
+            "recall_neutral": r_neu,
+            "directional_precision": directional_precision,
             "best_iteration": int(model.best_iteration),
+            "val_class_distribution": {
+                "sell": float(val_dist[0]),
+                "neutral": float(val_dist[1]),
+                "buy": float(val_dist[2]),
+            },
         })
 
         if f1_m > best_score:
@@ -268,23 +390,72 @@ def cross_validate_timeseries(X: pd.DataFrame, y: pd.Series):
         del X_train_sc, X_val_sc
         gc.collect()
 
+    auc_values = [r["auc"] for r in cv_results if r["auc"] is not None]
     log.info("[CV] Résumé des métriques 3-classes :")
-    log.info(f"  Accuracy Moyenne     = {np.mean([r['accuracy'] for r in cv_results]):.4f} ± {np.std([r['accuracy'] for r in cv_results]):.4f}")
-    log.info(f"  F1-Macro Moyen       = {np.mean([r['f1_macro'] for r in cv_results]):.4f} ± {np.std([r['f1_macro'] for r in cv_results]):.4f}")
-    log.info(f"  F1-Weighted Moyen    = {np.mean([r['f1_weighted'] for r in cv_results]):.4f} ± {np.std([r['f1_weighted'] for r in cv_results]):.4f}")
+    log.info(f"  Accuracy Moyenne         = {np.mean([r['accuracy'] for r in cv_results]):.4f} ± {np.std([r['accuracy'] for r in cv_results]):.4f}")
+    if auc_values:
+        log.info(f"  AUC Moyenne (OvR macro)  = {np.mean(auc_values):.4f} ± {np.std(auc_values):.4f}")
+    else:
+        log.info("  AUC Moyenne (OvR macro)  = N/A (non calculable sur aucun fold)")
+
+    mean_auc_sell = _safe_mean([r["auc_per_class"]["sell"] for r in cv_results])
+    mean_auc_neu  = _safe_mean([r["auc_per_class"]["neutral"] for r in cv_results])
+    mean_auc_buy  = _safe_mean([r["auc_per_class"]["buy"] for r in cv_results])
+    mean_auc_dir  = _safe_mean([r["auc_directional"] for r in cv_results])
+    mean_dir_prec = _safe_mean([r["directional_precision"] for r in cv_results])
+
+    def _fmt(v):
+        return "N/A" if v is None else f"{v:.4f}"
+
+    log.info(f"  AUC Moyenne par classe   -> Vente={_fmt(mean_auc_sell)} | Neutre={_fmt(mean_auc_neu)} | Achat={_fmt(mean_auc_buy)}")
+    log.info(f"  AUC Directionnelle Moy.  = {_fmt(mean_auc_dir)} (Achat vs Vente, hors Neutre)")
+    log.info(f"  F1-Macro Moyen           = {np.mean([r['f1_macro'] for r in cv_results]):.4f} ± {np.std([r['f1_macro'] for r in cv_results]):.4f}")
+    log.info(f"  F1-Weighted Moyen        = {np.mean([r['f1_weighted'] for r in cv_results]):.4f} ± {np.std([r['f1_weighted'] for r in cv_results]):.4f}")
+    log.info(
+        "  Précision Moyenne       -> Vente={:.4f} | Neutre={:.4f} | Achat={:.4f}".format(
+            np.mean([r["precision_sell"] for r in cv_results]),
+            np.mean([r["precision_neutral"] for r in cv_results]),
+            np.mean([r["precision_buy"] for r in cv_results]),
+        )
+    )
+    log.info(
+        "  Rappel Moyen            -> Vente={:.4f} | Neutre={:.4f} | Achat={:.4f}".format(
+            np.mean([r["recall_sell"] for r in cv_results]),
+            np.mean([r["recall_neutral"] for r in cv_results]),
+            np.mean([r["recall_buy"] for r in cv_results]),
+        )
+    )
+    log.info(f"  Précision Directionnelle Moy. = {_fmt(mean_dir_prec)} (Achat/Vente prédits sur Achat/Vente réels)")
+
+    # Baseline "toujours la classe majoritaire" (du train du dernier fold) + matrice de confusion du dernier fold
+    majority_idx = int(pd.Series(y_train).value_counts().idxmax())
+    baseline_pred = np.full_like(y_val, majority_idx)
+    baseline_acc = accuracy_score(y_val, baseline_pred)
+    cm_last = confusion_matrix(y_val, y_pred, labels=[0, 1, 2])
+    log.info(
+        f"[CV] Baseline (toujours \"{CLASS_NAMES[majority_idx]}\", classe majoritaire du train) "
+        f"sur la validation du dernier fold : Accuracy={baseline_acc:.4f}"
+    )
+    log.info(
+        "[CV] Matrice de confusion du dernier fold (lignes=réel, colonnes=prédit, ordre Vente/Neutre/Achat) :\n"
+        f"{cm_last}"
+    )
 
     return cv_results, best_fold_model
 
 
-def train_final_model(X: pd.DataFrame, y: pd.Series):
+def train_final_model(X: pd.DataFrame, y: pd.Series, gap: int = 0):
     """
-    Entraînement final sur 80% passé avec validation sur 20% futur (chronologique).
+    Entraînement final sur 80% passé avec validation sur les 20% de dates les plus récentes (chronologique).
+    gap (en nombre de lignes) est retiré de la fin du train pour couvrir l'horizon de 5 jours de la cible :
+    la validation reste bien les 20% les plus récents, c'est le train qui s'arrête plus tôt.
     """
-    log.info("[TRAIN] Entraînement final 3-Classes (80% Train chronologique / 20% Val)...")
+    log.info(f"[TRAIN] Entraînement final 3-Classes (80% Train chronologique / 20% Val le plus récent, gap={gap} lignes)...")
 
     split_idx = int(len(X) * 0.80)
-    X_tr, X_val = X.iloc[:split_idx], X.iloc[split_idx:]
-    y_tr, y_val = y.iloc[:split_idx], y.iloc[split_idx:]
+    train_end = max(0, split_idx - gap)
+    X_tr, X_val = X.iloc[:train_end], X.iloc[split_idx:]
+    y_tr, y_val = y.iloc[:train_end], y.iloc[split_idx:]
 
     y_tr_xgb  = y_tr.map(CLASS_TO_IDX).to_numpy()
     y_val_xgb = y_val.map(CLASS_TO_IDX).to_numpy()
@@ -365,6 +536,10 @@ def save_model(model, scaler, cv_results: list, feature_cols: list, eval_summary
         "classes": [-1, 0, 1],
         "cv_results": cv_results,
         "cv_mean_accuracy": float(np.mean([r["accuracy"] for r in cv_results])),
+        "cv_mean_auc": (
+            float(np.mean([r["auc"] for r in cv_results if r["auc"] is not None]))
+            if any(r["auc"] is not None for r in cv_results) else None
+        ),
         "cv_mean_f1_macro": float(np.mean([r["f1_macro"] for r in cv_results])),
         "final_evaluation": eval_summary,
         # Le modèle a vu toutes les données antérieures : un backtest du signal IA n'est honnête qu'après cette date
@@ -450,14 +625,20 @@ def main():
     log.info("=" * 70)
 
     df = load_processed(Path(args.data_path))
-    X, y, dates = prepare_data(df, ticker=args.ticker, return_dates=True)
+    X, y, dates, tickers = prepare_data(df, ticker=args.ticker, return_dates=True)
     validation_start = str(pd.Timestamp(dates.iloc[int(len(X) * 0.80)]).date())
 
+    # Écart (gap) entre train et validation = horizon de la cible (5 jours de bourse), en nombre de lignes.
+    # En multi-actifs, une "journée de bourse" correspond à ~n_tickers lignes dans le jeu trié (date, ticker).
+    n_tickers = max(1, tickers.nunique())
+    gap_rows = 5 * n_tickers
+    log.info(f"[GAP] Horizon cible = 5 jours de bourse | Tickers = {n_tickers} | Gap = {gap_rows} lignes")
+
     # 1. Validation croisée temporelle
-    cv_results, _ = cross_validate_timeseries(X, y)
+    cv_results, _ = cross_validate_timeseries(X, y, gap=gap_rows)
 
     # 2. Entraînement final
-    final_model, final_scaler, eval_summary = train_final_model(X, y)
+    final_model, final_scaler, eval_summary = train_final_model(X, y, gap=gap_rows)
 
     # 3. Sauvegarde multi-format
     save_model(final_model, final_scaler, cv_results, FEATURE_COLS, eval_summary, validation_start)

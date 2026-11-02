@@ -16,7 +16,7 @@ import pandas as pd
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from data_pipeline import compute_features
+from data_pipeline import compute_features, apply_relative_to_market_return
 
 MODEL_DIR = Path(__file__).parent / "models"
 router = APIRouter(prefix="/api/ai/backtest", tags=["backtesting"])
@@ -63,6 +63,9 @@ def signals_for(candles: pd.DataFrame, model, scaler, feature_cols, threshold: f
     df["ticker"] = "ASSET"
     df["date"] = pd.to_datetime(df["time"].str.slice(0, 10))
     feats = compute_features(df).sort_values("date").reset_index(drop=True)
+    # Un seul ticker ici : compute_features() ne peut pas voir la coupe transversale du marché,
+    # relative_to_market_return est donc recalculée à partir de la moyenne de marché précalculée.
+    feats = apply_relative_to_market_return(feats)
     X = feats[feature_cols].astype("float32").replace([np.inf, -np.inf], np.nan).fillna(0.0)
     probas = model.predict_proba(scaler.transform(X))      # colonnes [P(-1), P(0), P(+1)]
     p_sell, p_buy = probas[:, 0], probas[:, 2]

@@ -528,7 +528,7 @@ export default function PortfolioAnalyticsView({
                       <td className="py-2.5 px-3 text-center">
                         {pos.stopLossPrice ? (
                           <span className="text-rose-400 font-bold bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">
-                            {Number(pos.stopLossPrice).toFixed(3)}
+                            {Number(pos.stopLossPrice).toFixed(3)} TND
                           </span>
                         ) : (
                           <span className="text-slate-500">Non défini</span>

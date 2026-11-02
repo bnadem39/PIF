@@ -46,6 +46,11 @@ public class Position {
     @Column(name = "highest_price_seen", precision = 15, scale = 3)
     private BigDecimal highestPriceSeen;
 
+    // Frais d'achat cumulés (TND) sur la quantité actuellement détenue, pour répartition au prorata
+    // de la quantité vendue dans le calcul du P&L réalisé (TradingService.executeSellOrder).
+    @Column(name = "total_buy_fees", nullable = false, precision = 15, scale = 3)
+    private BigDecimal totalBuyFees = BigDecimal.ZERO;
+
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
@@ -58,6 +63,7 @@ public class Position {
         this.quantity = quantity;
         this.averageCostPrice = averageCostPrice;
         this.highestPriceSeen = averageCostPrice;
+        this.totalBuyFees = BigDecimal.ZERO;
     }
 
     @PrePersist
@@ -139,6 +145,14 @@ public class Position {
 
     public void setHighestPriceSeen(BigDecimal highestPriceSeen) {
         this.highestPriceSeen = highestPriceSeen;
+    }
+
+    public BigDecimal getTotalBuyFees() {
+        return totalBuyFees;
+    }
+
+    public void setTotalBuyFees(BigDecimal totalBuyFees) {
+        this.totalBuyFees = totalBuyFees;
     }
 
     public LocalDateTime getUpdatedAt() {

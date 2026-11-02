@@ -272,3 +272,59 @@ Ces changements portent sur l'affichage et la fiabilité de l'interface. Aucun c
 ### Limites connues et suite
 - Précision du modèle IA d'environ 50 % en validation croisée : le Signal IA fait moins bien que l'achat-conservation.
 - À faire : améliorer le modèle (validation walk-forward), traduire les messages d'erreur d'authentification, désactiver le bouton Optimiser avec moins de 2 actifs, afficher un vrai statut de connexion.
+
+## Mises à jour : P&L, validation du modèle IA et parité d'inférence
+
+### Portefeuille : P&L réalisé et latent
+- Le **P&L réalisé** inclut désormais les frais d'achat au prorata de la quantité vendue :
+  `P&L réalisé = (prix de vente − PRU) × quantité − frais de vente − frais d'achat proportionnels`.
+- Le **P&L latent** retranche les frais d'achat non encore réalisés, de sorte que
+  `P&L réalisé + P&L latent = variation de la valeur totale du compte`.
+- Une migration (`V6__position_buy_fees.sql`) ajoute le cumul des frais d'achat à chaque position.
+  Les positions ouvertes avant la migration démarrent avec des frais d'achat à 0.
+- La colonne Stop-Loss est un **prix absolu** : elle est maintenant affichée avec l'unité (TND).
+- Test unitaire : achat de 10 à 60,5 puis vente de 10 à 63 (frais 0,15 %) → P&L réalisé de 23,147.
+
+### Service IA : validation et métriques
+- Tri des données par `(date, ticker)` et `TimeSeriesSplit` à 5 plis avec un **gap de 5 jours de bourse**
+  (5 × nombre de tickers) entre entraînement et validation. Évaluation finale sur les 20 % de dates les plus récentes.
+- `cv_mean_auc` est calculé (AUC un-contre-tous, moyenne macro) et exposé par `/api/ai/health`.
+- Métriques affichées à l'entraînement : accuracy, AUC macro, AUC par classe, **AUC directionnelle**
+  (Achat contre Vente sur les jours non neutres), précision/rappel par classe, baseline « toujours Neutre »
+  et matrice de confusion du dernier pli.
+- `sentiment_score` renommé `momentum_proxy_score` : c'est un score de momentum dérivé de RSI/MACD, pas un
+  sentiment d'actualités.
+- 8 variables ajoutées (28 au total) : rendements cumulés 5/10/20 jours, rendement relatif au marché,
+  ratio de volatilité 5/30 jours, distance au plus haut/bas 52 semaines, volume relatif 5/20 jours.
+
+### Parité entraînement / inférence
+- `relative_to_market_return` suppose la moyenne du marché à la même date. Avec un seul ticker, elle valait
+  toujours 0 à l'inférence. Elle est désormais lue dans `ai/models/market_return_by_date.csv`
+  (généré par `ai/build_market_return.py`) ; si une date manque, la moyenne retombe sur 0 avec un avertissement.
+- Vérification sur BIAT (3 170 dates) : écart maximal nul entre la valeur d'entraînement et celle d'inférence.
+
+### Relancer le service IA après un réentraînement
+Le modèle du backtest est chargé une seule fois, au premier appel après le démarrage du service.
+Après chaque réentraînement :
+1. Redémarrer `ai_server.py` (`cd ai` puis `py -3.12 ai_server.py`).
+2. Vérifier `/api/ai/health` : `trained_at` et `cv_mean_auc` doivent être à jour.
+3. Relancer le backtest.
+
+### Résultats (action BIAT, 01/07/2020 → 30/12/2022, seuil 0,5, détention 5 jours)
+| Modèle IA | Rendement | Sharpe | Trades | Frais (TND) |
+|---|---|---|---|---|
+| Avant correction de la validation | 24,3 % | 0,83 | 18 | 20 217 |
+| Validation corrigée (20 variables) | 23,2 % | 0,80 | 18 | 19 840 |
+| Achat-conservation (référence) | 84,9 % | 1,46 | 1 | 498 |
+
+Métriques en validation croisée (28 variables) : AUC macro 0,649, AUC directionnelle 0,576,
+précision directionnelle 0,577. Le signal directionnel est faible mais stable ; l'AUC macro est surtout
+portée par la détection de volatilité (classe Neutre).
+
+### Limites connues
+- Le Signal IA fait moins bien que l'achat-conservation sur la période testée ; relever le seuil de 0,5 à 0,6
+  réduit les frais mais dégrade le résultat (6 trades, échantillon trop petit pour conclure).
+- `/predict` et `/analyze` ne calculent que 11 des 28 variables à partir des champs envoyés par le client ;
+  les autres valent 0 (écart antérieur à ces changements).
+- Stress testing et actuariat reposent sur des données synthétiques et des profils bancaires illustratifs.
+- Le bas de page affiche « WS Live: STOMP Connected » en dur ; WebSockets STOMP, LIME et LSTM ne sont pas implémentés.
