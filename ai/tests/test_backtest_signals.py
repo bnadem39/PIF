@@ -2,6 +2,8 @@
 Tests du signal IA utilisé par le backtesting (lancer depuis ai/ : python -m pytest tests -q).
 Utilise le modèle XGBoost versionné dans ai/models/.
 """
+import json
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -53,6 +55,11 @@ def test_endpoint_reports_validation_start():
     r = client.post("/api/ai/backtest/signals", json={"ticker": "TEST", "candles": candles})
     assert r.status_code == 200
     body = r.json()
-    assert body["validation_start_date"] == "2020-06-19"
+
+    # La date attendue vient des métadonnées du modèle versionné, jamais codée en dur :
+    # elle change à chaque réentraînement (ex. nombre de features, période de validation).
+    metadata_path = backtest_signals.MODEL_DIR / "model_metadata.json"
+    expected_validation_start = json.loads(metadata_path.read_text(encoding="utf-8"))["validation_start_date"]
+    assert body["validation_start_date"] == expected_validation_start
     assert len(body["signals"]) == 60
     assert client.post("/api/ai/backtest/signals", json={"candles": candles[:10]}).status_code == 422
