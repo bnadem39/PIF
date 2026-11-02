@@ -188,6 +188,35 @@ class TradingServiceTest {
         assertThat(testUser.getCashBalance()).isEqualByComparingTo(expectedCash);
     }
 
+    @Test
+    @DisplayName("Test Métier : Le P&L réalisé inclut les frais d'achat au prorata de la quantité vendue (achat 10@60.5, vente 10@63)")
+    void testSellRealizedPnlIncludesProportionalBuyFees() {
+        // Achat de 10 actions @ 60.500 TND
+        when(positionRepository.findByUserAndSymbol(testUser, "BNB-USD")).thenReturn(Optional.empty());
+        serverPrice("BNB-USD", "2022-05-01", "60.500");
+
+        OrderRequest buyRequest = new OrderRequest("BNB-USD", OrderType.BUY, 10, new BigDecimal("60.500"), "2022-05-01");
+        OrderExecutionResponse buyResp = tradingService.executeOrder(testUser, buyRequest);
+        // Frais d'achat = 10 * 60.500 * 0.15% = 605.000 * 0.0015 = 0.9075 -> 0.908 TND (HALF_UP)
+        assertThat(buyResp.fees()).isEqualByComparingTo("0.908");
+
+        // Position résultante, avec ses frais d'achat cumulés, telle que persistée après l'achat
+        Position pos = new Position(testUser, "BNB-USD", buyResp.newPositionQuantity(), buyResp.newPositionPru());
+        pos.setTotalBuyFees(buyResp.fees());
+        when(positionRepository.findByUserAndSymbol(testUser, "BNB-USD")).thenReturn(Optional.of(pos));
+        serverPrice("BNB-USD", "2022-05-10", "63.000");
+
+        // Vente de 10 actions @ 63.000 TND
+        // P&L Brut = 10 * (63.000 - 60.500) = 25.000 TND ; Frais de vente = 10 * 63.000 * 0.15% = 0.945 TND
+        // P&L Réalisé = 25.000 - 0.945 (frais de vente) - 0.908 (frais d'achat alloués, position vendue en totalité) = 23.147 TND
+        OrderRequest sellRequest = new OrderRequest("BNB-USD", OrderType.SELL, 10, new BigDecimal("63.000"), "2022-05-10");
+        OrderExecutionResponse sellResp = tradingService.executeOrder(testUser, sellRequest);
+
+        assertThat(sellResp.success()).isTrue();
+        assertThat(sellResp.fees()).isEqualByComparingTo("0.945");
+        assertThat(sellResp.realizedPnl()).isEqualByComparingTo("23.147");
+    }
+
     // ------------------------------------------------------------------
     // Phase 0 : prix serveur, sens/mode d'ordre, seuils, drawdown
     // ------------------------------------------------------------------
