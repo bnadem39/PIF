@@ -14,6 +14,8 @@ public interface LearningProgressRepository extends JpaRepository<LearningProgre
 
     Optional<LearningProgress> findByUserIdAndItemTypeAndItemId(Long userId, ItemType itemType, String itemId);
 
+    boolean existsByUserIdAndItemTypeAndItemIdAndCompletedTrue(Long userId, ItemType itemType, String itemId);
+
     /** [userId, total des points], du meilleur au moins bon. */
     @Query("select p.userId, sum(p.points) from LearningProgress p group by p.userId having sum(p.points) > 0 order by sum(p.points) desc")
     List<Object[]> leaderboard(org.springframework.data.domain.Pageable page);

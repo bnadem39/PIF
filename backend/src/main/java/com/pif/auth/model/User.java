@@ -25,6 +25,51 @@ public class User implements UserDetails {
     @Column(nullable = false, unique = true, length = 150)
     private String email;
 
+    @Column(nullable = false, unique = true, length = 50)
+    private String username;
+
+    @Column(name = "elo_rating", nullable = false)
+    private Integer eloRating = 1000;
+
+    @Column(nullable = false, length = 20)
+    private String tier = "BRONZE";
+
+    @Column(nullable = false)
+    private Integer level = 1;
+
+    @Column(nullable = false)
+    private Integer exp = 0;
+
+    @Column(name = "total_matches", nullable = false)
+    private Integer totalMatches = 0;
+
+    @Column(nullable = false)
+    private Integer wins = 0;
+
+    @Column(name = "custom_background_url", columnDefinition = "TEXT")
+    private String customBackgroundUrl;
+
+    @Column(name = "profile_image_url", columnDefinition = "TEXT")
+    private String profileImageUrl;
+
+    @Column(name = "background_darkness")
+    private Integer backgroundDarkness = 60;
+
+    @Column(name = "background_blur")
+    private Integer backgroundBlur = 0;
+
+    @Column(name = "background_position", length = 30)
+    private String backgroundPosition = "center";
+
+    @Column(name = "theme_mode", length = 20)
+    private String themeMode = "AUTOMATIC";
+
+    @Column(name = "theme_accent_color", length = 30)
+    private String themeAccentColor = "#10b981";
+
+    @Column(name = "theme_secondary_color", length = 30)
+    private String themeSecondaryColor = "#06b6d4";
+
     @Column(nullable = false)
     private String password;
 
@@ -70,6 +115,19 @@ public class User implements UserDetails {
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+        if (this.username == null || this.username.isBlank()) {
+            this.username = this.email != null ? this.email.split("@")[0] : "player_" + System.currentTimeMillis();
+        }
+        if (this.eloRating == null) {
+            this.eloRating = 1000;
+        }
+        if (this.totalMatches == null) {
+            this.totalMatches = 0;
+        }
+        if (this.wins == null) {
+            this.wins = 0;
+        }
+        this.tier = calculateTier(this.eloRating);
         if (this.cashBalance == null) {
             this.cashBalance = new BigDecimal("100000.000");
         }
@@ -77,6 +135,108 @@ public class User implements UserDetails {
             this.blockedCash = new BigDecimal("0.000");
         }
         this.virtualBalance = this.cashBalance;
+    }
+
+    public static String calculateTier(int elo) {
+        if (elo < 1000) return "BRONZE";
+        if (elo < 1500) return "SILVER";
+        if (elo < 2000) return "GOLD";
+        if (elo < 2500) return "PLATINUM";
+        return "MASTER";
+    }
+
+    public void addExp(int amount) {
+        if (this.exp == null) this.exp = 0;
+        if (this.level == null) this.level = 1;
+        this.exp += amount;
+        while (this.exp >= this.level * 500) {
+            this.exp -= this.level * 500;
+            this.level += 1;
+        }
+    }
+
+    public Integer getLevel() {
+        return level != null ? level : 1;
+    }
+
+    public void setLevel(Integer level) {
+        this.level = level;
+    }
+
+    public Integer getExp() {
+        return exp != null ? exp : 0;
+    }
+
+    public void setExp(Integer exp) {
+        this.exp = exp;
+    }
+
+    public String getCustomBackgroundUrl() {
+        return customBackgroundUrl;
+    }
+
+    public void setCustomBackgroundUrl(String customBackgroundUrl) {
+        this.customBackgroundUrl = customBackgroundUrl;
+    }
+
+    public String getThemeAccentColor() {
+        return themeAccentColor != null ? themeAccentColor : "#10b981";
+    }
+
+    public void setThemeAccentColor(String themeAccentColor) {
+        this.themeAccentColor = themeAccentColor;
+    }
+
+    public String getProfileImageUrl() {
+        return profileImageUrl;
+    }
+
+    public void setProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
+    }
+
+    public Integer getBackgroundDarkness() {
+        return backgroundDarkness != null ? backgroundDarkness : 60;
+    }
+
+    public void setBackgroundDarkness(Integer backgroundDarkness) {
+        this.backgroundDarkness = backgroundDarkness;
+    }
+
+    public Integer getBackgroundBlur() {
+        return backgroundBlur != null ? backgroundBlur : 0;
+    }
+
+    public void setBackgroundBlur(Integer backgroundBlur) {
+        this.backgroundBlur = backgroundBlur;
+    }
+
+    public String getBackgroundPosition() {
+        return backgroundPosition != null ? backgroundPosition : "center";
+    }
+
+    public void setBackgroundPosition(String backgroundPosition) {
+        this.backgroundPosition = backgroundPosition;
+    }
+
+    public String getThemeMode() {
+        return themeMode != null ? themeMode : "AUTOMATIC";
+    }
+
+    public void setThemeMode(String themeMode) {
+        this.themeMode = themeMode;
+    }
+
+    public String getThemeSecondaryColor() {
+        return themeSecondaryColor != null ? themeSecondaryColor : "#06b6d4";
+    }
+
+    public void setThemeSecondaryColor(String themeSecondaryColor) {
+        this.themeSecondaryColor = themeSecondaryColor;
+    }
+
+    public void updateTierFromElo() {
+        this.tier = calculateTier(this.eloRating != null ? this.eloRating : 1000);
     }
 
     @PreUpdate
@@ -203,5 +363,46 @@ public class User implements UserDetails {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public String getUsernameAlias() {
+        return username != null ? username : (email != null ? email.split("@")[0] : "player");
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public Integer getEloRating() {
+        return eloRating != null ? eloRating : 1000;
+    }
+
+    public void setEloRating(Integer eloRating) {
+        this.eloRating = eloRating;
+        updateTierFromElo();
+    }
+
+    public String getTier() {
+        return tier != null ? tier : "Silver";
+    }
+
+    public void setTier(String tier) {
+        this.tier = tier;
+    }
+
+    public Integer getTotalMatches() {
+        return totalMatches != null ? totalMatches : 0;
+    }
+
+    public void setTotalMatches(Integer totalMatches) {
+        this.totalMatches = totalMatches;
+    }
+
+    public Integer getWins() {
+        return wins != null ? wins : 0;
+    }
+
+    public void setWins(Integer wins) {
+        this.wins = wins;
     }
 }

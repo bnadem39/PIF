@@ -32,9 +32,18 @@ export async function loginUser(email, password) {
   }
   if (data.token) {
     localStorage.setItem('token', data.token);
+    localStorage.setItem('jwtToken', data.token);
     localStorage.setItem('user_email', data.email);
     localStorage.setItem('user_role', data.role);
     localStorage.setItem('user_fullname', data.fullName || '');
+    localStorage.setItem('user', JSON.stringify({
+      id: data.id,
+      email: data.email,
+      role: data.role,
+      fullName: data.fullName,
+      eloRating: data.eloRating || 1000,
+      tier: data.tier || 'Silver'
+    }));
   }
   return data;
 }
@@ -54,9 +63,18 @@ export async function registerUser(email, password, fullName) {
   }
   if (data.token) {
     localStorage.setItem('token', data.token);
+    localStorage.setItem('jwtToken', data.token);
     localStorage.setItem('user_email', data.email);
     localStorage.setItem('user_role', data.role);
     localStorage.setItem('user_fullname', data.fullName || '');
+    localStorage.setItem('user', JSON.stringify({
+      id: data.id,
+      email: data.email,
+      role: data.role,
+      fullName: data.fullName,
+      eloRating: data.eloRating || 1000,
+      tier: data.tier || 'Silver'
+    }));
   }
   return data;
 }
@@ -65,10 +83,14 @@ export async function registerUser(email, password, fullName) {
  * Déconnexion utilisateur
  */
 export function logoutUser() {
+  localStorage.removeItem('jwtToken');
   localStorage.removeItem('token');
+  localStorage.removeItem('user');
   localStorage.removeItem('user_email');
   localStorage.removeItem('user_role');
   localStorage.removeItem('user_fullname');
+  sessionStorage.removeItem('token');
+  sessionStorage.clear();
 }
 
 /**

@@ -32,7 +32,8 @@ public class GlobalExceptionHandler {
             InsufficientFundsException.class,
             InsufficientPositionException.class,
             PriceUnavailableException.class,
-            IllegalArgumentException.class
+            IllegalArgumentException.class,
+            IllegalStateException.class
     })
     public ResponseEntity<Map<String, Object>> handleBusinessError(RuntimeException ex) {
         return body(HttpStatus.BAD_REQUEST, ex.getMessage());
@@ -66,6 +67,24 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleLock(PessimisticLockingFailureException ex) {
         log.warn("Conflit de verrouillage : {}", ex.getMessage());
         return body(HttpStatus.CONFLICT, "Un autre ordre est en cours sur ce compte. Réessayez.");
+    }
+
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    public ResponseEntity<Map<String, Object>> handleResponseStatus(org.springframework.web.server.ResponseStatusException ex) {
+        HttpStatus status = HttpStatus.resolve(ex.getStatusCode().value());
+        if (status == null) status = HttpStatus.INTERNAL_SERVER_ERROR;
+        return body(status, ex.getReason() != null ? ex.getReason() : ex.getMessage());
+    }
+
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handleAccessDenied(org.springframework.security.access.AccessDeniedException ex) {
+        return body(HttpStatus.FORBIDDEN, ex.getMessage() != null ? ex.getMessage() : "Accès refusé.");
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, Object>> handleGeneral(Exception ex) {
+        log.error("Erreur serveur non gérée", ex);
+        return body(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage() != null ? ex.getMessage() : "Erreur interne du serveur");
     }
 
     private ResponseEntity<Map<String, Object>> body(HttpStatus status, String message) {

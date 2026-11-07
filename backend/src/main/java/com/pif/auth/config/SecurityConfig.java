@@ -76,7 +76,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         // Endpoints publics d'authentification
-                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/api/v1/auth/**", "/api/auth/**").permitAll()
 
                         // Documentation Swagger / OpenAPI
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
@@ -87,12 +87,24 @@ public class SecurityConfig {
                         // Endpoints d'administration sécurisés (rôle ADMIN strict)
                         .requestMatchers("/api/v1/admin/**", "/api/admin/**").hasRole("ADMIN")
 
+                        // WebSocket STOMP endpoint pour la simulation multijoueur
+                        .requestMatchers("/ws/**").permitAll()
+
+                        // Consultation publique des rooms et classements
+                        .requestMatchers(HttpMethod.GET, "/api/v1/rooms", "/api/v1/rooms/**", "/api/rooms", "/api/rooms/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, 
+                                "/api/v1/players/*/avatar", "/api/v1/players/*/background", "/api/v1/players/*/public",
+                                "/api/players/*/avatar", "/api/players/*/background", "/api/players/*/public").permitAll()
+
                         // Endpoints v1 protégés : requièrent obligatoirement un token JWT
+                        .requestMatchers("/api/v1/rooms/**").authenticated()
+                        .requestMatchers("/api/v1/friends/**").authenticated()
+                        .requestMatchers("/api/v1/invitations/**").authenticated()
+                        .requestMatchers("/api/v1/players/**").authenticated()
                         .requestMatchers("/api/v1/market/**").authenticated()
                         .requestMatchers("/api/v1/orders/**").authenticated()
                         .requestMatchers("/api/v1/stress-test/**").authenticated()
                         .requestMatchers("/api/v1/backtest/**").authenticated()
-                        .requestMatchers("/api/v1/actuarial/**").authenticated()
                         .requestMatchers("/api/v1/learning/**").authenticated()
                         .requestMatchers("/api/v1/ai/**").authenticated()
                         .requestMatchers("/api/v1/news/**").authenticated()

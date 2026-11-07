@@ -30,7 +30,8 @@ export default function PortfolioAnalyticsView({
   simulatedDate,
   selectedAsset,
   onNavigateToTrading,
-  allSymbols = []
+  allSymbols = [],
+  roomPortfolio = null
 }) {
   const [portfolio, setPortfolio] = useState(null);
   const [transactions, setTransactions] = useState([]);
@@ -61,7 +62,7 @@ export default function PortfolioAnalyticsView({
           symbol: pos.symbol,
           shares: pos.quantity,
           current_price: pos.currentPrice,
-          avg_buy_price: pos.averageCostPrice,
+          avg_buy_price: pos.averageCostPrice || pos.entryPrice,
           unrealized_pnl: pos.unrealizedPnl
         }))
       };
@@ -79,6 +80,21 @@ export default function PortfolioAnalyticsView({
   const refreshData = async () => {
     setIsLoading(true);
     try {
+      if (roomPortfolio) {
+        // Mode Portefeuille Spécifique à la Salle
+        setPortfolio({
+          cashBalance: roomPortfolio.cashBalance ?? 100000,
+          totalPortfolioValue: roomPortfolio.totalPortfolioValue ?? 100000,
+          totalInvested: Math.max(0, (roomPortfolio.totalPortfolioValue ?? 100000) - (roomPortfolio.cashBalance ?? 100000)),
+          totalUnrealizedPnl: (roomPortfolio.totalPortfolioValue ?? 100000) - (roomPortfolio.initialCash ?? 100000),
+          unrealizedPnlPercent: ((roomPortfolio.totalPortfolioValue ?? 100000) - (roomPortfolio.initialCash ?? 100000)) / (roomPortfolio.initialCash || 100000) * 100,
+          positions: roomPortfolio.positions || []
+        });
+        setTransactions(roomPortfolio.transactions || roomPortfolio.orders || []);
+        setIsLoading(false);
+        return;
+      }
+
       const [port, txs, perf] = await Promise.all([
         getPortfolioSummary(simulatedDate),
         getTransactionsHistory(),
@@ -96,7 +112,7 @@ export default function PortfolioAnalyticsView({
 
   useEffect(() => {
     refreshData();
-  }, [simulatedDate, currentSymbol, currentPrice]);
+  }, [simulatedDate, currentSymbol, currentPrice, roomPortfolio]);
 
   const handleReset = async () => {
     if (!window.confirm("Voulez-vous vraiment réinitialiser votre portefeuille ?\nToutes les positions et transactions seront effacées et votre capital sera restauré à 100 000,000 TND.")) {
