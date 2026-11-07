@@ -1,0 +1,239 @@
+/* ==========================================================================
+   PIF TRADING ARENA — GAMING PORTAL LANDING PAGE STYLES
+   Dark fantasy browser game portal aesthetic with financial trading motif
+   ========================================================================== */
+
+:root {
+  --portal-bg: #05070D;
+  --portal-panel: #0B0F1A;
+  --portal-gold: #F5C242;
+  --portal-bullish: #00E676;
+  --portal-bearish: #FF3D57;
+  --portal-cyan: #22D3EE;
+
+  /* Intégration transparente avec le moteur de thème adaptatif existant */
+  --accent: var(--theme-accent, #10b981);
+  --accent-glow: var(--theme-glow, rgba(16, 185, 129, 0.40));
+  --border-glow: var(--theme-border, rgba(16, 185, 129, 0.35));
+}
+
+/* --------------------------------------------------------------------------
+   Vignettage cinématique profond
+   -------------------------------------------------------------------------- */
+.portal-vignette {
+  background: radial-gradient(
+    circle at 50% 45%,
+    rgba(11, 15, 26, 0.25) 0%,
+    rgba(5, 7, 13, 0.85) 70%,
+    rgba(2, 3, 7, 0.98) 100%
+  );
+}
+
+/* --------------------------------------------------------------------------
+   Bordures et cadres métalliques texturés
+   -------------------------------------------------------------------------- */
+.portal-metallic-frame {
+  background: linear-gradient(180deg, #1f293d 0%, #0d1322 50%, #151d2f 100%);
+  border: 1px solid rgba(245, 194, 66, 0.35);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.6),
+    0 4px 20px rgba(0, 0, 0, 0.7);
+}
+
+.portal-metallic-bevel {
+  border-image: linear-gradient(to bottom, #475569, #1e293b, #0f172a) 1;
+}
+
+/* --------------------------------------------------------------------------
+   Animation de défilement infini du Ticker boursier
+   -------------------------------------------------------------------------- */
+@keyframes tickerScroll {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-ticker-marquee {
+  display: flex;
+  width: max-content;
+  animation: tickerScroll 28s linear infinite;
+  will-change: transform;
+}
+
+.animate-ticker-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* --------------------------------------------------------------------------
+   Animations GPU des flammes néon et bougies japonaises (Flicker)
+   Durées et délais désynchronisés pour éviter l'effet mécanique
+   -------------------------------------------------------------------------- */
+@keyframes flameFlickerA {
+  0%, 100% {
+    transform: scaleY(1) scaleX(1);
+    opacity: 0.95;
+  }
+  25% {
+    transform: scaleY(1.08) scaleX(0.96);
+    opacity: 1;
+  }
+  50% {
+    transform: scaleY(0.92) scaleX(1.04);
+    opacity: 0.85;
+  }
+  75% {
+    transform: scaleY(1.04) scaleX(0.98);
+    opacity: 0.98;
+  }
+}
+
+@keyframes flameFlickerB {
+  0%, 100% {
+    transform: scaleY(1.02) scaleX(0.98);
+    opacity: 0.9;
+  }
+  30% {
+    transform: scaleY(0.94) scaleX(1.03);
+    opacity: 0.82;
+  }
+  60% {
+    transform: scaleY(1.07) scaleX(0.95);
+    opacity: 1;
+  }
+  85% {
+    transform: scaleY(0.96) scaleX(1.01);
+    opacity: 0.88;
+  }
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.04);
+  }
+}
+
+.torch-flame-a {
+  animation: flameFlickerA 1.6s ease-in-out infinite;
+  transform-origin: bottom center;
+  will-change: transform, opacity;
+}
+
+.torch-flame-b {
+  animation: flameFlickerB 1.9s ease-in-out infinite;
+  transform-origin: bottom center;
+  will-change: transform, opacity;
+}
+
+.torch-glow {
+  animation: glowPulse 2.8s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+
+/* --------------------------------------------------------------------------
+   Entrée de la scène avec zoom doux
+   -------------------------------------------------------------------------- */
+@keyframes sceneIntro {
+  0% {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scene-intro {
+  animation: sceneIntro 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+/* --------------------------------------------------------------------------
+   Bouton Principal : Pulse néon subtil
+   -------------------------------------------------------------------------- */
+@keyframes btnNeonPulse {
+  0%, 100% {
+    box-shadow: 0 0 15px var(--accent-glow, rgba(16, 185, 129, 0.4)), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 28px var(--accent-glow, rgba(16, 185, 129, 0.7)), 0 0 50px var(--accent-glow, rgba(16, 185, 129, 0.3)), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  }
+}
+
+.portal-btn-pulse {
+  animation: btnNeonPulse 2.4s ease-in-out infinite;
+}
+
+/* --------------------------------------------------------------------------
+   Scrollbar fluide gaming personnalisée
+   -------------------------------------------------------------------------- */
+html {
+  scroll-behavior: smooth;
+  scrollbar-color: var(--accent, #00E676) #05070D;
+  scrollbar-width: thin;
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
+}
+
+body {
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
+  width: 100%;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #05070D;
+  border-left: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--accent, #00E676), #06b6d4);
+  border-radius: 4px;
+  border: 1px solid #05070D;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #F5C242, var(--accent, #00E676));
+}
+
+/* --------------------------------------------------------------------------
+   Accessibilité : Préférences de mouvement réduites (prefers-reduced-motion)
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-ticker-marquee {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .torch-flame-a,
+  .torch-flame-b,
+  .torch-glow,
+  .portal-btn-pulse,
+  .animate-scene-intro {
+    animation: none !important;
+    transform: none !important;
+  }
+}

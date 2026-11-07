@@ -20,10 +20,18 @@ import gc
 import json
 import logging
 import os
+import sys
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional, List, Dict, Any
+
+AI_DIR = Path(__file__).resolve().parent
+if str(AI_DIR) not in sys.path:
+    sys.path.insert(0, str(AI_DIR))
+
+LOGS_DIR = AI_DIR / "logs"
+LOGS_DIR.mkdir(parents=True, exist_ok=True)
 
 import numpy as np
 from fastapi import FastAPI, HTTPException, BackgroundTasks
@@ -33,13 +41,9 @@ from pydantic import BaseModel, Field
 
 from stress.api import router as stress_router, state as stress_state
 from backtest_signals import router as backtest_router
-from actuarial.api import router as actuarial_router, state as actuarial_state
 from market_insight import router as insight_router
 from sentiment import router as sentiment_router
 from portfolio_lab import router as portfolio_lab_router
-
-AI_DIR   = Path(__file__).parent
-LOGS_DIR = AI_DIR / "logs"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -118,7 +122,6 @@ async def lifespan(app: FastAPI):
     # Modèles de stress testing : chargement / entraînement en arrière-plan (ne bloque pas le démarrage)
     import threading
     threading.Thread(target=stress_state.ready, name="stress-warmup", daemon=True).start()
-    threading.Thread(target=actuarial_state.ready, name="actuarial-warmup", daemon=True).start()
     yield
     # Nettoyage memoire au shutdown
     if state.fingpt_agent:
@@ -148,7 +151,6 @@ ALLOWED_ORIGINS = [
 
 app.include_router(stress_router)
 app.include_router(backtest_router)
-app.include_router(actuarial_router)
 app.include_router(insight_router)
 app.include_router(sentiment_router)
 app.include_router(portfolio_lab_router)

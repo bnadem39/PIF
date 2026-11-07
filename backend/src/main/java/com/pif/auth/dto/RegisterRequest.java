@@ -19,6 +19,9 @@ public class RegisterRequest {
 
     private String fullName;
 
+    @Size(min = 3, max = 30, message = "Le pseudonyme doit comporter entre 3 et 30 caractères")
+    private String username;
+
     public RegisterRequest() {
     }
 
@@ -26,6 +29,13 @@ public class RegisterRequest {
         this.email = email;
         this.password = password;
         this.fullName = fullName;
+    }
+
+    public RegisterRequest(String email, String password, String fullName, String username) {
+        this.email = email;
+        this.password = password;
+        this.fullName = fullName;
+        this.username = username;
     }
 
     public String getEmail() {
@@ -50,5 +60,13 @@ public class RegisterRequest {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

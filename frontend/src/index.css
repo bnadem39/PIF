@@ -14,20 +14,23 @@ body {
   color: #F8FAFC;
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar - Haute visibilité pour navigation fluide */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 10px;
+  height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: #0F172A;
+  background: #080C14;
+  border-left: 1px solid #1E293B;
 }
 ::-webkit-scrollbar-thumb {
   background: #334155;
-  border-radius: 3px;
+  border-radius: 6px;
+  border: 2px solid #080C14;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #0284C7;
+  border-color: #0B1120;
 }
 
 /* Custom glow utility */

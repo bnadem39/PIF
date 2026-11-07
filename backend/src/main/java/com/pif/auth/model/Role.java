@@ -5,5 +5,11 @@ package com.pif.auth.model;
  */
 public enum Role {
     ROLE_ADMIN,
-    ROLE_TRADER
+    ROLE_TRADER,
+    ROLE_AGENT,
+    ROLE_USER;
+
+    public boolean canCreateRoom() {
+        return this == ROLE_ADMIN || this == ROLE_AGENT;
+    }
 }
