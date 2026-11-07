@@ -56,3 +56,4 @@ export default function SectionDots({ activeSection = 'hero' }) {
     </nav>
   );
 }
+

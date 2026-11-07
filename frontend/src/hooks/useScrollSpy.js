@@ -42,3 +42,4 @@ export function useScrollSpy(sectionIds = [], offset = 0.3) {
 }
 
 export default useScrollSpy;
+

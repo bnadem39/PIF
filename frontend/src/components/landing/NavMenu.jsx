@@ -58,3 +58,4 @@ export default function NavMenu({ side = 'left', onNavigate, className = '' }) {
     </nav>
   );
 }
+
