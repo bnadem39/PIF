@@ -38,15 +38,25 @@ export default function GamifiedHubPage({ currentUser, onOpenAuthModal, onLogout
   const [profile, setProfile] = useState(() => {
     const st = getStoredTheme();
     return {
-      customBackgroundUrl: st.backgroundUrl,
-      backgroundDarkness: st.darkness,
-      backgroundBlur: st.blur,
-      backgroundPosition: st.position,
-      themeMode: st.themeMode,
-      themeAccentColor: st.accentColor,
-      themeSecondaryColor: st.secondaryColor
+      customBackgroundUrl: st.backgroundUrl || currentUser?.customBackgroundUrl,
+      backgroundDarkness: st.darkness ?? currentUser?.backgroundDarkness ?? 60,
+      backgroundBlur: st.blur ?? currentUser?.backgroundBlur ?? 0,
+      backgroundPosition: st.position || currentUser?.backgroundPosition || 'center',
+      themeMode: st.themeMode || currentUser?.themeMode || 'AUTOMATIC',
+      themeAccentColor: st.accentColor || currentUser?.themeAccentColor || '#10b981',
+      themeSecondaryColor: st.secondaryColor || currentUser?.themeSecondaryColor || '#06b6d4',
+      ...(currentUser || {})
     };
   });
+
+  useEffect(() => {
+    if (currentUser) {
+      setProfile((prev) => ({
+        ...(prev || {}),
+        ...currentUser
+      }));
+    }
+  }, [currentUser]);
   const [rooms, setRooms] = useState([]);
   const [activeTab, setActiveTab] = useState(initialTab); // 'ARENAS' | 'ACADEMY'
   const [filterType, setFilterType] = useState('ALL');
@@ -198,6 +208,7 @@ export default function GamifiedHubPage({ currentUser, onOpenAuthModal, onLogout
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
         {activeBgUrl ? (
           <img
+            key={activeBgUrl}
             src={resolveMediaUrl(activeBgUrl)}
             alt="Fond d'écran du Lobby"
             className="absolute inset-0 w-full h-full object-cover transition-all duration-700 pointer-events-none select-none"

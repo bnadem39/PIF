@@ -238,8 +238,8 @@ export default function AppearanceCustomizerModal({ isOpen, onClose, player, onA
   const isEffectsUnlocked = permissions?.featuresUnlocked?.ADVANCED_BACKGROUND_EFFECTS ?? (userLevel >= 15);
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
-      <div className="bg-[#0B1120] border-2 border-[#1E293B] rounded-3xl max-w-2xl w-full text-slate-100 flex flex-col shadow-2xl animate-fade-in h-[90vh] max-h-[780px] overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-hidden">
+      <div className="bg-[#0B1120] border-2 border-[#1E293B] rounded-3xl max-w-2xl w-full text-slate-100 flex flex-col shadow-2xl animate-fade-in max-h-[90vh] h-[85vh] overflow-hidden my-auto">
         {/* Sticky Modal Header */}
         <div className="flex items-center justify-between border-b border-[#1E293B] p-4 sm:p-5 shrink-0 bg-[#0B1120] z-20">
           <div className="flex items-center gap-2.5">
