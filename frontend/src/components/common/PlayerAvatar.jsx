@@ -16,10 +16,10 @@ export const resolveAvatarSrc = (url) => {
   if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:') || url.startsWith('blob:')) {
     return url;
   }
-  const backendBase = import.meta.env.VITE_API_URL
-    ? import.meta.env.VITE_API_URL.replace('/api/v1', '')
-    : 'http://localhost:8080';
-  return `${backendBase}${url.startsWith('/') ? '' : '/'}${url}`;
+  const rawBase = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+  const backendBase = rawBase.replace(/\/api\/v1\/?$/, '').replace(/\/+$/, '');
+  const cleanUrl = url.replace(/^\/+/, '');
+  return `${backendBase}/${cleanUrl}`;
 };
 
 export const resolveMediaUrl = resolveAvatarSrc;

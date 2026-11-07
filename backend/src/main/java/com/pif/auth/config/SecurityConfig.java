@@ -90,9 +90,11 @@ public class SecurityConfig {
                         // WebSocket STOMP endpoint pour la simulation multijoueur
                         .requestMatchers("/ws/**").permitAll()
 
-                        // Consultation publique des rooms et classements
-                        .requestMatchers(HttpMethod.GET, "/api/v1/rooms", "/api/v1/rooms/**", "/api/rooms", "/api/rooms/**").permitAll()
+                        // Consultation publique des avatars, fonds d'écran et profils publics
                         .requestMatchers(HttpMethod.GET, 
+                                "/api/v1/players/*/avatar", "/api/v1/players/*/background", "/api/v1/players/*/public",
+                                "/api/players/*/avatar", "/api/players/*/background", "/api/players/*/public").permitAll()
+                        .requestMatchers(HttpMethod.HEAD, 
                                 "/api/v1/players/*/avatar", "/api/v1/players/*/background", "/api/v1/players/*/public",
                                 "/api/players/*/avatar", "/api/players/*/background", "/api/players/*/public").permitAll()
 
