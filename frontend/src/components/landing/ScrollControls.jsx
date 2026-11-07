@@ -87,3 +87,4 @@ export default function ScrollControls({ activeSection = 'hero' }) {
     </div>
   );
 }
+

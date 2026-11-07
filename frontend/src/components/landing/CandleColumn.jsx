@@ -57,3 +57,4 @@ export default function CandleColumn({ variant = 'bullish', side = 'left', class
     </div>
   );
 }
+

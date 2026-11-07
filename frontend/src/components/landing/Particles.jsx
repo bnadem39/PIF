@@ -98,3 +98,4 @@ export default function Particles({ count = 35 }) {
     />
   );
 }
+
