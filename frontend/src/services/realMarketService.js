@@ -7,10 +7,23 @@ const AUTH_BASE = '/api/v1/auth';
 const ORDERS_BASE = '/api/v1/orders';
 
 /**
+ * Lit le token JWT. Le login (api.js) le stocke sous 'jwtToken' ; 'token' est
+ * conservé comme clé de compatibilité.
+ */
+export function getStoredToken() {
+  return (
+    localStorage.getItem('jwtToken') ||
+    localStorage.getItem('token') ||
+    sessionStorage.getItem('jwtToken') ||
+    sessionStorage.getItem('token')
+  );
+}
+
+/**
  * Récupère les en-têtes d'authentification JWT
  */
 export function getAuthHeaders() {
-  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  const token = getStoredToken();
   return {
     'Content-Type': 'application/json',
     ...(token ? { 'Authorization': `Bearer ${token}` } : {})
@@ -97,7 +110,7 @@ export function logoutUser() {
  * Récupère l'utilisateur actuellement connecté
  */
 export function getCurrentUser() {
-  const token = localStorage.getItem('token');
+  const token = getStoredToken();
   if (!token) return null;
   return {
     token,

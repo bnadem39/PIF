@@ -631,9 +631,19 @@ export default function PortfolioAnalyticsView({
             </thead>
             <tbody className="divide-y divide-[#1E293B]">
               {transactions && transactions.length > 0 ? (
-                transactions.map((tx) => {
+                transactions.map((raw) => {
+                  // Les ordres de salle (RoomOrderResponseDto) utilisent side/ticker/price ; les ordres du
+                  // portefeuille global utilisent type/symbol/executionPrice/fees/realizedPnl.
+                  const tx = {
+                    ...raw,
+                    type: raw.type ?? raw.side,
+                    symbol: raw.symbol ?? raw.ticker,
+                    executionPrice: raw.executionPrice ?? raw.price,
+                  };
                   const isBuy = tx.type === 'BUY';
-                  const isPnlPos = tx.realizedPnl >= 0;
+                  const hasFees = tx.fees != null && !Number.isNaN(Number(tx.fees));
+                  const hasPnl = tx.realizedPnl != null && !Number.isNaN(Number(tx.realizedPnl));
+                  const isPnlPos = Number(tx.realizedPnl) >= 0;
                   return (
                     <tr key={tx.id} className="hover:bg-[#1E293B]/40 transition-colors">
                       <td className="py-2 px-3 text-slate-400">#{tx.id}</td>
@@ -652,17 +662,17 @@ export default function PortfolioAnalyticsView({
                       </td>
                       <td className="py-2 px-3 text-right text-slate-200">{tx.quantity}</td>
                       <td className="py-2 px-3 text-right text-white font-bold">{Number(tx.executionPrice).toFixed(3)} TND</td>
-                      <td className="py-2 px-3 text-right text-amber-400">{Number(tx.fees).toFixed(3)} TND</td>
+                      <td className="py-2 px-3 text-right text-amber-400">{hasFees ? `${Number(tx.fees).toFixed(3)} TND` : '---'}</td>
                       <td
                         className={`py-2 px-3 text-right font-bold ${
-                          isBuy
+                          isBuy || !hasPnl
                             ? 'text-slate-500'
                             : isPnlPos
                             ? 'text-[#10B981]'
                             : 'text-[#EF4444]'
                         }`}
                       >
-                        {isBuy ? '---' : `${isPnlPos ? '+' : ''}${Number(tx.realizedPnl).toFixed(3)} TND`}
+                        {isBuy || !hasPnl ? '---' : `${isPnlPos ? '+' : ''}${Number(tx.realizedPnl).toFixed(3)} TND`}
                       </td>
                     </tr>
                   );

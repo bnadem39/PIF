@@ -40,6 +40,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from stress.api import router as stress_router, state as stress_state
+from actuarial.api import router as actuarial_router
 from backtest_signals import router as backtest_router
 from market_insight import router as insight_router
 from sentiment import router as sentiment_router
@@ -150,6 +151,7 @@ ALLOWED_ORIGINS = [
 ]
 
 app.include_router(stress_router)
+app.include_router(actuarial_router)
 app.include_router(backtest_router)
 app.include_router(insight_router)
 app.include_router(sentiment_router)

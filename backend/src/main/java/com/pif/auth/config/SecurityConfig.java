@@ -107,6 +107,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/orders/**").authenticated()
                         .requestMatchers("/api/v1/stress-test/**").authenticated()
                         .requestMatchers("/api/v1/backtest/**").authenticated()
+                        .requestMatchers("/api/v1/actuarial/**").authenticated()
                         .requestMatchers("/api/v1/learning/**").authenticated()
                         .requestMatchers("/api/v1/ai/**").authenticated()
                         .requestMatchers("/api/v1/news/**").authenticated()
