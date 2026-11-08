@@ -377,6 +377,13 @@ export default function TradingChart({
         priceLineVisible: isSelected
       });
     });
+
+    // Reconstruit tout l'historique du nouvel actif jusqu'à l'index courant
+    // (sinon la série garde les données de l'ancien actif et la courbe "repart de maintenant")
+    if (matrixDataRef.current) {
+      lastRenderedIndexRef.current = -1;
+      renderStaticTick(currentIndexRef.current, matrixDataRef.current, viewModeRef.current);
+    }
   }, [selectedAsset]);
 
   // ==========================================================================
