@@ -77,7 +77,7 @@ class AuthServiceTest {
         assertEquals("Bearer", response.getType());
         assertEquals("newtrader@test.com", response.getEmail());
         assertEquals(Role.ROLE_TRADER.name(), response.getRole());
-        assertEquals(new BigDecimal("100000.00"), response.getVirtualBalance());
+        assertEquals(0, new BigDecimal("100000.00").compareTo(response.getVirtualBalance()));
 
         verify(userRepository).save(any(User.class));
     }
@@ -115,6 +115,8 @@ class AuthServiceTest {
     void shouldThrowExceptionOnFailedLogin() {
         AuthRequest request = new AuthRequest("trader@test.com", "wrongPassword");
 
+        // Le login recherche d'abord l'utilisateur (email puis pseudo) avant d'authentifier
+        when(userRepository.findByEmail("trader@test.com")).thenReturn(Optional.of(sampleUser));
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenThrow(new BadCredentialsException("Bad credentials"));
 

@@ -10,7 +10,13 @@ spring:
   # Le schema de test est donc genere par Hibernate a partir des entites.
   flyway:
     enabled: false
+  sql:
+    init:
+      mode: always
+      encoding: UTF-8
+      continue-on-error: true
   jpa:
+    defer-datasource-initialization: true
     hibernate:
       ddl-auto: create-drop
     database-platform: org.hibernate.dialect.H2Dialect
