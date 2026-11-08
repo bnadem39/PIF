@@ -5,7 +5,7 @@ import {
   Sliders, Shield, Layers, Box, BarChart2, DollarSign, Clock, RefreshCw,
   Copy, Check, Users, UserPlus, CheckCircle2, AlertCircle, LogOut,
   PieChart, History, Landmark, GraduationCap, FileSpreadsheet, Eye, X, Send,
-  Lock, TrendingUp, TrendingDown, StopCircle, ListFilter, Zap
+  Lock, TrendingUp, TrendingDown, StopCircle, ListFilter, Zap, Sigma
 } from 'lucide-react';
 import {
   getRoomById, startArenaRoom, pauseArenaRoom, resumeArenaRoom,
@@ -29,6 +29,7 @@ import TickerTape from '../TickerTape';
 import PortfolioAnalyticsView from '../PortfolioAnalyticsView';
 import BacktestPage from '../../pages/BacktestPage';
 import StressTestPage from '../../pages/StressTestPage';
+import ActuarialPage from '../../pages/ActuarialPage';
 import LearnPage from '../../pages/LearnPage';
 import CsvDataInspectorModal from '../CsvDataInspectorModal';
 
@@ -37,6 +38,7 @@ const ROOM_MODULES = [
   { id: 'PORTFOLIO', label: 'Portefeuille', icon: PieChart, color: 'text-purple-400' },
   { id: 'BACKTEST', label: 'Backtesting', icon: History, color: 'text-amber-400' },
   { id: 'STRESS', label: 'Stress Testing', icon: Landmark, color: 'text-rose-400' },
+  { id: 'ACTUARIAL', label: 'Actuariat', icon: Sigma, color: 'text-sky-400' },
   { id: 'ACADEMY', label: 'Académie', icon: GraduationCap, color: 'text-indigo-400' },
   { id: 'CSV_DATA', label: 'Données CSV', icon: FileSpreadsheet, color: 'text-emerald-300' }
 ];
@@ -1030,6 +1032,11 @@ export default function ArenaLayout({ currentUser }) {
         {/* ── MODULE 4: STRESS TESTING & RISK CRISIS ─────────────────────────── */}
         <div className={`flex-1 overflow-y-auto p-4 ${activeModule === 'STRESS' ? '' : 'hidden'}`}>
           <StressTestPage currentUser={currentUser} />
+        </div>
+
+        {/* ── MODULE: ACTUARIAT (risque et prévision des actifs) ─────────────── */}
+        <div className={`flex-1 overflow-y-auto p-4 ${activeModule === 'ACTUARIAL' ? '' : 'hidden'}`}>
+          <ActuarialPage simulatedDate={simulatedDate} />
         </div>
 
         {/* ── MODULE 5: ACADEMIC ACADEMY & TRAINING ──────────────────────────── */}
