@@ -11,6 +11,7 @@ import com.pif.multiplayer.repository.RoomParticipantRepository;
 import com.pif.multiplayer.repository.RoomRepository;
 import com.pif.gamification.service.GamificationEngine;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,9 @@ public class RoomService {
     // Injection par champ : les constructeurs existants (et RoomServiceTest) restent inchanges
     @Autowired(required = false)
     private RoomEquityValuator equityValuator;
+
+    @Autowired(required = false)
+    private ApplicationEventPublisher eventPublisher;
 
     public RoomService(RoomRepository roomRepository,
                        RoomParticipantRepository participantRepository,
@@ -310,6 +314,15 @@ public class RoomService {
 
         // Clôture des positions et attribution de l'ELO / EXP aux vainqueurs
         simulationTicker.finalizeMatch(saved);
+
+        // Les résultats des joueurs sont relevés ici (ex. cours recommandés), avant la suppression des données
+        if (eventPublisher != null) {
+            try {
+                eventPublisher.publishEvent(new com.pif.multiplayer.event.RoomClosingEvent(roomId));
+            } catch (Exception e) {
+                // Un écouteur en échec ne doit jamais empêcher la clôture
+            }
+        }
 
         RoomDto dto = RoomDto.fromEntity(saved, true);
         messagingTemplate.convertAndSend("/topic/room/" + roomId + "/status", dto);

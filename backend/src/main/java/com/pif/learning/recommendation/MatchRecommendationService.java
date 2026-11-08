@@ -13,13 +13,18 @@ import com.pif.multiplayer.model.RoomOrder;
 import com.pif.multiplayer.repository.RoomOrderRepository;
 import com.pif.multiplayer.repository.RoomParticipantRepository;
 import com.pif.multiplayer.service.RoomService;
+import com.pif.multiplayer.event.RoomClosingEvent;
+import com.pif.multiplayer.model.RoomParticipant;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Recommande des cours au joueur à partir de SON résultat dans une salle (cf. RecommendationRules).
@@ -34,6 +39,18 @@ public class MatchRecommendationService {
     private final LearningCatalog catalog;
     private final LearningProgressRepository progressRepository;
 
+    /**
+     * La clôture d'une salle supprime ses participants et ses ordres : les résultats sont donc relevés juste avant
+     * (RoomClosingEvent) et gardés ici un moment, le temps que le joueur consulte sa fenêtre de fin de match.
+     * Mémoire du serveur uniquement : perdu au redémarrage, ce qui est acceptable pour un affichage de fin de match.
+     */
+    private static final long SNAPSHOT_TTL_MS = 2 * 60 * 60 * 1000L;
+    private static final int SNAPSHOT_MAX = 2000;
+    private final Map<String, Snapshot> snapshots = new ConcurrentHashMap<>();
+
+    private record Snapshot(MatchRecommendationView view, long createdAt) {
+    }
+
     public MatchRecommendationService(RoomService roomService, RoomParticipantRepository participantRepository,
                                       RoomOrderRepository orderRepository, LearningCatalog catalog,
                                       LearningProgressRepository progressRepository) {
@@ -44,11 +61,53 @@ public class MatchRecommendationService {
         this.progressRepository = progressRepository;
     }
 
+    /** Relève la recommandation de chaque joueur avant la suppression de la salle. */
+    @EventListener
+    @Transactional(readOnly = true)
+    public void onRoomClosing(RoomClosingEvent event) {
+        purgeSnapshots();
+        for (RoomParticipant p : participantRepository.findByRoomIdOrderByTotalEquityDesc(event.roomId())) {
+            try {
+                snapshots.put(snapshotKey(event.roomId(), p.getUser().getId()),
+                        new Snapshot(build(p.getUser(), event.roomId()), System.currentTimeMillis()));
+            } catch (Exception ignored) {
+                // Un joueur en échec ne doit pas bloquer la clôture ni les autres joueurs
+            }
+        }
+    }
+
     @Transactional(readOnly = true)
     public MatchRecommendationView recommend(User user, String roomId) {
-        if (participantRepository.findByRoomIdAndPlayerId(roomId, user.getId()).isEmpty()) {
-            throw new IllegalArgumentException("Vous n'avez pas participé à cette salle.");
+        if (participantRepository.findByRoomIdAndPlayerId(roomId, user.getId()).isPresent()) {
+            return build(user, roomId);
         }
+        // Salle déjà clôturée (donc supprimée) : on reprend le relevé fait à la clôture
+        Snapshot snapshot = snapshots.get(snapshotKey(roomId, user.getId()));
+        if (snapshot != null) {
+            return snapshot.view();
+        }
+        // Spectateur ou autre compte : pas de résultat à analyser, ce n'est pas une erreur
+        return new MatchRecommendationView(null, List.of(),
+                "Tu n'as pas joué dans cette salle avec ce compte : aucune recommandation à afficher.");
+    }
+
+    private static String snapshotKey(String roomId, Long userId) {
+        return roomId + ":" + userId;
+    }
+
+    private void purgeSnapshots() {
+        long limit = System.currentTimeMillis() - SNAPSHOT_TTL_MS;
+        snapshots.values().removeIf(s -> s.createdAt() < limit);
+        if (snapshots.size() > SNAPSHOT_MAX) {
+            Iterator<String> it = snapshots.keySet().iterator();
+            while (snapshots.size() > SNAPSHOT_MAX && it.hasNext()) {
+                it.next();
+                it.remove();
+            }
+        }
+    }
+
+    private MatchRecommendationView build(User user, String roomId) {
         MatchStats stats = stats(user, roomId);
         RecommendationRules.Progress progress = progress(user);
         List<Item> items = RecommendationRules.plan(RecommendationRules.evaluate(stats), catalog, progress);
