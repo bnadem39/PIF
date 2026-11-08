@@ -234,6 +234,21 @@ export default function ArenaLayout({ currentUser }) {
     }
   };
 
+  // Play/Pause du graphique (hote uniquement) : pilote la salle, tous les joueurs suivent via le statut WebSocket
+  const handleRoomPlayPause = async () => {
+    try {
+      if (room?.status === 'RUNNING') {
+        await pauseArenaRoom(roomId);
+        setRoom((r) => r ? { ...r, status: 'PAUSED' } : r);
+      } else if (room?.status === 'PAUSED') {
+        await resumeArenaRoom(roomId);
+        setRoom((r) => r ? { ...r, status: 'RUNNING' } : r);
+      }
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
   // 5. Seul et Unique Bouton de Pause/Reprise de la Courbe (Géré au sommet)
   const handleTogglePlay = async () => {
     if (room?.status === 'LOBBY' || room?.status === 'WAITING') {
@@ -774,6 +789,9 @@ export default function ArenaLayout({ currentUser }) {
                 onSelectAsset={(a) => setSelectedAsset(a)}
                 onSelectYear={setSelectedYear}
                 userPositions={userPositions}
+                roomRunning={room?.status === 'RUNNING'}
+                serverDate={currentTick?.simulatedDate}
+                onRoomTogglePlay={isHost ? handleRoomPlayPause : undefined}
                 onOpenCsvInspector={() => setIsCsvModalOpen(true)}
                 onSimulationUpdate={(simState) => {
                   if (simState?.isPlaying != null) setIsPlaying(simState.isPlaying);

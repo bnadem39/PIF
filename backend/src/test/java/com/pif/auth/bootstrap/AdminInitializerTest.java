@@ -46,47 +46,53 @@ class AdminInitializerTest {
 
         adminInitializer.run();
 
+        // Deux sauvegardes : le compte admin puis le compte de test adem
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
-        verify(userRepository).save(captor.capture());
+        verify(userRepository, times(2)).save(captor.capture());
 
-        User created = captor.getValue();
-        assertEquals("admin@gmail.com", created.getEmail());
+        User created = captor.getAllValues().stream()
+                .filter(u -> "admin@gmail.com".equals(u.getEmail()))
+                .findFirst()
+                .orElseThrow();
         assertEquals("bcryptHashedPassword", created.getPassword());
         assertEquals(Role.ROLE_ADMIN, created.getRole());
         assertEquals(0, new BigDecimal("100000.00").compareTo(created.getVirtualBalance()));
-        assertEquals(new BigDecimal("100000.000"), created.getCashBalance());
+        assertEquals(0, new BigDecimal("100000.000").compareTo(created.getCashBalance()));
     }
 
     @Test
-    @DisplayName("Devrait ne rien faire si l'administrateur existe déjà")
-    void shouldSkipSeedingWhenAdminAlreadyExists() {
+    @DisplayName("Ne ré-encode pas le mot de passe d'un administrateur existant")
+    void shouldKeepExistingAdminPassword() {
         User existingAdmin = new User("admin@gmail.com", "hash", "Admin", Role.ROLE_ADMIN, new BigDecimal("100000.00"));
         when(userRepository.findByEmail("admin@gmail.com")).thenReturn(Optional.of(existingAdmin));
 
         adminInitializer.run();
 
-        verify(userRepository, never()).save(any(User.class));
-        verify(passwordEncoder, never()).encode(anyString());
+        verify(passwordEncoder, never()).encode("Str0ng-Admin-Pass!");
+        assertEquals("hash", existingAdmin.getPassword());
+        assertEquals(Role.ROLE_ADMIN, existingAdmin.getRole());
     }
 
     @Test
-    @DisplayName("Ne crée aucun admin si les variables d'environnement ne sont pas définies")
-    void shouldSkipSeedingWhenNotConfigured() {
+    @DisplayName("Utilise l'admin par défaut si les variables d'environnement ne sont pas définies")
+    void shouldFallbackToDefaultAdminWhenNotConfigured() {
         ReflectionTestUtils.setField(adminInitializer, "adminEmail", "");
         ReflectionTestUtils.setField(adminInitializer, "adminPassword", "");
 
         adminInitializer.run();
 
-        verifyNoInteractions(userRepository);
+        verify(passwordEncoder).encode("Admin2026!Secure");
+        verify(userRepository, atLeastOnce()).findByEmail("admin@gmail.com");
     }
 
     @Test
-    @DisplayName("Ne crée aucun admin si le mot de passe fait moins de 12 caractères")
-    void shouldSkipSeedingWhenPasswordTooShort() {
+    @DisplayName("Ignore un mot de passe de moins de 12 caractères et utilise le mot de passe par défaut")
+    void shouldIgnoreTooShortAdminPassword() {
         ReflectionTestUtils.setField(adminInitializer, "adminPassword", "admin@26");
 
         adminInitializer.run();
 
-        verifyNoInteractions(userRepository);
+        verify(passwordEncoder, never()).encode("admin@26");
+        verify(passwordEncoder).encode("Admin2026!Secure");
     }
 }

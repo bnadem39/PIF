@@ -42,6 +42,10 @@ public class RoomSimulationTicker {
     private final TransactionTemplate transactionTemplate;
     private final GamificationEngine gamificationEngine;
 
+    // Injection par champ : le constructeur reste inchange (utilise tel quel par RoomServiceTest)
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private RoomEquityValuator equityValuator;
+
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
     private final Map<String, ScheduledFuture<?>> activeTasks = new ConcurrentHashMap<>();
 
@@ -97,7 +101,7 @@ public class RoomSimulationTicker {
             } catch (Exception e) {
                 log.error("Erreur durant l'exécution du tick pour la room " + roomId, e);
             }
-        }, 0, tickRateMs, TimeUnit.MILLISECONDS);
+        }, tickRateMs, tickRateMs, TimeUnit.MILLISECONDS); // delai initial = 1 tick : laisse le temps au commit de startRoom (statut RUNNING)
 
         activeTasks.put(roomId, future);
     }
@@ -151,6 +155,12 @@ public class RoomSimulationTicker {
 
             // 3. Mise à jour et diffusion du Leaderboard temps réel
             List<RoomParticipant> participants = participantRepository.findByRoomIdOrderByTotalEquityDesc(roomId);
+            if (equityValuator != null) {
+                // Revalorise cash + positions aux cours du tick, puis reclasse
+                equityValuator.revalue(room, participants, currentDate);
+                participants = new ArrayList<>(participants);
+                participants.sort(Comparator.comparing(RoomParticipant::getTotalEquity).reversed());
+            }
             List<RoomParticipantDto> rankingDtos = new ArrayList<>();
             int rank = 1;
             for (RoomParticipant p : participants) {

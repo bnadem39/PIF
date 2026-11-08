@@ -29,8 +29,10 @@ export default function ArenaLeaderboard({ entries = [], currentUser, roomName =
           entries.map((entry, idx) => {
             const isMe = entry.username === currentUsername;
             const rank = idx + 1;
-            const pnl = entry.pnl ?? (entry.totalEquity ? entry.totalEquity - 100000 : 0);
-            const roi = entry.roiPercent ?? (pnl / 1000);
+            const equity = Number(entry.portfolioValue ?? entry.totalEquity ?? 100000);
+            // Le DTO envoie pnlPercentage (et non roiPercent) ; repli sur l'ancien calcul (capital 100 000)
+            const roi = Number(entry.roiPercent ?? entry.pnlPercentage ?? ((equity - 100000) / 1000));
+            const pnl = Number(entry.pnl ?? (1 + roi / 100 > 0 ? equity - equity / (1 + roi / 100) : equity - 100000));
             const isPositive = roi >= 0;
 
             return (
@@ -70,7 +72,7 @@ export default function ArenaLeaderboard({ entries = [], currentUser, roomName =
                       )}
                     </div>
                     <div className="text-[11px] font-mono text-slate-400">
-                      {Number(entry.portfolioValue || entry.totalEquity || 100000).toLocaleString('fr-TN', { maximumFractionDigits: 0 })} TND
+                      {equity.toLocaleString('fr-TN', { maximumFractionDigits: 0 })} TND
                     </div>
                   </div>
                 </div>

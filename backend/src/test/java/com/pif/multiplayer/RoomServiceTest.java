@@ -53,7 +53,10 @@ class RoomServiceTest {
 
         roomRepository = createStub(RoomRepository.class, (proxy, method, args) -> {
             String name = method.getName();
-            if ("save".equals(name)) {
+            if ("existsById".equals(name)) {
+                return rooms.containsKey((String) args[0]);
+            }
+            if ("save".equals(name) || "saveAndFlush".equals(name)) {
                 Room r = (Room) args[0];
                 if (r.getId() == null) r.setId("PIF-" + (1000 + rooms.size()));
                 rooms.put(r.getId(), r);
@@ -72,7 +75,7 @@ class RoomServiceTest {
 
         participantRepository = createStub(RoomParticipantRepository.class, (proxy, method, args) -> {
             String name = method.getName();
-            if ("save".equals(name)) {
+            if ("save".equals(name) || "saveAndFlush".equals(name)) {
                 RoomParticipant p = (RoomParticipant) args[0];
                 String key = p.getId().getRoomId() + ":" + p.getId().getPlayerId();
                 participants.put(key, p);
