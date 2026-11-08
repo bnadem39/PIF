@@ -63,7 +63,10 @@ export default function TradingChart({
   onOpenCsvInspector,
   onSimulationUpdate,
   userPositions = [],
-  hidePlayPause = false
+  hidePlayPause = false,
+  roomRunning, // arene multijoueur : true/false suit le statut serveur de la salle (undefined = mode libre)
+  onRoomTogglePlay, // arene : fourni a l'hote uniquement ; Play/Pause pilote alors la salle pour tous les joueurs
+  serverDate // arene : date de simulation du serveur (dernier tick WebSocket), sert a caler le replay de tous les joueurs
 }) {
   const chartContainerRef = useRef(null);
   const chartInstanceRef = useRef(null);
@@ -126,6 +129,7 @@ export default function TradingChart({
   useEffect(() => { currentIndexRef.current = currentIndex; }, [currentIndex]);
   useEffect(() => { viewModeRef.current = viewMode; }, [viewMode]);
   useEffect(() => { matrixDataRef.current = matrixData; }, [matrixData]);
+  const serverIdxRef = useRef(null); // index (dans la timeline du graphique) de la date serveur ; null hors arene
   useEffect(() => { playbackSpeedRef.current = playbackSpeed; }, [playbackSpeed]);
   useEffect(() => { selectedAssetRef.current = selectedAsset; }, [selectedAsset]);
   useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
@@ -579,6 +583,13 @@ export default function TradingChart({
       const currentIdx = currentIndexRef.current;
       const nextIdx = currentIdx + 1;
 
+      // Arene : ne jamais depasser la date du serveur de plus d'un jour (le serveur donne le rythme)
+      if (serverIdxRef.current != null && nextIdx > serverIdxRef.current + 1) {
+        stepStartTime = now;
+        rafIdRef.current = requestAnimationFrame(animateFrame);
+        return;
+      }
+
       // Arrêt propre en fin d'année
       if (nextIdx >= matrix.ticks.length) {
         setIsCompleted(true);
@@ -752,6 +763,11 @@ export default function TradingChart({
 
   // Déclenchement / Pause
   const togglePlayPause = () => {
+    // Arene multijoueur : seul l'hote pilote la salle ; les autres joueurs suivent le statut serveur
+    if (roomRunning !== undefined) {
+      if (onRoomTogglePlay) onRoomTogglePlay();
+      return;
+    }
     if (isCompleted && !isPlaying) {
       handleReset();
       setIsPlaying(true);
@@ -774,6 +790,33 @@ export default function TradingChart({
       startInterpolatedPropagation();
     }
   };
+
+  // Arene multijoueur : le replay suit le statut de la salle (l'hote lance -> tous demarrent ; pause -> tous en pause)
+  const matrixReady = !!matrixData;
+  useEffect(() => {
+    if (roomRunning === undefined || !matrixReady) return;
+    if (roomRunning && !isPlayingRef.current && !isCompleted) {
+      setIsPlaying(true);
+      isPlayingRef.current = true;
+      if (onSimulationUpdate) onSimulationUpdate({ isPlaying: true });
+      startInterpolatedPropagation();
+    } else if (!roomRunning && isPlayingRef.current) {
+      stopAnimation();
+    }
+  }, [roomRunning, matrixReady]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Arene : cale le replay sur la date du serveur (rattrape un retard, plafonne l'avance via la boucle d'animation)
+  useEffect(() => {
+    if (roomRunning === undefined || !serverDate || !matrixData || !matrixData.ticks?.length) return;
+    let idx = 0;
+    for (let i = 0; i < matrixData.ticks.length; i++) {
+      if (matrixData.ticks[i].date <= serverDate) idx = i; else break;
+    }
+    serverIdxRef.current = idx;
+    if (currentIndexRef.current < idx - 1) {
+      renderStaticTick(idx, matrixData, viewModeRef.current);
+    }
+  }, [serverDate, matrixData]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Avancer d'une seule séance (+1 Jour) avec transition douce
   const handleStepNext = useCallback(() => {
@@ -840,7 +883,8 @@ export default function TradingChart({
             {!hidePlayPause && (
               <button
                 onClick={togglePlayPause}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold transition-all shadow-sm ${
+                disabled={roomRunning !== undefined && !onRoomTogglePlay}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold transition-all shadow-sm disabled:opacity-60 disabled:cursor-not-allowed ${
                   isPlaying
                     ? 'bg-amber-500 hover:bg-amber-600 text-slate-950 shadow-[0_0_12px_rgba(245,158,11,0.5)]'
                     : 'bg-[#10B981] hover:bg-[#059669] text-slate-950 shadow-[0_0_12px_rgba(16,185,129,0.4)]'
