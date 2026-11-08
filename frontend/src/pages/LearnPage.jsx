@@ -661,7 +661,7 @@ function LeaderboardTab() {
 
 // ── Page ──────────────────────────────────────────────────────────
 
-export default function LearnPage({ currentUser }) {
+export default function LearnPage({ currentUser, focus = null }) {
   const [tab, setTab] = useState('parcours');
   const [catalog, setCatalog] = useState(null);
   const [view, setView] = useState(null); // {kind: 'lesson'|'quiz', id}
@@ -674,6 +674,15 @@ export default function LearnPage({ currentUser }) {
   useEffect(() => {
     if (currentUser) reload();
   }, [currentUser, reload]);
+
+  // Ouverture directe d'un cours (ex. recommandation de fin de match)
+  useEffect(() => {
+    if (!focus) return;
+    setTab('parcours');
+    if (focus.nextStep === 'QUIZ' && focus.quizId) setView({ kind: 'quiz', id: focus.quizId });
+    else if (focus.lessonId) setView({ kind: 'lesson', id: focus.lessonId });
+    else setView(null);
+  }, [focus]);
 
   // Étape suivante du module : leçon suivante, puis le quiz
   const next = useMemo(() => {

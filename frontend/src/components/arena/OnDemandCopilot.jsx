@@ -4,6 +4,7 @@ import {
   TrendingUp, TrendingDown, ArrowRight, ShieldCheck
 } from 'lucide-react';
 import { triggerMarketPauseAudit } from '../../services/api';
+import SimpleMarkdown from '../SimpleMarkdown';
 
 export default function OnDemandCopilot({
   isPlaying,
@@ -112,9 +113,7 @@ export default function OnDemandCopilot({
                     <span>Synthèse Marché (RAG Macro)</span>
                     <span className="text-slate-400 font-mono text-[10px]">{simulatedDate}</span>
                   </div>
-                  <p className="text-xs text-slate-300 leading-relaxed font-sans">
-                    {auditResult.market_summary}
-                  </p>
+                  <SimpleMarkdown text={auditResult.market_summary} className="text-xs text-slate-300 leading-relaxed font-sans" />
                 </div>
 
                 {/* Portfolio Impact */}
@@ -123,9 +122,7 @@ export default function OnDemandCopilot({
                     <div className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">
                       Impact sur le Portefeuille & Risque
                     </div>
-                    <p className="text-xs text-slate-300 leading-relaxed font-sans">
-                      {auditResult.portfolio_impact}
-                    </p>
+                    <SimpleMarkdown text={auditResult.portfolio_impact} className="text-xs text-slate-300 leading-relaxed font-sans" />
                   </div>
                 )}
 
