@@ -209,6 +209,18 @@ La Bourse n'est pas assurable : le module ne calcule **ni prime, ni sinistre**. 
 - Points, 6 niveaux (Débutant → Expert), 7 badges et classement.
 - **Cours recommandé après un match** (`GET /api/v1/learning/recommendation/{roomId}`) : à la fin d'une salle, des règles simples analysent le résultat du joueur (rendement, rang, nombre d'ordres, concentration, part de cash, usage du Stop-Loss) et proposent jusqu'à 3 cours, en sautant ceux qu'il a déjà validés. Aucune donnée d'un autre joueur n'est utilisée.
 
+| Situation constatée dans le match | Cours proposé |
+|---|---|
+| Aucun ordre passé | Bases : fonctionnement des ordres |
+| Perte de 5 % ou plus | Risque : mesurer le risque |
+| Une position pèse plus de 60 % des investissements | Risque : diversification |
+| 30 ordres ou plus avec un résultat négatif | Analyse technique : confirmer une tendance |
+| Résultat négatif, 3 ordres ou plus, aucun Stop-Loss / Take-Profit | Bases : types d'ordres |
+| Plus de 90 % du capital resté en cash | Classes d'actifs : actions et obligations |
+| Gain de 5 % ou plus (ou 1er avec un gain) | IA : modèles de prédiction |
+
+Les cas sont triés par priorité, un seul cours est proposé par module, et si tout est déjà validé on propose la suite du parcours.
+
 ### Administration (`/api/v1/admin`, rôle ADMIN)
 - **Vue d'ensemble** : utilisateurs, ordres, montants échangés, connexions, backtests, activité des 30 derniers jours, progression de la formation, état du service IA.
 - **Utilisateurs** : recherche, changement de rôle, désactivation (le compte ne peut plus se connecter et ses jetons sont refusés), réinitialisation du portefeuille. Un administrateur ne peut ni se désactiver ni retirer son propre rôle.
