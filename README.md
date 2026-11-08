@@ -15,8 +15,8 @@ Une plateforme où l'on trade avec de l'argent virtuel sur des données de march
 | **IA de marché** | Signal Achat / Vente / Neutre (XGBoost) expliqué par SHAP, actualités et sentiment, séances anormales, agent d'analyse, assistant documenté (RAG) | Salle de marché |
 | **Backtesting** | Rejouer 6 stratégies sur l'historique et comparer leurs résultats (Sharpe, perte maximale…) | Backtesting |
 | **Stress testing** | Simuler une crise sur des banques conventionnelles et islamiques, avec explications SHAP | Stress Testing |
-| **Actuariat** | Tarifer une assurance auto (GLM), analyser les marges, calculer les provisions (Chain Ladder) | Actuariat |
-| **Formation** | Cours, quiz, scénarios de marché réels, défis, points, badges et classement | Formation |
+| **Actuariat** | Mesurer le risque d'un actif (volatilité, VaR, Expected Shortfall, drawdown maximal), prévoir sa volatilité (GARCH) et simuler ses trajectoires (Monte-Carlo) | Actuariat |
+| **Formation** | Cours, quiz, scénarios de marché réels, défis, points, badges et classement ; cours recommandé à la fin d'un match | Formation |
 | **Administration** | Statistiques de la plateforme, gestion des comptes, saisie des actualités, suivi de la formation, journal d'audit | Administration (admin) |
 
 ---
@@ -192,15 +192,22 @@ Les fichiers de données sont cherchés dans le répertoire courant puis le rép
 - Explications SHAP par banque, écart entre banque conventionnelle et islamique, importance globale.
 
 ### Actuariat (`/api/v1/actuarial`)
-- **Tarification** : GLM Poisson (fréquence) et Gamma (coût moyen), comparés à un gradient boosting. Devis avec prime pure, prime commerciale et effet de chaque caractéristique.
-- **Marges** : S/P attendu et observé par segment, ajustement tarifaire. Mode **takaful** (wakala) : commission, résultat du fonds, excédent ou qard hassan.
-- **Provisionnement** : Chain Ladder + erreur de Mack sur un triangle collé depuis un tableur. L'exemple Taylor & Ashe redonne les chiffres de Mack (1993) : provision 18 680 856, erreur 2 447 095.
+La Bourse n'est pas assurable : le module ne calcule **ni prime, ni sinistre**. Il applique les méthodes actuarielles de mesure du risque aux **actifs financiers** et décrit leur évolution possible par des fourchettes de probabilités, jamais par une promesse de rendement.
+- **Route** : `POST /api/v1/actuarial/analyze` (JWT). Le backend lit l'historique journalier de l'actif, le **coupe à la date simulée de la salle** (aucune donnée future) et l'envoie au service IA (`POST /api/ai/actuarial/analyze`), qui fait tous les calculs. Au moins 60 séances sont nécessaires.
+- **Risque** (rendements logarithmiques journaliers) : volatilité annualisée, VaR historique et paramétrique, Expected Shortfall, passage à h jours par la règle en √h, drawdown maximal et actuel, asymétrie et kurtosis.
+- **Prévision de volatilité** : GARCH(1,1) estimé par maximum de vraisemblance (retour progressif vers la moyenne de long terme), avec repli automatique sur l'EWMA (λ = 0,94) si l'historique compte moins de 100 séances ou si l'ajustement échoue.
+- **Monte-Carlo** : 500 à 20 000 trajectoires (5 000 par défaut), chocs normaux ou de Student, dérive nulle par défaut. Résultats : éventail de prix (percentiles 5, 25, 50, 75, 95), probabilité de perte, VaR et Expected Shortfall sur le prix final, drawdown attendu.
+- **Paramètres** : confiance de 90 % à 99,9 %, horizon de VaR de 1 à 60 jours, prévision de 1 à 90 jours.
+- **Limites** : tout repose sur l'historique et suppose des rendements indépendants d'un jour à l'autre ; un actif est analysé à la fois (le risque d'un portefeuille est traité par l'optimiseur de Markowitz, voir *IA de marché*).
+- **Tests** : `ai/actuarial/tests` (pytest, lancé par la CI) et `ActuarialControllerIntegrationTest`.
+- **Rapport détaillé** (formules, exemples chiffrés, optimiseur de portefeuille) : [`docs/Rapport_Actuariat_et_Optimisation_PIF.pdf`](docs/Rapport_Actuariat_et_Optimisation_PIF.pdf).
 
 ### Formation (`/api/v1/learning`)
 - 7 modules, 14 leçons, un quiz de 5 questions par module, corrigé côté serveur (seul le meilleur score compte).
 - 6 scénarios sur données réelles (krach COVID, record du bitcoin…) : décider Acheter, Attendre ou Vendre, puis voir les 20 séances suivantes.
 - 4 défis notés par le moteur de backtesting.
 - Points, 6 niveaux (Débutant → Expert), 7 badges et classement.
+- **Cours recommandé après un match** (`GET /api/v1/learning/recommendation/{roomId}`) : à la fin d'une salle, des règles simples analysent le résultat du joueur (rendement, rang, nombre d'ordres, concentration, part de cash, usage du Stop-Loss) et proposent jusqu'à 3 cours, en sautant ceux qu'il a déjà validés. Aucune donnée d'un autre joueur n'est utilisée.
 
 ### Administration (`/api/v1/admin`, rôle ADMIN)
 - **Vue d'ensemble** : utilisateurs, ordres, montants échangés, connexions, backtests, activité des 30 derniers jours, progression de la formation, état du service IA.

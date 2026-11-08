@@ -31,6 +31,7 @@ import BacktestPage from '../../pages/BacktestPage';
 import StressTestPage from '../../pages/StressTestPage';
 import ActuarialPage from '../../pages/ActuarialPage';
 import LearnPage from '../../pages/LearnPage';
+import MatchResultModal from './MatchResultModal';
 import CsvDataInspectorModal from '../CsvDataInspectorModal';
 
 const ROOM_MODULES = [
@@ -83,6 +84,8 @@ export default function ArenaLayout({ currentUser }) {
   const [showInviteDrawer, setShowInviteDrawer] = useState(false);
   const [friends, setFriends] = useState([]);
   const [invitedMap, setInvitedMap] = useState({});
+  const [showResult, setShowResult] = useState(false);
+  const [learnFocus, setLearnFocus] = useState(null);
 
   // 1. Charger les détails de la Room et les actifs BVMT
   const loadRoom = useCallback(async () => {
@@ -216,7 +219,7 @@ export default function ArenaLayout({ currentUser }) {
           setRoom((prev) => prev ? { ...prev, status: statusData.status } : prev);
           setIsPlaying(statusData.status === 'RUNNING');
           if (statusData.status === 'FINISHED') {
-            alert('🏁 Le match est désormais terminé ! Les classements finaux sont validés.');
+            setShowResult(true);
           }
         }
       }
@@ -282,6 +285,7 @@ export default function ArenaLayout({ currentUser }) {
       await closeArenaRoom(roomId);
       setIsPlaying(false);
       setRoom(prev => prev ? { ...prev, status: 'FINISHED' } : prev);
+      setShowResult(true);
       if (!isAuto) {
         alert("La salle a été clôturée avec succès.");
       }
@@ -1041,7 +1045,7 @@ export default function ArenaLayout({ currentUser }) {
 
         {/* ── MODULE 5: ACADEMIC ACADEMY & TRAINING ──────────────────────────── */}
         <div className={`flex-1 overflow-y-auto p-4 ${activeModule === 'ACADEMY' ? '' : 'hidden'}`}>
-          <LearnPage currentUser={currentUser} />
+          <LearnPage currentUser={currentUser} focus={learnFocus} />
         </div>
       </div>
 
@@ -1057,6 +1061,18 @@ export default function ArenaLayout({ currentUser }) {
           setSelectedYear(year);
         }}
       />
+
+      {showResult && (
+        <MatchResultModal
+          roomId={roomId}
+          onClose={() => setShowResult(false)}
+          onOpenCourse={(course) => {
+            setLearnFocus({ ...course, at: Date.now() });
+            setActiveModule('ACADEMY');
+            setShowResult(false);
+          }}
+        />
+      )}
     </div>
   );
 }
