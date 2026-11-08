@@ -36,6 +36,10 @@ public class RoomService {
     private final RoomSimulationTicker simulationTicker;
     private final GamificationEngine gamificationEngine;
 
+    // Injection par champ : les constructeurs existants (et RoomServiceTest) restent inchanges
+    @Autowired(required = false)
+    private RoomEquityValuator equityValuator;
+
     public RoomService(RoomRepository roomRepository,
                        RoomParticipantRepository participantRepository,
                        RoomOrderRepository orderRepository,
@@ -395,6 +399,13 @@ public class RoomService {
         }
 
         RoomOrder savedOrder = orderRepository.save(order);
+
+        // Equite = cash + valeur de marche des positions (et non plus le cash seul)
+        if (equityValuator != null) {
+            equityValuator.revalue(room, List.of(participant), simDate);
+            participantRepository.save(participant);
+        }
+
         RoomOrderResponseDto orderResponse = RoomOrderResponseDto.fromEntity(savedOrder);
 
         // Diffusion WebSocket de l'ordre
