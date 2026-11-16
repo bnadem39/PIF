@@ -27,6 +27,17 @@ public class RoomCreateDto {
     /** Rang minimum pour entrer dans la salle (BRONZE … MASTER) ; vide : ouverte à tous. */
     private String minTier;
 
+    /** Thème d'entraînement de la salle (RISK, DIVERSIFICATION, DISCIPLINE, AI, CRISIS) ; vide : salle ordinaire. */
+    private String trainingTheme;
+
+    public String getTrainingTheme() {
+        return trainingTheme;
+    }
+
+    public void setTrainingTheme(String trainingTheme) {
+        this.trainingTheme = trainingTheme;
+    }
+
     public String getMinTier() {
         return minTier;
     }

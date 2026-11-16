@@ -109,6 +109,7 @@ public class RoomService {
                     + creator.getTier() + ".");
         }
         room.setMinTier(minTier);
+        room.setTrainingTheme(TrainingTheme.normalize(dto.getTrainingTheme()));
         User managedCreator = creator;
         if (userRepository != null && creator != null && creator.getId() != null) {
             Optional<User> found = userRepository.findById(creator.getId());

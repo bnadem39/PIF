@@ -18,6 +18,19 @@ public final class MatchRecommendationDtos {
                           double cashSharePct, double largestPositionSharePct) {
     }
 
-    public record MatchRecommendationView(Summary summary, List<Item> recommendations, String message) {
+    /** Un critère noté d'une salle d'entraînement (points gagnés seulement si ok). */
+    public record TrainingCheck(String label, boolean ok, int points, String detail) {
+    }
+
+    /** Score d'entraînement (sur 100) du joueur dans une salle à thème. */
+    public record TrainingResult(String theme, String title, int score, String verdict, List<TrainingCheck> checks) {
+    }
+
+    /** Salle d'entraînement conseillée pour corriger la principale faiblesse constatée. */
+    public record RoomSuggestion(String theme, String title, String goal, String reason) {
+    }
+
+    public record MatchRecommendationView(Summary summary, List<Item> recommendations, String message,
+                                          TrainingResult training, RoomSuggestion suggestedRoom) {
     }
 }

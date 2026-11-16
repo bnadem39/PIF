@@ -6,12 +6,15 @@ import com.pif.learning.model.ItemType;
 import com.pif.learning.model.LearningProgress;
 import com.pif.learning.recommendation.MatchRecommendationDtos.Item;
 import com.pif.learning.recommendation.MatchRecommendationDtos.MatchRecommendationView;
+import com.pif.learning.recommendation.MatchRecommendationDtos.RoomSuggestion;
 import com.pif.learning.recommendation.MatchRecommendationDtos.Summary;
+import com.pif.learning.recommendation.MatchRecommendationDtos.TrainingResult;
 import com.pif.learning.repository.LearningProgressRepository;
 import com.pif.multiplayer.dto.RoomParticipantDto;
 import com.pif.multiplayer.model.RoomOrder;
 import com.pif.multiplayer.repository.RoomOrderRepository;
 import com.pif.multiplayer.repository.RoomParticipantRepository;
+import com.pif.multiplayer.model.TrainingTheme;
 import com.pif.multiplayer.service.RoomService;
 import com.pif.multiplayer.event.RoomClosingEvent;
 import com.pif.wallet.model.WalletTransactionType;
@@ -93,7 +96,7 @@ public class MatchRecommendationService {
         }
         // Spectateur ou autre compte : pas de résultat à analyser, ce n'est pas une erreur
         return new MatchRecommendationView(null, List.of(),
-                "Tu n'as pas joué dans cette salle avec ce compte : aucune recommandation à afficher.");
+                "Tu n'as pas joué dans cette salle avec ce compte : aucune recommandation à afficher.", null, null);
     }
 
     private static String snapshotKey(String roomId, Long userId) {
@@ -115,13 +118,29 @@ public class MatchRecommendationService {
     private MatchRecommendationView build(User user, String roomId) {
         MatchStats stats = stats(user, roomId);
         RecommendationRules.Progress progress = progress(user);
-        List<Item> items = RecommendationRules.plan(RecommendationRules.evaluate(stats), catalog, progress);
+        List<RecommendationRules.Finding> findings = RecommendationRules.evaluate(stats);
+        List<Item> items = RecommendationRules.plan(findings, catalog, progress);
+
+        // Salle d'entraînement : score si la salle a un thème, puis salle conseillée selon le comportement constaté
+        TrainingTheme played = roomTheme(roomId);
+        TrainingResult training = played != null ? TrainingScorer.score(played, stats) : null;
+        RoomSuggestion suggestion = TrainingScorer.suggest(findings, played, training != null ? training.score() : null)
+                .orElse(null);
 
         Summary summary = new Summary(round2(stats.returnPct() * 100), stats.rank(), stats.participants(),
                 stats.tradeCount(), stats.positionCount(), round2(stats.cashShare() * 100),
                 round2(stats.largestShareOfInvested() * 100));
         String message = items.isEmpty() ? "Tu as déjà validé tous les cours de la formation : bravo !" : null;
-        return new MatchRecommendationView(summary, items, message);
+        return new MatchRecommendationView(summary, items, message, training, suggestion);
+    }
+
+    /** Thème de la salle (null : salle ordinaire, ou salle introuvable). */
+    private TrainingTheme roomTheme(String roomId) {
+        try {
+            return TrainingTheme.of(roomService.getRoom(roomId).getTrainingTheme()).orElse(null);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private MatchStats stats(User user, String roomId) {

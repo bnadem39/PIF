@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Trophy, Calendar, DollarSign, Clock, Zap, X, ArrowRight, Lock } from 'lucide-react';
 import { createArenaRoom, getWallet } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
+import { TRAINING_THEMES, THEME_BY_CODE } from '../../constants/trainingThemes';
 
-export default function CreateRoomModal({ isOpen, onClose, onRoomCreated }) {
+export default function CreateRoomModal({ isOpen, onClose, onRoomCreated, initialTheme = '' }) {
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [startDate, setStartDate] = useState('2022-01-01');
@@ -14,8 +15,18 @@ export default function CreateRoomModal({ isOpen, onClose, onRoomCreated }) {
   const [tickRateMs, setTickRateMs] = useState(1000);
   const [password, setPassword] = useState('');
   const [minTier, setMinTier] = useState('');
+  const [trainingTheme, setTrainingTheme] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Ouverture depuis une salle d'entraînement conseillée : le thème est déjà choisi
+  useEffect(() => {
+    if (!isOpen) return;
+    setTrainingTheme(initialTheme || '');
+    if (initialTheme && THEME_BY_CODE[initialTheme]) {
+      setName((n) => n || `Entraînement : ${THEME_BY_CODE[initialTheme].title}`);
+    }
+  }, [isOpen, initialTheme]);
 
   // Solde du portefeuille global, pour savoir si le prix d'entrée est couvert
   useEffect(() => {
@@ -42,7 +53,8 @@ export default function CreateRoomModal({ isOpen, onClose, onRoomCreated }) {
         gameDurationMinutes,
         tickRateMs,
         password: password.trim() || undefined,
-        minTier: minTier || undefined
+        minTier: minTier || undefined,
+        trainingTheme: trainingTheme || undefined
       });
       if (onRoomCreated) onRoomCreated(room);
       onClose();
@@ -158,6 +170,41 @@ export default function CreateRoomModal({ isOpen, onClose, onRoomCreated }) {
                 </>
               )}
             </p>
+          </div>
+
+          {/* Type de salle : ordinaire ou salle d'entraînement */}
+          <div>
+            <label className="text-xs font-bold text-slate-300 flex items-center gap-1 mb-1.5">
+              <Zap size={13} className="text-emerald-400" /> Type de salle
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {[{ code: '', title: 'Salle ordinaire' }, ...TRAINING_THEMES].map((t) => (
+                <button
+                  key={t.code || 'none'}
+                  type="button"
+                  onClick={() => {
+                    setTrainingTheme(t.code);
+                    if (t.code && !name.trim()) setName(`Entraînement : ${t.title}`);
+                  }}
+                  className={`py-2 px-2 rounded-xl text-xs font-bold border transition-all ${
+                    trainingTheme === t.code
+                      ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300'
+                      : 'bg-[#080C14] border-[#1E293B] text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  {t.title}
+                </button>
+              ))}
+            </div>
+            {trainingTheme && THEME_BY_CODE[trainingTheme] && (
+              <div className="text-[11px] text-slate-300 mt-1.5 leading-relaxed">
+                <p>{THEME_BY_CODE[trainingTheme].goal}</p>
+                <p className="text-slate-400 mt-0.5">
+                  À la fin, chaque joueur reçoit une note sur 100 d'après : {THEME_BY_CODE[trainingTheme].rules.join(' · ')}.
+                  Les règles sont seulement notées : rien n'est bloqué.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Rang minimum pour entrer */}
