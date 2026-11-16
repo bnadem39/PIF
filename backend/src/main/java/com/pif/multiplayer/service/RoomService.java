@@ -199,8 +199,14 @@ public class RoomService {
         if (room.getStatus() == RoomStatus.FINISHED) {
             throw new IllegalStateException("Cette salle de match est clôturée et terminée.");
         }
+        // Un joueur déjà inscrit peut toujours revenir dans sa salle, même en cours de simulation
+        RoomParticipantId participantId = new RoomParticipantId(roomId, user.getId());
+        if (participantRepository.existsById(participantId)) {
+            RoomParticipant existing = participantRepository.findById(participantId).get();
+            return RoomParticipantDto.fromEntity(existing);
+        }
         if (room.getStatus() != RoomStatus.LOBBY && room.getStatus() != RoomStatus.WAITING) {
-            throw new IllegalStateException("Impossible de rejoindre une room déjà en cours de simulation.");
+            throw new IllegalStateException("Cette partie a déjà commencé : on ne peut plus la rejoindre. Vous pouvez la regarder en spectateur.");
         }
 
         // Contrôle du mot de passe si la salle est privée (l'hôte créateur en est dispensé)
@@ -209,12 +215,6 @@ public class RoomService {
             if (password == null || !password.trim().equals(room.getPassword())) {
                 throw new IllegalArgumentException("Mot de passe incorrect pour cette salle privée.");
             }
-        }
-
-        RoomParticipantId participantId = new RoomParticipantId(roomId, user.getId());
-        if (participantRepository.existsById(participantId)) {
-            RoomParticipant existing = participantRepository.findById(participantId).get();
-            return RoomParticipantDto.fromEntity(existing);
         }
 
         User managedUser = user;

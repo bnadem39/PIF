@@ -1065,6 +1065,7 @@ export default function ArenaLayout({ currentUser }) {
       {showResult && (
         <MatchResultModal
           roomId={roomId}
+          showCourses={!isHost}
           onClose={() => setShowResult(false)}
           onOpenCourse={(course) => {
             setLearnFocus({ ...course, at: Date.now() });

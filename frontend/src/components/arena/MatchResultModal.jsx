@@ -7,7 +7,7 @@ import { getWallet } from '../../services/api';
  * Fenêtre affichée à la fin d'un match : résultat du joueur + cours recommandés d'après ses décisions.
  * onOpenCourse({ moduleId, lessonId, quizId, nextStep }) ouvre le cours dans l'Académie.
  */
-export default function MatchResultModal({ roomId, onClose, onOpenCourse }) {
+export default function MatchResultModal({ roomId, onClose, onOpenCourse, showCourses = true }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [wallet, setWallet] = useState(null);
@@ -77,7 +77,7 @@ export default function MatchResultModal({ roomId, onClose, onOpenCourse }) {
             </div>
           )}
 
-          {data && (
+          {showCourses && data && (
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-xs font-bold text-indigo-300">
                 <GraduationCap size={14} /> Cours recommandés pour toi
