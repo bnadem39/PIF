@@ -70,11 +70,12 @@ public final class RecommendationRules {
             out.add(new Finding("NO_PROTECTION", "bases", "bases-ordres", 65,
                     "Aucun de tes ordres n'avait de Stop-Loss ni de Take-Profit : ces ordres protègent le capital quand le marché se retourne."));
         }
-        if (s.cashShare() >= IDLE_CASH_SHARE) {
+        // Un joueur qui a bien gagné puis tout revendu a pris ses bénéfices : ce n'est pas du cash inutilisé
+        if (s.cashShare() >= IDLE_CASH_SHARE && ret < GOOD_RESULT) {
             out.add(new Finding("IDLE_CASH", "actifs", "actifs-actions-obligations", 60,
                     pct(s.cashShare()) + " de ton capital est resté en cash : découvre les classes d'actifs pour savoir où et comment l'investir."));
         }
-        if (ret >= GOOD_RESULT || (s.participants() >= 2 && s.rank() == 1 && ret > 0)) {
+        if (ret >= GOOD_RESULT) {
             out.add(new Finding("STRONG_RESULT", "ia", "ia-modeles", 30,
                     "Bon résultat (" + (ret >= 0 ? "+" : "-") + pct(ret) + ") : tu peux passer au niveau avancé et "
                             + "comprendre comment les modèles d'IA aident à décider."));

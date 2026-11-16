@@ -87,7 +87,7 @@ export default function TrophyShowcase() {
         </div>
 
         <button
-          onClick={() => navigate('/login')}
+          onClick={() => { navigate('/'); setTimeout(() => document.getElementById('hero')?.scrollIntoView({ behavior: 'smooth' }), 50); }}
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-400 hover:to-indigo-400 text-white transition-all shadow-lg shadow-purple-950/40 active:scale-95 cursor-pointer self-start md:self-auto"
         >
           <span>Voir Tous les Trophées</span>

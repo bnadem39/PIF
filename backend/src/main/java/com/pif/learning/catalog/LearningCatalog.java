@@ -30,7 +30,7 @@ public class LearningCatalog {
     public record Module(String id, String title, String level, String description, List<Lesson> lessons, Quiz quiz) {
     }
 
-    /** Blocs de contenu : {type: p|list|tip|formula|link, ...}, rendus tels quels par le frontend. */
+    /** Blocs de contenu : {type: p|list|tip|formula|link|video, ...}, rendus tels quels par le frontend. */
     public record Lesson(String id, String title, int minutes, List<JsonNode> blocks) {
     }
 

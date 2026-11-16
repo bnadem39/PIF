@@ -26,14 +26,14 @@ public class InvitationController {
     }
 
     @PostMapping("/{id}/accept")
-    public ResponseEntity<Void> acceptInvitation(@PathVariable UUID id) {
-        invitationService.respondInvitation(id, true);
+    public ResponseEntity<Void> acceptInvitation(@PathVariable UUID id, @AuthenticationPrincipal User user) {
+        invitationService.respondInvitation(id, true, user);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{id}/decline")
-    public ResponseEntity<Void> declineInvitation(@PathVariable UUID id) {
-        invitationService.respondInvitation(id, false);
+    public ResponseEntity<Void> declineInvitation(@PathVariable UUID id, @AuthenticationPrincipal User user) {
+        invitationService.respondInvitation(id, false, user);
         return ResponseEntity.ok().build();
     }
 }

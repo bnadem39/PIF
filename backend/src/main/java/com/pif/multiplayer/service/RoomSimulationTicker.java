@@ -46,6 +46,10 @@ public class RoomSimulationTicker {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private RoomEquityValuator equityValuator;
 
+    // Portefeuille global : le capital final de chaque joueur y revient à la fin du match
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.pif.wallet.service.WalletService walletService;
+
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
     private final Map<String, ScheduledFuture<?>> activeTasks = new ConcurrentHashMap<>();
 
@@ -219,6 +223,17 @@ public class RoomSimulationTicker {
 
             userRepository.save(user);
             matchResults.add(eloResult);
+        }
+
+        // Règlement du portefeuille global (une seule fois par joueur et par salle)
+        if (walletService != null) {
+            for (RoomParticipant p : participants) {
+                try {
+                    walletService.settle(p.getUser().getId(), room.getId(), p.getTotalEquity());
+                } catch (Exception e) {
+                    log.warn("[TICKER] Règlement du portefeuille impossible pour la room {} : {}", room.getId(), e.getMessage());
+                }
+            }
         }
 
         // Orchestration Gamifiée : Saisons, Succès, Célébration 3D et Carrière

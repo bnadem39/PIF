@@ -60,9 +60,15 @@ public class InvitationService {
                 .collect(Collectors.toList());
     }
 
-    public void respondInvitation(UUID invitationId, boolean accept) {
+    public void respondInvitation(UUID invitationId, boolean accept, User user) {
         RoomInvitation invitation = invitationRepository.findById(invitationId)
                 .orElseThrow(() -> new IllegalArgumentException("Invitation introuvable: " + invitationId));
+
+        // Seul le destinataire peut répondre à une invitation
+        if (user == null || invitation.getReceiver() == null
+                || !invitation.getReceiver().getId().equals(user.getId())) {
+            throw new IllegalStateException("Cette invitation ne vous est pas destinée.");
+        }
 
         invitation.setStatus(accept ? "ACCEPTED" : "DECLINED");
         invitationRepository.save(invitation);

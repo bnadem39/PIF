@@ -88,6 +88,20 @@ class RecommendationRulesTest {
     }
 
     @Test
+    void idleCashIsNotReportedToAWinnerWhoTookProfits() {
+        // +48 %, tout revendu : 96 % de cash, mais c'est une prise de bénéfices
+        List<Finding> findings = RecommendationRules.evaluate(stats(148_000, 142_000, 6_000, 6_000, 1, 10, true, 1, 2));
+        assertThat(codes(findings)).doesNotContain("IDLE_CASH").contains("STRONG_RESULT");
+    }
+
+    @Test
+    void aSmallGainIsNotAStrongResultEvenWhenRankedFirst() {
+        // +1,4 %, premier sur deux : pas de quoi parler de « bon résultat »
+        List<Finding> findings = RecommendationRules.evaluate(stats(101_410, 40_000, 61_410, 20_000, 4, 49, true, 1, 2));
+        assertThat(codes(findings)).doesNotContain("STRONG_RESULT");
+    }
+
+    @Test
     void overtradingNeedsManyOrdersAndANegativeResult() {
         assertThat(codes(RecommendationRules.evaluate(stats(98_000, 50_000, 48_000, 20_000, 3, 35, true, 2, 2)))).contains("OVERTRADING");
         assertThat(codes(RecommendationRules.evaluate(stats(104_000, 50_000, 54_000, 20_000, 3, 35, true, 1, 2)))).doesNotContain("OVERTRADING");

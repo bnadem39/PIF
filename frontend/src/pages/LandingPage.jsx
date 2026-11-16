@@ -36,7 +36,7 @@ const LANDING_SECTIONS = [
  * S'inspire des portails fantasy sombres centré-symétriques (arche, blason taureau,
  * torches néon, menus jumeaux, chandeliers de trading, ticker et panneau de login).
  */
-export default function LandingPage({ currentUser }) {
+export default function LandingPage({ currentUser, onAuthSuccess }) {
   const navigate = useNavigate();
 
   // Détection automatique de la section active pour la barre latérale et les contrôles
@@ -59,6 +59,7 @@ export default function LandingPage({ currentUser }) {
 
       {/* 4. Section 1 : HÉRO (Écran initial 100vh sans scroller sur 1440x900) */}
       <Hero
+        onAuthSuccess={onAuthSuccess}
         onOpenRegister={() => setRegisterOpen(true)}
         onOpenForgot={() => setForgotOpen(true)}
       />

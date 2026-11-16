@@ -69,7 +69,7 @@ export default function TradingArenaPreview() {
         </div>
 
         <button
-          onClick={() => navigate('/login')}
+          onClick={() => { navigate('/'); setTimeout(() => document.getElementById('hero')?.scrollIntoView({ behavior: 'smooth' }), 50); }}
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-emerald-500 to-sky-500 hover:from-emerald-400 hover:to-sky-400 text-slate-950 transition-all shadow-lg shadow-emerald-950/40 active:scale-95 cursor-pointer self-start md:self-auto"
         >
           <span>Accéder au Lobby des Salles</span>
@@ -146,7 +146,7 @@ export default function TradingArenaPreview() {
 
               {/* Bouton d'action */}
               <button
-                onClick={() => navigate('/login')}
+                onClick={() => { navigate('/'); setTimeout(() => document.getElementById('hero')?.scrollIntoView({ behavior: 'smooth' }), 50); }}
                 className={`w-full py-2.5 px-4 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all cursor-pointer ${
                   isHovered
                     ? 'bg-gradient-to-r from-emerald-500 to-sky-500 text-slate-950 shadow-md shadow-emerald-950'

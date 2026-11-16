@@ -116,40 +116,105 @@ function ProgressHeader({ progress }) {
 
 // ── Parcours : modules, leçons, quiz ──────────────────────────────
 
-function ModuleGrid({ modules, onLesson, onQuiz }) {
+const LEVELS = [
+  { key: 'Débutant', label: 'Niveau 1', goal: 'Les bases : comprendre le marché, passer un ordre, connaître les actifs.' },
+  { key: 'Intermédiaire', label: 'Niveau 2', goal: 'Analyser : lire les graphiques, mesurer et limiter le risque.' },
+  { key: 'Avancé', label: 'Niveau 3', goal: 'Aller plus loin : IA, assurance et provisions, outils quantitatifs.' }
+];
+
+function ModuleCard({ m, onLesson, onQuiz }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-3">
-      {modules.map((m) => (
-        <Card key={m.id} title={m.level} right={<span className="text-xs font-mono text-slate-300">{pct(m.progress, 0)}</span>}>
-          <h3 className="text-sm font-bold text-slate-100">{m.title}</h3>
-          <p className="text-xs text-slate-300 mt-0.5 mb-2">{m.description}</p>
-          <Bar value={m.progress} color={m.progress >= 1 ? '#34D399' : '#38BDF8'} />
-          <ul className="mt-2 space-y-1">
-            {m.lessons.map((l) => (
-              <li key={l.id}>
-                <button onClick={() => onLesson(l.id)} className="w-full flex items-center gap-2 text-left text-xs text-slate-300 hover:text-white">
-                  {l.completed ? <CheckCircle2 size={14} className="text-emerald-400 shrink-0" /> : <Circle size={14} className="text-slate-600 shrink-0" />}
-                  <span className="flex-1">{l.title}</span>
-                  <span className="text-[13px] text-slate-400">{l.minutes} min</span>
-                </button>
-              </li>
-            ))}
-            <li>
-              <button onClick={() => onQuiz(m.quiz.id)} className="w-full flex items-center gap-2 text-left text-xs text-slate-300 hover:text-white">
-                {m.quiz.passed ? <CheckCircle2 size={14} className="text-emerald-400 shrink-0" /> : <Lightbulb size={14} className="text-amber-400 shrink-0" />}
-                <span className="flex-1">Quiz · {m.quiz.questions} questions</span>
-                <span className="text-[13px] text-slate-400">{m.quiz.bestScore != null ? `meilleur ${pct(m.quiz.bestScore, 0)}` : `réussite ${pct(m.quiz.passScore, 0)}`}</span>
-              </button>
-            </li>
-          </ul>
-        </Card>
-      ))}
+    <Card title={m.level} right={<span className="text-xs font-mono text-slate-300">{pct(m.progress, 0)}</span>}>
+      <h3 className="text-sm font-bold text-slate-100">{m.title}</h3>
+      <p className="text-xs text-slate-300 mt-0.5 mb-2">{m.description}</p>
+      <Bar value={m.progress} color={m.progress >= 1 ? '#34D399' : '#38BDF8'} />
+      <ul className="mt-2 space-y-1">
+        {m.lessons.map((l) => (
+          <li key={l.id}>
+            <button onClick={() => onLesson(l.id)} className="w-full flex items-center gap-2 text-left text-xs text-slate-300 hover:text-white">
+              {l.completed ? <CheckCircle2 size={14} className="text-emerald-400 shrink-0" /> : <Circle size={14} className="text-slate-600 shrink-0" />}
+              <span className="flex-1">{l.title}</span>
+              <span className="text-[13px] text-slate-400">{l.minutes} min</span>
+            </button>
+          </li>
+        ))}
+        <li>
+          <button onClick={() => onQuiz(m.quiz.id)} className="w-full flex items-center gap-2 text-left text-xs text-slate-300 hover:text-white">
+            {m.quiz.passed ? <CheckCircle2 size={14} className="text-emerald-400 shrink-0" /> : <Lightbulb size={14} className="text-amber-400 shrink-0" />}
+            <span className="flex-1">Quiz · {m.quiz.questions} questions</span>
+            <span className="text-[13px] text-slate-400">{m.quiz.bestScore != null ? `meilleur ${pct(m.quiz.bestScore, 0)}` : `réussite ${pct(m.quiz.passScore, 0)}`}</span>
+          </button>
+        </li>
+      </ul>
+    </Card>
+  );
+}
+
+/** Les modules sont rangés par niveau (1, 2, 3) avec la progression de chaque niveau. */
+function ModuleGrid({ modules, onLesson, onQuiz }) {
+  const known = new Set(LEVELS.map((l) => l.key));
+  const others = modules.filter((m) => !known.has(m.level));
+  return (
+    <div className="space-y-6">
+      {LEVELS.map((lvl) => {
+        const list = modules.filter((m) => m.level === lvl.key);
+        if (!list.length) return null;
+        const avg = list.reduce((s, m) => s + (m.progress || 0), 0) / list.length;
+        return (
+          <section key={lvl.key}>
+            <div className="flex items-end justify-between gap-3 mb-2">
+              <div>
+                <h2 className="text-sm font-bold text-slate-100">{lvl.label} · {lvl.key}</h2>
+                <p className="text-xs text-slate-400">{lvl.goal}</p>
+              </div>
+              <span className="text-xs font-mono text-slate-300 shrink-0">{pct(avg, 0)}</span>
+            </div>
+            <Bar value={avg} color={avg >= 1 ? '#34D399' : '#38BDF8'} />
+            <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-3 mt-3">
+              {list.map((m) => <ModuleCard key={m.id} m={m} onLesson={onLesson} onQuiz={onQuiz} />)}
+            </div>
+          </section>
+        );
+      })}
+      {others.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-3">
+          {others.map((m) => <ModuleCard key={m.id} m={m} onLesson={onLesson} onQuiz={onQuiz} />)}
+        </div>
+      )}
     </div>
   );
 }
 
 function LessonBlock({ block }) {
   switch (block.type) {
+    case 'video': {
+      // Vidéo YouTube intégrée : { type: 'video', youtubeId: '…', title: '…' } dans catalog.json
+      const id = /^[\w-]{11}$/.test(block.youtubeId || '') ? block.youtubeId : null;
+      if (!id) return null;
+      return (
+        <figure className="space-y-1">
+          <div className="relative w-full overflow-hidden rounded-lg border border-[#1E293B]" style={{ paddingTop: '56.25%' }}>
+            <iframe
+              className="absolute inset-0 w-full h-full"
+              src={`https://www.youtube-nocookie.com/embed/${id}`}
+              title={block.title || 'Vidéo du cours'}
+              loading="lazy"
+              allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+          {block.title && <figcaption className="text-xs text-slate-400">{block.title}</figcaption>}
+          <a
+            href={`https://www.youtube.com/watch?v=${id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[11px] text-slate-500 hover:text-sky-300"
+          >
+            La vidéo ne s'affiche pas ? Ouvre-la sur YouTube
+          </a>
+        </figure>
+      );
+    }
     case 'p':
       return <p className="text-sm text-slate-300 leading-relaxed">{block.text}</p>;
     case 'list':

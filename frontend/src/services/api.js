@@ -111,17 +111,43 @@ export async function getMyRoomPortfolio(roomId) {
   return request(`${BACKEND_URL}/rooms/${roomId}/my-portfolio`);
 }
 
+// ─── PORTEFEUILLE GLOBAL ─────────────────────────────────────────────
+/** Solde commun à toutes les salles, dette, crédit disponible et derniers mouvements. */
+export async function getWallet() {
+  return request(`${BACKEND_URL}/wallet`);
+}
+
+const CREDIT_PREFIX = 'Crédit nécessaire : ';
+
+/**
+ * Entrer dans une salle coûte son prix d'entrée. Si le solde ne suffit pas, le backend répond
+ * « Crédit nécessaire : … » : on propose alors le crédit au joueur et, s'il accepte, on relance.
+ */
+async function withCreditOffer(run) {
+  try {
+    return await run(false);
+  } catch (err) {
+    if (!String(err.message || '').startsWith(CREDIT_PREFIX)) throw err;
+    const accepted = window.confirm(`${err.message}\n\nAccepter ce crédit et entrer dans la salle ?`);
+    if (!accepted) throw new Error("Entrée annulée : tu n'as pas accepté le crédit.");
+    return run(true);
+  }
+}
+
 export async function createArenaRoom(roomData) {
-  return request(`${BACKEND_URL}/rooms`, {
+  return withCreditOffer((acceptCredit) => request(`${BACKEND_URL}/rooms`, {
     method: 'POST',
-    body: JSON.stringify(roomData)
-  });
+    body: JSON.stringify(acceptCredit ? { ...roomData, acceptCredit: true } : roomData)
+  }));
 }
 
 export async function joinArenaRoom(roomId, password = null) {
-  return request(`${BACKEND_URL}/rooms/${roomId}/join`, {
-    method: 'POST',
-    body: password ? JSON.stringify({ password }) : undefined
+  return withCreditOffer((acceptCredit) => {
+    const payload = { ...(password ? { password } : {}), ...(acceptCredit ? { acceptCredit: 'true' } : {}) };
+    return request(`${BACKEND_URL}/rooms/${roomId}/join`, {
+      method: 'POST',
+      body: Object.keys(payload).length ? JSON.stringify(payload) : undefined
+    });
   });
 }
 

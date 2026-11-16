@@ -24,7 +24,29 @@ public class RoomCreateDto {
 
     private String password;
 
+    /** Rang minimum pour entrer dans la salle (BRONZE … MASTER) ; vide : ouverte à tous. */
+    private String minTier;
+
+    public String getMinTier() {
+        return minTier;
+    }
+
+    public void setMinTier(String minTier) {
+        this.minTier = minTier;
+    }
+
+    /** Vrai si le joueur accepte un crédit quand son portefeuille ne couvre pas le prix d'entrée. */
+    private Boolean acceptCredit;
+
     public RoomCreateDto() {
+    }
+
+    public Boolean getAcceptCredit() {
+        return acceptCredit;
+    }
+
+    public void setAcceptCredit(Boolean acceptCredit) {
+        this.acceptCredit = acceptCredit;
     }
 
     public String getName() {

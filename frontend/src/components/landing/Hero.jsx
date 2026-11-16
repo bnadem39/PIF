@@ -13,7 +13,7 @@ import Particles from './Particles';
  * Écran d'accueil portail gaming symétrique 100vh inspiré des portails fantasy sombres
  * et entièrement transposé dans l'univers boursier multijoueur de PIF Trading Arena.
  */
-export default function Hero({ onOpenRegister, onOpenForgot }) {
+export default function Hero({ onOpenRegister, onOpenForgot, onAuthSuccess }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleMobileNav = (id) => {
@@ -138,6 +138,7 @@ export default function Hero({ onOpenRegister, onOpenForgot }) {
             ───────────────────────────────────────────────────────────────── */}
         <div className="relative z-30 w-full flex justify-center">
           <LoginPanel 
+            onLoginSuccess={onAuthSuccess}
             onOpenRegister={onOpenRegister}
             onOpenForgot={onOpenForgot}
           />

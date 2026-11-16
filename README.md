@@ -192,6 +192,7 @@ Les fichiers de données sont cherchés dans le répertoire courant puis le rép
 - Explications SHAP par banque, écart entre banque conventionnelle et islamique, importance globale.
 
 ### Actuariat (`/api/v1/actuarial`)
+- L'écran commence par un **niveau de risque** (faible, moyen, élevé) et une lecture en phrases simples, avec des montants pour 1 000 TND ; les indicateurs techniques, des bulles d'aide et un lexique viennent ensuite.
 La Bourse n'est pas assurable : le module ne calcule **ni prime, ni sinistre**. Il applique les méthodes actuarielles de mesure du risque aux **actifs financiers** et décrit leur évolution possible par des fourchettes de probabilités, jamais par une promesse de rendement.
 - **Route** : `POST /api/v1/actuarial/analyze` (JWT). Le backend lit l'historique journalier de l'actif, le **coupe à la date simulée de la salle** (aucune donnée future) et l'envoie au service IA (`POST /api/ai/actuarial/analyze`), qui fait tous les calculs. Au moins 60 séances sont nécessaires.
 - **Risque** (rendements logarithmiques journaliers) : volatilité annualisée, VaR historique et paramétrique, Expected Shortfall, passage à h jours par la règle en √h, drawdown maximal et actuel, asymétrie et kurtosis.
@@ -207,6 +208,8 @@ La Bourse n'est pas assurable : le module ne calcule **ni prime, ni sinistre**. 
 - 6 scénarios sur données réelles (krach COVID, record du bitcoin…) : décider Acheter, Attendre ou Vendre, puis voir les 20 séances suivantes.
 - 4 défis notés par le moteur de backtesting.
 - Points, 6 niveaux (Débutant → Expert), 7 badges et classement.
+- Les modules sont rangés par **niveau** (1 Débutant, 2 Intermédiaire, 3 Avancé), avec la progression de chaque niveau.
+- Une leçon peut contenir une **vidéo YouTube** : bloc `{ "type": "video", "youtubeId": "…", "title": "…" }` dans `learning/catalog.json`.
 - **Cours recommandé après un match** (`GET /api/v1/learning/recommendation/{roomId}`) : à la fin d'une salle, des règles simples analysent le résultat du joueur (rendement, rang, nombre d'ordres, concentration, part de cash, usage du Stop-Loss) et proposent jusqu'à 3 cours, en sautant ceux qu'il a déjà validés. Aucune donnée d'un autre joueur n'est utilisée.
 
 | Situation constatée dans le match | Cours proposé |
@@ -217,9 +220,19 @@ La Bourse n'est pas assurable : le module ne calcule **ni prime, ni sinistre**. 
 | 30 ordres ou plus avec un résultat négatif | Analyse technique : confirmer une tendance |
 | Résultat négatif, 3 ordres ou plus, aucun Stop-Loss / Take-Profit | Bases : types d'ordres |
 | Plus de 90 % du capital resté en cash | Classes d'actifs : actions et obligations |
-| Gain de 5 % ou plus (ou 1er avec un gain) | IA : modèles de prédiction |
+| Gain de 5 % ou plus | IA : modèles de prédiction |
 
 Les cas sont triés par priorité, un seul cours est proposé par module, et si tout est déjà validé on propose la suite du parcours.
+
+### Portefeuille global et salles (`/api/v1/wallet`)
+- Chaque joueur a **un seul portefeuille** pour toutes les salles : 100 000 TND au départ, attribués une seule fois.
+- **Entrer dans une salle coûte son prix d'entrée**, qui devient le capital de jeu du joueur dans la salle. L'hôte le paie aussi à la création.
+- **À la fin du match**, le capital final du joueur revient dans son portefeuille : un gain l'augmente, une perte le diminue.
+- **Crédit** : si le solde ne couvre pas le prix d'entrée, un crédit de la différence est proposé (dette plafonnée à 100 000 TND). Il est remboursé en priorité sur ce que le joueur récupère en fin de match.
+- Chaque mouvement est écrit dans un journal (`wallet_transactions`, migration `V13`) : une salle ne peut être ni débitée ni réglée deux fois.
+- **Salles par niveau** : à la création, l'hôte peut réserver la salle à un rang minimum (Bronze, Silver, Gold, Platinum, Master ; migration `V14`). Le rang vient de l'ELO du joueur. L'entrée est refusée, avant tout débit, à un joueur de rang inférieur ; l'hôte doit lui-même avoir ce rang.
+- `GET /api/v1/wallet` renvoie le solde, la dette, le crédit disponible et les 30 derniers mouvements.
+- Limite : si le serveur redémarre pendant un match, le prix d'entrée reste engagé jusqu'à ce que l'hôte clôture la salle.
 
 ### Administration (`/api/v1/admin`, rôle ADMIN)
 - **Vue d'ensemble** : utilisateurs, ordres, montants échangés, connexions, backtests, activité des 30 derniers jours, progression de la formation, état du service IA.

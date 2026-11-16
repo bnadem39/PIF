@@ -14,6 +14,8 @@ import com.pif.multiplayer.repository.RoomOrderRepository;
 import com.pif.multiplayer.repository.RoomParticipantRepository;
 import com.pif.multiplayer.service.RoomService;
 import com.pif.multiplayer.event.RoomClosingEvent;
+import com.pif.wallet.model.WalletTransactionType;
+import com.pif.wallet.repository.WalletTransactionRepository;
 import com.pif.multiplayer.model.RoomParticipant;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -38,6 +40,7 @@ public class MatchRecommendationService {
     private final RoomOrderRepository orderRepository;
     private final LearningCatalog catalog;
     private final LearningProgressRepository progressRepository;
+    private final WalletTransactionRepository walletTransactionRepository;
 
     /**
      * La clôture d'une salle supprime ses participants et ses ordres : les résultats sont donc relevés juste avant
@@ -53,12 +56,14 @@ public class MatchRecommendationService {
 
     public MatchRecommendationService(RoomService roomService, RoomParticipantRepository participantRepository,
                                       RoomOrderRepository orderRepository, LearningCatalog catalog,
-                                      LearningProgressRepository progressRepository) {
+                                      LearningProgressRepository progressRepository,
+                                      WalletTransactionRepository walletTransactionRepository) {
         this.roomService = roomService;
         this.participantRepository = participantRepository;
         this.orderRepository = orderRepository;
         this.catalog = catalog;
         this.progressRepository = progressRepository;
+        this.walletTransactionRepository = walletTransactionRepository;
     }
 
     /** Relève la recommandation de chaque joueur avant la suppression de la salle. */
@@ -124,6 +129,8 @@ public class MatchRecommendationService {
         double initial = number(portfolio.get("initialCash"));
         double cash = number(portfolio.get("cashBalance"));
         double equity = number(portfolio.get("totalPortfolioValue"));
+        // Match déjà réglé : le rendement affiché doit correspondre au montant réellement reversé au portefeuille
+        equity = settledPayout(user, roomId, equity);
 
         double positionsValue = 0.0;
         double largest = 0.0;
@@ -154,6 +161,19 @@ public class MatchRecommendationService {
         }
         return new MatchStats(initial, equity, cash, positionsValue, largest, positionCount, orders.size(),
                 protectedOrders, rank, participants);
+    }
+
+    /** Montant reversé au portefeuille à la clôture de cette salle ; à défaut, la valeur calculée à l'instant. */
+    private double settledPayout(User user, String roomId, double fallback) {
+        try {
+            return walletTransactionRepository.findTop30ByUserIdOrderByIdDesc(user.getId()).stream()
+                    .filter(t -> roomId.equals(t.getRoomId()) && t.getType() == WalletTransactionType.SETTLEMENT)
+                    .findFirst()
+                    .map(t -> t.getAmount().doubleValue())
+                    .orElse(fallback);
+        } catch (Exception e) {
+            return fallback;
+        }
     }
 
     private RecommendationRules.Progress progress(User user) {

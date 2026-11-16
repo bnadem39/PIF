@@ -11,6 +11,7 @@ import PlayerProfileCard from '../components/hub/PlayerProfileCard';
 import FriendsSidebar from '../components/hub/FriendsSidebar';
 import CreateRoomModal from '../components/hub/CreateRoomModal';
 import AcademyView from '../components/lobby/AcademyView';
+import LearnPage from './LearnPage';
 import PlayerAvatar from '../components/common/PlayerAvatar';
 import AppearanceCustomizerModal from '../components/hub/AppearanceCustomizerModal';
 import FriendProfileModal from '../components/hub/FriendProfileModal';
@@ -23,6 +24,7 @@ import { getPlayerLevelFrame } from '../utils/playerLevelFrames';
 import { getRooms, getPlayerProfile, joinArenaRoom, getPendingInvitations, acceptInvitation, declineInvitation, logoutUser } from '../services/api';
 import { applyThemeSkin, getStoredTheme } from '../utils/colorPaletteExtractor';
 import { resolveMediaUrl } from '../components/common/PlayerAvatar';
+import WalletBadge from '../components/WalletBadge';
 
 const FILTER_TABS = [
   { id: 'ALL', label: 'Toutes les Arènes' },
@@ -164,11 +166,14 @@ export default function GamifiedHubPage({ currentUser, onOpenAuthModal, onLogout
 
   const handleAcceptInvite = async (invId, roomId) => {
     try {
+      // Même chemin que l'entrée normale : contrôle du rang puis débit du prix d'entrée
+      await joinArenaRoom(roomId);
       await acceptInvitation(invId);
       setIsNotifOpen(false);
       navigate(`/arena/${roomId}`);
     } catch (e) {
-      navigate(`/arena/${roomId}`);
+      setJoinError(`Impossible de rejoindre ${roomId} : ${e.message}`);
+      setTimeout(() => setJoinError(''), 4000);
     }
   };
 
@@ -457,6 +462,8 @@ export default function GamifiedHubPage({ currentUser, onOpenAuthModal, onLogout
               </button>
             )}
 
+            <WalletBadge refreshKey={rooms.length} className="hidden md:flex" />
+
             {/* Create Room Button with Gold Esports Accent */}
             <button
               onClick={() => setIsCreateModalOpen(true)}
@@ -507,7 +514,11 @@ export default function GamifiedHubPage({ currentUser, onOpenAuthModal, onLogout
 
             {/* TAB 1: ACADEMIC ACADEMY VIEW */}
             {activeTab === 'ACADEMY' ? (
-              <AcademyView currentUser={currentUser} />
+              <div className="flex flex-col gap-6">
+                {/* Parcours complet : niveaux 1 à 3, leçons avec vidéos, quiz, scénarios, défis */}
+                <LearnPage currentUser={currentUser} />
+                <AcademyView currentUser={currentUser} />
+              </div>
             ) : (
               /* TAB 2: AVAILABLE ARENAS / ROOM BROWSER */
               <section className="flex flex-col gap-5">
@@ -641,6 +652,13 @@ export default function GamifiedHubPage({ currentUser, onOpenAuthModal, onLogout
                                   }`}
                               >
                                 {room.status === 'LOBBY' ? 'SALLE D\'ATTENTE' : room.status}
+                              </span>
+                            </div>
+                            <div className="mt-2">
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${room.minTier
+                                ? 'bg-amber-950/50 text-amber-300 border-amber-600/60'
+                                : 'bg-slate-800/60 text-slate-400 border-slate-600/60'}`}>
+                                {room.minTier ? `Réservée : ${room.minTier} ou plus` : 'Ouverte à tous les rangs'}
                               </span>
                             </div>
 

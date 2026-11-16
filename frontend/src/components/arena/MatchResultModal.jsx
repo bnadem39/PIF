@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { GraduationCap, X, Trophy, BookOpen, ClipboardCheck } from 'lucide-react';
 import { getMatchRecommendation } from '../../services/learningRecommendationService';
+import { getWallet } from '../../services/api';
 
 /**
  * Fenêtre affichée à la fin d'un match : résultat du joueur + cours recommandés d'après ses décisions.
@@ -9,16 +10,26 @@ import { getMatchRecommendation } from '../../services/learningRecommendationSer
 export default function MatchResultModal({ roomId, onClose, onOpenCourse }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
+  const [wallet, setWallet] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
     getMatchRecommendation(roomId)
       .then((d) => { if (!cancelled) setData(d); })
       .catch((e) => { if (!cancelled) setError(e.message); });
+    // Portefeuille global après règlement du match
+    getWallet().then((w) => { if (!cancelled) setWallet(w); }).catch(() => {});
     return () => { cancelled = true; };
   }, [roomId]);
 
   const s = data?.summary;
+  // Crédit pris pour cette salle et part déjà remboursée (journal du portefeuille)
+  const sumOf = (type) => (wallet?.transactions || [])
+    .filter((t) => t.roomId === roomId && t.type === type)
+    .reduce((total, t) => total + Math.abs(Number(t.amount || 0)), 0);
+  const creditTaken = sumOf('CREDIT');
+  const creditRepaid = sumOf('REPAYMENT');
+  const fmtTnd = (v) => `${Number(v).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} TND`;
   const ret = s ? Number(s.returnPct) : 0;
 
   return (
@@ -49,6 +60,20 @@ export default function MatchResultModal({ roomId, onClose, onOpenCourse }) {
                 <div className="text-base font-bold text-slate-100">{s.tradeCount}</div>
                 <div className="text-[10px] text-slate-400">Ordres passés</div>
               </div>
+            </div>
+          )}
+
+          {wallet && (
+            <div className="rounded-lg border border-[#1E293B] bg-[#111B2E] px-3 py-2 text-xs text-slate-300">
+              Ton portefeuille global : <b className="text-slate-100">{Number(wallet.balance).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} TND</b>
+              {Number(wallet.debt) > 0 && <> · dette restante : <b className="text-rose-300">{Number(wallet.debt).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} TND</b></>}
+              {(creditTaken > 0 || creditRepaid > 0) && (
+                <div className="mt-1">
+                  {creditTaken > 0 && <>Crédit pris pour entrer : <b className="text-amber-300">{fmtTnd(creditTaken)}</b> · </>}
+                  Crédit remboursé sur ce match : <b className="text-emerald-300">{fmtTnd(creditRepaid)}</b>
+                </div>
+              )}
+              <div className="text-[11px] text-slate-500 mt-0.5">Ton capital de fin de match y a été reversé ; une dette éventuelle est remboursée en priorité.</div>
             </div>
           )}
 
