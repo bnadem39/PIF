@@ -56,20 +56,22 @@ export default function SkillTreeModal({ isOpen, onClose, currentUser, onSkillUn
   const [feedbackMsg, setFeedbackMsg] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
 
+  // Fonction stable (aucune dépendance) : sinon chaque rechargement la recrée, relance le useEffect ci-dessous
+  // et provoque une boucle infinie de requêtes qui fige la fenêtre.
   const loadSkills = useCallback(async () => {
     try {
       const data = await getSkillTree();
       if (Array.isArray(data)) {
         setSkills(data);
-        if (!selectedSkill && data.length > 0) {
-          setSelectedSkill(data[0]);
-        } else if (selectedSkill) {
-          const updated = data.find((s) => s.id === selectedSkill.id);
-          if (updated) setSelectedSkill(updated);
-        }
+        setSelectedSkill((prev) => {
+          if (!prev) return data[0] || null;
+          return data.find((s) => s.id === prev.id) || prev;
+        });
       }
-    } catch (_) {}
-  }, [selectedSkill]);
+    } catch (err) {
+      setErrorMsg(err?.message || "Impossible de charger l'arbre de compétences.");
+    }
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -83,15 +85,22 @@ export default function SkillTreeModal({ isOpen, onClose, currentUser, onSkillUn
     const username = currentUser?.usernameAlias || currentUser?.username || currentUser?.email?.split('@')[0];
     if (!username) return;
 
-    const sub = subscribeToTopic(`/topic/user/${username}/skills`, (event) => {
-      loadSkills();
-      if (event?.skillName) {
-        setFeedbackMsg(`Compétence mise à jour : ${event.skillName} (${event.status})`);
-      }
-    });
+    let sub = null;
+    try {
+      sub = subscribeToTopic(`/topic/user/${username}/skills`, (event) => {
+        loadSkills();
+        if (event?.skillName) {
+          setFeedbackMsg(`Compétence mise à jour : ${event.skillName} (${event.status})`);
+        }
+      });
+    } catch (_) {
+      // Le temps réel est facultatif : l'arbre reste utilisable sans WebSocket
+    }
 
     return () => {
-      if (sub && sub.unsubscribe) sub.unsubscribe();
+      try {
+        if (sub && sub.unsubscribe) sub.unsubscribe();
+      } catch (_) {}
     };
   }, [isOpen, currentUser, loadSkills]);
 

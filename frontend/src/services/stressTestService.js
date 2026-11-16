@@ -34,3 +34,7 @@ export const updateStressScenario = (id, scenario) =>
   request(`${ADMIN_BASE}/${id}`, { method: 'PUT', body: JSON.stringify(scenario) });
 
 export const deleteStressScenario = (id) => request(`${ADMIN_BASE}/${id}`, { method: 'DELETE' });
+
+/** Stress inversé : {scenarioId | customShocks, bankIds?, minCapitalRatio?} */
+export const runReverseStress = (body) =>
+  request(`${STRESS_BASE}/reverse`, { method: 'POST', body: JSON.stringify(body) });

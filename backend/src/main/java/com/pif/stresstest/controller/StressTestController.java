@@ -2,6 +2,7 @@ package com.pif.stresstest.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.pif.auth.model.User;
+import com.pif.stresstest.dto.ReverseRequest;
 import com.pif.stresstest.dto.RunRequest;
 import com.pif.stresstest.dto.ScenarioDto;
 import com.pif.stresstest.service.StressTestService;
@@ -43,5 +44,10 @@ public class StressTestController {
     @PostMapping("/run")
     public ResponseEntity<JsonNode> run(@AuthenticationPrincipal User user, @Valid @RequestBody RunRequest request) {
         return ResponseEntity.ok(service.run(user, request));
+    }
+
+    @PostMapping("/reverse")
+    public ResponseEntity<JsonNode> reverse(@AuthenticationPrincipal User user, @Valid @RequestBody ReverseRequest request) {
+        return ResponseEntity.ok(service.reverse(user, request));
     }
 }

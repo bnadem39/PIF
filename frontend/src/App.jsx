@@ -7,7 +7,6 @@ import SpectatorArenaPage from './pages/SpectatorArenaPage';
 import AdminPage from './pages/AdminPage';
 import AdminAuditPage from './pages/AdminAuditPage';
 import LandingPage from './pages/LandingPage';
-import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import BootstrapLoader from './components/common/BootstrapLoader';
 import AuthModal from './components/AuthModal';
@@ -96,23 +95,12 @@ export default function App() {
             currentUser ? (
               <Navigate to="/lobby" replace />
             ) : (
-              <LandingPage currentUser={null} />
+              <LandingPage currentUser={null} onAuthSuccess={handleAuthSuccess} />
             )
           }
         />
 
-        {/* PAGES D'AUTHENTIFICATION DÉDIÉES */}
-        <Route
-          path="/login"
-          element={
-            currentUser ? (
-              <Navigate to="/lobby" replace />
-            ) : (
-              <LoginPage onLoginSuccess={handleAuthSuccess} />
-            )
-          }
-        />
-
+        {/* PAGE D'INSCRIPTION (la connexion se fait uniquement depuis le panneau de l'accueil) */}
         <Route
           path="/register"
           element={
@@ -136,7 +124,7 @@ export default function App() {
                 initialTab="ARENAS"
               />
             ) : (
-              <Navigate to="/login" replace />
+              <Navigate to="/" replace />
             )
           }
         />
@@ -152,7 +140,7 @@ export default function App() {
                 initialTab="ACADEMY"
               />
             ) : (
-              <Navigate to="/login" replace />
+              <Navigate to="/" replace />
             )
           }
         />
@@ -168,7 +156,7 @@ export default function App() {
                 initialTab="ACADEMY"
               />
             ) : (
-              <Navigate to="/login" replace />
+              <Navigate to="/" replace />
             )
           }
         />
@@ -183,7 +171,7 @@ export default function App() {
                 onOpenAuthModal={handleOpenLogin}
               />
             ) : (
-              <Navigate to="/login" replace />
+              <Navigate to="/" replace />
             )
           }
         />
@@ -195,7 +183,7 @@ export default function App() {
             currentUser ? (
               <RoomArenaPage currentUser={currentUser} />
             ) : (
-              <Navigate to="/login" replace />
+              <Navigate to="/" replace />
             )
           }
         />
@@ -205,7 +193,7 @@ export default function App() {
             currentUser ? (
               <RoomArenaPage currentUser={currentUser} />
             ) : (
-              <Navigate to="/login" replace />
+              <Navigate to="/" replace />
             )
           }
         />
@@ -223,7 +211,7 @@ export default function App() {
             currentUser ? (
               <AdminPage currentUser={currentUser} />
             ) : (
-              <Navigate to="/login" replace />
+              <Navigate to="/" replace />
             )
           }
         />
@@ -233,7 +221,7 @@ export default function App() {
             currentUser ? (
               <AdminAuditPage currentUser={currentUser} />
             ) : (
-              <Navigate to="/login" replace />
+              <Navigate to="/" replace />
             )
           }
         />

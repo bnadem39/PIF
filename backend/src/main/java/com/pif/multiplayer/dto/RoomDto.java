@@ -28,6 +28,8 @@ public class RoomDto {
     private int participantCount;
     private List<RoomParticipantDto> participants;
     private Boolean isPasswordProtected;
+    private String minTier;
+    private String trainingTheme;
     private LocalDateTime startedAt;
     private Long remainingSeconds;
 
@@ -53,6 +55,8 @@ public class RoomDto {
         dto.setCurrentSimulatedDate(room.getCurrentSimulatedDate());
         dto.setCreatedAt(room.getCreatedAt());
         dto.setIsPasswordProtected(room.isPasswordProtected());
+        dto.setMinTier(room.getMinTier());
+        dto.setTrainingTheme(room.getTrainingTheme());
         dto.setStartedAt(room.getStartedAt());
         if (room.getStartedAt() != null) {
             long totalSecs = (room.getGameDurationMinutes() != null ? room.getGameDurationMinutes() : 15) * 60L;
@@ -198,6 +202,22 @@ public class RoomDto {
 
     public void setParticipants(List<RoomParticipantDto> participants) {
         this.participants = participants;
+    }
+
+    public String getMinTier() {
+        return minTier;
+    }
+
+    public void setMinTier(String minTier) {
+        this.minTier = minTier;
+    }
+
+    public String getTrainingTheme() {
+        return trainingTheme;
+    }
+
+    public void setTrainingTheme(String trainingTheme) {
+        this.trainingTheme = trainingTheme;
     }
 
     public Boolean getIsPasswordProtected() {

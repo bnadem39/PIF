@@ -68,4 +68,14 @@ PRESET_SCENARIOS = {
                                                       unemployment_increase_pp=5, gdp_growth_pct=-5,
                                                       default_rate_multiplier=2.5, asset_quality_downgrade=2,
                                                       revenue_drop_pct=20)),
+    # Scénarios historiques : valeurs approximatives, inspirées des ordres de grandeur observés (pédagogique)
+    "TUNISIA_2011": ("Révolution tunisienne 2011 (inspiré)", Shocks(equity_drop_pct=10, unemployment_increase_pp=4,
+                                                                   gdp_growth_pct=-2, default_rate_multiplier=2.0,
+                                                                   asset_quality_downgrade=1, revenue_drop_pct=10)),
+    "COVID_2020": ("Crise Covid-19 2020 (inspiré)", Shocks(equity_drop_pct=15, unemployment_increase_pp=2,
+                                                           gdp_growth_pct=-9, default_rate_multiplier=1.8,
+                                                           asset_quality_downgrade=1, revenue_drop_pct=12)),
+    "GFC_2008": ("Crise financière mondiale 2008 (inspiré)", Shocks(equity_drop_pct=40, unemployment_increase_pp=4,
+                                                                    gdp_growth_pct=-3, default_rate_multiplier=2.5,
+                                                                    asset_quality_downgrade=2, revenue_drop_pct=20)),
 }

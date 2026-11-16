@@ -60,7 +60,8 @@ public class RoomController {
                                                        @RequestBody(required = false) Map<String, String> payload,
                                                        @AuthenticationPrincipal User user) {
         String password = payload != null ? payload.get("password") : null;
-        return ResponseEntity.ok(roomService.joinRoom(id, password, user));
+        boolean acceptCredit = payload != null && "true".equalsIgnoreCase(String.valueOf(payload.get("acceptCredit")));
+        return ResponseEntity.ok(roomService.joinRoom(id, password, user, acceptCredit));
     }
 
     /**

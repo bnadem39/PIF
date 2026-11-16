@@ -13,6 +13,11 @@
           "minutes": 6,
           "blocks": [
             {
+              "type": "video",
+              "youtubeId": "cejxjT_4GA4",
+              "title": "Vidéo (3 min, en français) : la Bourse et le financement des entreprises, par Dessine-moi l'éco"
+            },
+            {
               "type": "p",
               "text": "Un marché financier met en relation ceux qui ont besoin de capitaux (entreprises, États) et ceux qui ont de l'épargne à placer. Le marché primaire sert à émettre de nouveaux titres (introduction en bourse, emprunt obligataire) ; le marché secondaire permet ensuite de les échanger entre investisseurs."
             },
@@ -40,6 +45,11 @@
           "title": "Passer un ordre : marché, limite, stop",
           "minutes": 7,
           "blocks": [
+            {
+              "type": "video",
+              "youtubeId": "POrSM1dwuSY",
+              "title": "Vidéo (en français) : les types d'ordres, au marché, à cours limité, stop et stop limit"
+            },
             {
               "type": "p",
               "text": "Le carnet d'ordres liste les meilleures offres d'achat (bid) et de vente (ask). L'écart entre les deux est la fourchette (spread) : plus un titre est liquide, plus elle est étroite."
@@ -150,6 +160,11 @@
           "minutes": 7,
           "blocks": [
             {
+              "type": "video",
+              "youtubeId": "ycfu4fV0Vvo",
+              "title": "Vidéo (10 min, en français) : comment fonctionnent la Bourse et les actions, par S'investir"
+            },
+            {
               "type": "p",
               "text": "Une action est une part du capital d'une entreprise : elle donne droit aux dividendes et au vote, mais son prix peut fortement varier. Une obligation est un prêt : l'émetteur verse des intérêts (coupons) puis rembourse le capital à l'échéance."
             },
@@ -173,6 +188,11 @@
           "title": "Devises, cryptoactifs et dérivés",
           "minutes": 6,
           "blocks": [
+            {
+              "type": "video",
+              "youtubeId": "6ghcOeC32I8",
+              "title": "Vidéo (en français) : que sont les produits dérivés (options, futures) ?"
+            },
             {
               "type": "p",
               "text": "Le marché des changes (Forex) échange des devises par paires, comme EUR/TND. Les cryptoactifs (bitcoin, ether) s'échangent 24 h/24 et sont beaucoup plus volatils : des baisses de plus de 50 % en quelques mois s'y sont produites plusieurs fois."
@@ -277,6 +297,16 @@
           "minutes": 7,
           "blocks": [
             {
+              "type": "video",
+              "youtubeId": "FFvTmD4x7OM",
+              "title": "Vidéo (en français) : les moyennes mobiles en analyse technique"
+            },
+            {
+              "type": "video",
+              "youtubeId": "w29m-pqwBoQ",
+              "title": "Vidéo (en français) : le MACD et comment l'utiliser"
+            },
+            {
               "type": "p",
               "text": "L'analyse technique étudie l'historique des prix pour en tirer des signaux. Une moyenne mobile simple (SMA) lisse le cours sur N jours ; une moyenne exponentielle (EMA) donne plus de poids aux jours récents."
             },
@@ -300,6 +330,16 @@
           "title": "Oscillateurs : RSI et bandes de Bollinger",
           "minutes": 7,
           "blocks": [
+            {
+              "type": "video",
+              "youtubeId": "YoYSScOV5L0",
+              "title": "Vidéo (en français) : interpréter les indicateurs RSI et MACD"
+            },
+            {
+              "type": "video",
+              "youtubeId": "5jWdrbmQwBE",
+              "title": "Vidéo (en anglais) : Bollinger Bands explained, la volatilité autour du prix"
+            },
             {
               "type": "p",
               "text": "Le RSI (Relative Strength Index) compare les hausses et les baisses récentes sur une échelle de 0 à 100. Sous 30, le titre est dit survendu ; au-dessus de 70, suracheté. Les bandes de Bollinger entourent la moyenne mobile à ± 2 écarts-types."
@@ -403,6 +443,11 @@
           "minutes": 8,
           "blocks": [
             {
+              "type": "video",
+              "youtubeId": "-a28hr0rLW8",
+              "title": "Vidéo (en anglais) : What is Value at Risk? VaR and Risk Management, par Patrick Boyle"
+            },
+            {
               "type": "p",
               "text": "La volatilité est l'écart-type des rendements, annualisée. La perte maximale (max drawdown) est la plus forte baisse depuis un plus haut : c'est ce que l'investisseur ressent réellement."
             },
@@ -430,6 +475,11 @@
           "title": "Diversifier et dimensionner ses positions",
           "minutes": 7,
           "blocks": [
+            {
+              "type": "video",
+              "youtubeId": "eq537XjLofw",
+              "title": "Vidéo (en français) : c'est quoi la diversification en finance ?"
+            },
             {
               "type": "p",
               "text": "Combiner des actifs peu corrélés réduit le risque du portefeuille sans réduire autant le rendement espéré : c'est la diversification, idée centrale de Markowitz (1952)."
@@ -535,6 +585,11 @@
           "minutes": 8,
           "blocks": [
             {
+              "type": "video",
+              "youtubeId": "SJsKN4uO1PM",
+              "title": "Vidéo (en français) : les principes de la finance islamique (riba, partage des pertes et profits, gharar)"
+            },
+            {
               "type": "p",
               "text": "La finance islamique interdit l'intérêt (riba), l'incertitude excessive (gharar) et la spéculation pure (maysir). Le financement doit être adossé à un actif réel et le profit lié à un risque partagé."
             },
@@ -558,6 +613,11 @@
           "title": "Des risques différents",
           "minutes": 7,
           "blocks": [
+            {
+              "type": "video",
+              "youtubeId": "WFox4WG3to4",
+              "title": "Vidéo (en français) : le Mudaraba, un partage des profits et des pertes"
+            },
             {
               "type": "p",
               "text": "Côté passif, une banque islamique collecte des comptes d'investissement participatifs (PSIA) : leurs titulaires partagent les profits et, en principe, les pertes des actifs financés. Cela amortit les chocs sur les fonds propres."
@@ -658,6 +718,11 @@
           "minutes": 8,
           "blocks": [
             {
+              "type": "video",
+              "youtubeId": "ttno673mt2w",
+              "title": "Vidéo (5 min, en anglais) : Machine Learning Explained in 5 Minutes, par Up and Atom"
+            },
+            {
               "type": "p",
               "text": "Le simulateur utilise un modèle XGBoost qui estime, à partir d'indicateurs techniques, la probabilité d'une hausse, d'une baisse ou d'un mouvement neutre sur 5 jours. Ses signaux ne sont émis que si la probabilité dépasse un seuil de confiance."
             },
@@ -685,6 +750,11 @@
           "title": "Expliquer les décisions : SHAP",
           "minutes": 6,
           "blocks": [
+            {
+              "type": "video",
+              "youtubeId": "XTiXa2DXfmw",
+              "title": "Vidéo (en anglais) : What is SHAP (explainable AI) ?"
+            },
             {
               "type": "p",
               "text": "Un modèle puissant est souvent opaque. Les valeurs SHAP, issues de la théorie des jeux (valeurs de Shapley), répartissent une prédiction entre les variables : chacune reçoit sa contribution, positive ou négative, par rapport à la prédiction moyenne."
@@ -782,6 +852,16 @@
           "minutes": 8,
           "blocks": [
             {
+              "type": "video",
+              "youtubeId": "zOo5iPAP1kY",
+              "title": "Vidéo (en anglais) : Frequency-Severity Modelling Explained"
+            },
+            {
+              "type": "video",
+              "youtubeId": "2W3ZvI8HMqs",
+              "title": "Vidéo (en français) : comment est calculé le prix d'une assurance auto ?"
+            },
+            {
               "type": "p",
               "text": "L'assureur encaisse la prime avant de connaître le coût des sinistres : c'est l'inversion du cycle de production. Pour tarifer, il estime séparément combien de sinistres surviendront (fréquence) et combien coûtera chacun (sévérité)."
             },
@@ -810,6 +890,11 @@
           "title": "Marges et provisions",
           "minutes": 7,
           "blocks": [
+            {
+              "type": "video",
+              "youtubeId": "lB36I3MinpQ",
+              "title": "Vidéo (en français) : comprendre les provisions mathématiques en 2 minutes"
+            },
             {
               "type": "p",
               "text": "Le ratio sinistres/primes (S/P) mesure la rentabilité technique. Avec 25 % de frais, un S/P au-dessus de 75 % fait perdre de l'argent avant même les produits financiers."

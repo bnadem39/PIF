@@ -12,7 +12,7 @@ import CandleColumn from './CandleColumn';
  * @param {Function} onOpenRegister - Ouvre la modale d'inscription ("+")
  * @param {Function} onOpenForgot - Ouvre la modale mot de passe oublié ("?")
  */
-export default function LoginPanel({ onOpenRegister, onOpenForgot, className = '' }) {
+export default function LoginPanel({ onLoginSuccess, onOpenRegister, onOpenForgot, className = '' }) {
   const navigate = useNavigate();
 
   const [identifier, setIdentifier] = useState('');
@@ -45,6 +45,8 @@ export default function LoginPanel({ onOpenRegister, onOpenForgot, className = '
     try {
       const res = await loginUser(identifier.trim(), password);
       setIsSuccess(true);
+      // Met à jour la session de l'application : sans cela, /lobby renverrait vers l'accueil
+      if (onLoginSuccess) onLoginSuccess(res);
       // Redirection immédiate vers le Lobby après succès
       setTimeout(() => {
         navigate('/lobby');

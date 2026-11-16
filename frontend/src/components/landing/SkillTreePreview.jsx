@@ -82,7 +82,7 @@ export default function SkillTreePreview() {
         </div>
 
         <button
-          onClick={() => navigate('/login')}
+          onClick={() => { navigate('/'); setTimeout(() => document.getElementById('hero')?.scrollIntoView({ behavior: 'smooth' }), 50); }}
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-cyan-500 to-sky-500 hover:from-cyan-400 hover:to-sky-400 text-slate-950 transition-all shadow-lg shadow-cyan-950/40 active:scale-95 cursor-pointer self-start md:self-auto"
         >
           <span>Consulter l'Académie</span>

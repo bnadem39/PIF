@@ -25,6 +25,13 @@ const STRATEGY_SIMPLE_DESC = {
   AI_SIGNAL: "Suit les signaux d'achat et de vente calculés par le modèle d'intelligence artificielle."
 };
 
+const VERDICT_STYLE = {
+  FIABLE: { label: 'Fiable', cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40' },
+  A_SURVEILLER: { label: 'À surveiller', cls: 'bg-amber-500/15 text-amber-300 border-amber-500/40' },
+  FRAGILE: { label: 'Fragile', cls: 'bg-rose-500/15 text-rose-300 border-rose-500/40' }
+};
+const BENCH_COLOR = '#FACC15';
+
 const pct = (v, d = 1) => (v == null ? '-' : `${(v * 100).toFixed(d)} %`);
 const num = (v, d = 2) => (v == null ? '-' : v.toFixed(d));
 const money = (v) => (v == null ? '-' : Math.round(v).toLocaleString('fr-FR'));
@@ -197,12 +204,18 @@ export default function BacktestPage({ currentUser }) {
     }
   };
 
-  const series = useMemo(() => (result?.results || []).map((r) => ({
-    key: r.key,
-    label: r.label,
-    color: STRATEGY_COLOR[r.type],
-    points: r.equity
-  })), [result]);
+  const series = useMemo(() => {
+    const list = (result?.results || []).map((r) => ({
+      key: r.key,
+      label: r.label,
+      color: STRATEGY_COLOR[r.type],
+      points: r.equity
+    }));
+    if (result?.benchmarkEquity?.length) {
+      list.push({ key: 'BENCHMARK', label: result.benchmarkLabel, color: BENCH_COLOR, points: result.benchmarkEquity });
+    }
+    return list;
+  }, [result]);
 
   // Verdict simple à partir des résultats déjà calculés : meilleure stratégie (même critère que le focus initial,
   // le ratio de Sharpe), performance du Signal IA, et comparaison honnête avec l'achat-conservation.
@@ -394,6 +407,88 @@ export default function BacktestPage({ currentUser }) {
                     </div>
                   )}
                 </div>
+              )}
+
+              {result.results.some((r) => r.validation) && (
+                <Card title="Cette stratégie est-elle fiable ? Test sur des données jamais vues">
+                  <p className="text-[13px] text-slate-300 mb-2">
+                    Un bon résultat sur le passé peut être de la chance. On coupe donc la période en deux :
+                    les <strong>70 % premiers jours</strong> (référence) et les <strong>30 % derniers</strong> (test), que la stratégie n'a jamais « vus ».
+                    Si elle gagne aussi sur le test, elle est plus crédible.
+                  </p>
+                  <div className="space-y-2">
+                    {result.results.filter((r) => r.validation).map((r) => {
+                      const v = r.validation;
+                      const st = VERDICT_STYLE[v.verdict] || VERDICT_STYLE.A_SURVEILLER;
+                      return (
+                        <div key={r.key} className="rounded-lg border border-[#1E293B] p-2.5">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <span className="text-sm text-slate-200 font-medium">
+                              <span className="inline-block w-2 h-2 rounded-sm mr-1.5" style={{ background: STRATEGY_COLOR[r.type] }} />{r.label}
+                            </span>
+                            <span className={`px-1.5 py-0.5 rounded border text-xs font-bold ${st.cls}`}>{st.label}</span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 mt-1.5 text-[13px]">
+                            <div className="text-slate-400">Référence (70 %) <span className={`font-mono ${v.reference.totalReturn >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>{pct(v.reference.totalReturn)}</span></div>
+                            <div className="text-slate-400">Test (30 %) <span className={`font-mono ${v.test.totalReturn >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>{pct(v.test.totalReturn)}</span></div>
+                          </div>
+                          <div className="text-xs text-slate-300 mt-1">{v.message}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <p className="mt-1.5 text-xs text-slate-400">
+                    Fiable : le test confirme la référence. À surveiller : gagne au test mais moins bien. Fragile : perd au test.
+                    Les paramètres sont ceux que vous avez choisis (rien n'est ajusté sur le test).
+                  </p>
+                </Card>
+              )}
+
+              {result.benchmarkLabel && result.results.some((r) => r.benchmark) && (
+                <Card title="Et par rapport au marché ?">
+                  <p className="text-[13px] text-slate-300 mb-2">
+                    Gagner de l'argent ne suffit pas : il faut faire mieux que le marché. On compare chaque stratégie à l'<strong>{result.benchmarkLabel}</strong>
+                    {' '}(moyenne de toutes les actions BVMT, courbe jaune), sur la même période.
+                  </p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-[13px]">
+                      <thead className="text-slate-400">
+                        <tr>
+                          <th className="text-left px-2 py-1">Stratégie</th>
+                          <th className="text-right px-2 py-1">Stratégie</th>
+                          <th className="text-right px-2 py-1">Marché</th>
+                          <th className="text-right px-2 py-1">Écart</th>
+                          <th className="text-right px-2 py-1" title="Bêta : 1 = suit le marché, moins de 1 = bouge moins que lui, plus de 1 = bouge plus.">Bêta</th>
+                          <th className="text-right px-2 py-1" title="Alpha : gain par an en plus (ou en moins) de ce que le simple suivi du marché explique.">Alpha / an</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {result.results.filter((r) => r.benchmark).map((r) => {
+                          const b = r.benchmark;
+                          const strat = r.metrics.totalReturn;
+                          return (
+                            <tr key={r.key} className="border-t border-[#1E293B] text-slate-300">
+                              <td className="px-2 py-1.5 whitespace-nowrap">
+                                <span className="inline-block w-2 h-2 rounded-sm mr-1.5" style={{ background: STRATEGY_COLOR[r.type] }} />{r.label}
+                              </td>
+                              <td className="px-2 py-1.5 text-right font-mono">{pct(strat)}</td>
+                              <td className="px-2 py-1.5 text-right font-mono">{pct(b.benchmarkReturn)}</td>
+                              <td className={`px-2 py-1.5 text-right font-mono font-bold ${b.excessReturn >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>
+                                {b.excessReturn >= 0 ? '+' : ''}{pct(b.excessReturn)}
+                              </td>
+                              <td className="px-2 py-1.5 text-right font-mono">{num(b.beta)}</td>
+                              <td className="px-2 py-1.5 text-right font-mono">{b.alpha == null ? '-' : pct(b.alpha)}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="mt-1.5 text-xs text-slate-400">
+                    Écart vert = la stratégie bat le marché, rouge = elle fait moins bien. Indice calculé à partir des données disponibles :
+                    ce n'est pas le TUNINDEX officiel.
+                  </p>
+                </Card>
               )}
 
               <Card title="Comparaison des performances">

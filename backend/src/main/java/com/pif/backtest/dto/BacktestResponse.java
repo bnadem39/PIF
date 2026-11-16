@@ -10,6 +10,8 @@ public record BacktestResponse(
         double initialCapital,
         double commissionPct,
         double slippagePct,
+        String benchmarkLabel,
+        List<EquityPoint> benchmarkEquity,
         List<StrategyResult> results,
         List<String> warnings
 ) {

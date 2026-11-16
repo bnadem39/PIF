@@ -116,3 +116,37 @@ def test_models_endpoint_has_global_importance(client):
     m = client.get("/api/ai/stress/models").json()
     assert m["global_importance"]["credit_loss_rate"]
     assert m["selected"].keys() == {"npl_increase", "credit_loss_rate"}
+
+
+def test_historical_scenarios_are_within_bounds():
+    for code in ("TUNISIA_2011", "COVID_2020", "GFC_2008"):
+        shocks = PRESET_SCENARIOS[code][1]
+        assert shocks == shocks.clipped()
+
+
+def test_scale_shocks_zero_is_neutral_and_one_is_identity():
+    from stress.reverse import scale_shocks
+    sev = PRESET_SCENARIOS["COMBINED_SEVERE"][1]
+    assert scale_shocks(sev, 0.0) == Shocks()
+    assert scale_shocks(sev, 1.0) == sev.clipped()
+
+
+def test_reverse_stress_breaking_point_is_consistent(bundle):
+    from stress.reverse import breaking_point, scale_shocks
+    df = load_banks()
+    sev = PRESET_SCENARIOS["COMBINED_SEVERE"][1]
+    t = Thresholds()
+    for _, bank in df.iterrows():
+        bp = breaking_point(bank, sev, bundle["best"], t)
+        if bp["state"] == "breaks":
+            below = project(bank, scale_shocks(sev, bp["factor"] + 0.05), bundle["best"], t)["after"]["cet1_ratio"]
+            above = project(bank, scale_shocks(sev, max(0.0, bp["factor"] - 0.05)), bundle["best"], t)["after"]["cet1_ratio"]
+            assert below < t.min_capital <= above
+
+
+def test_api_reverse_endpoint(client):
+    r = client.post("/api/ai/stress/reverse", json={"shocks": PRESET_SCENARIOS["RECESSION"][1].to_dict()})
+    assert r.status_code == 200
+    banks = r.json()["banks"]
+    assert banks and all(b["breaking_point"]["state"] in ("breaks", "resists", "already_below") for b in banks)
+    assert len(banks[0]["single_shocks"]) == 7

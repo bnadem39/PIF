@@ -1,24 +1,37 @@
 import React, { useEffect, useState } from 'react';
-import { GraduationCap, X, Trophy, BookOpen, ClipboardCheck } from 'lucide-react';
+import { GraduationCap, X, Trophy, BookOpen, ClipboardCheck, Target, Check } from 'lucide-react';
 import { getMatchRecommendation } from '../../services/learningRecommendationService';
+import { getWallet } from '../../services/api';
 
 /**
  * Fenêtre affichée à la fin d'un match : résultat du joueur + cours recommandés d'après ses décisions.
  * onOpenCourse({ moduleId, lessonId, quizId, nextStep }) ouvre le cours dans l'Académie.
+ * onOpenTrainingRoom(code) ouvre la création de la salle d'entraînement conseillée.
+ * showCourses=false (hôte / superviseur) masque les conseils (cours et salle conseillée).
  */
-export default function MatchResultModal({ roomId, onClose, onOpenCourse }) {
+export default function MatchResultModal({ roomId, onClose, onOpenCourse, onOpenTrainingRoom, showCourses = true }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
+  const [wallet, setWallet] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
     getMatchRecommendation(roomId)
       .then((d) => { if (!cancelled) setData(d); })
       .catch((e) => { if (!cancelled) setError(e.message); });
+    // Portefeuille global après règlement du match
+    getWallet().then((w) => { if (!cancelled) setWallet(w); }).catch(() => {});
     return () => { cancelled = true; };
   }, [roomId]);
 
   const s = data?.summary;
+  // Crédit pris pour cette salle et part déjà remboursée (journal du portefeuille)
+  const sumOf = (type) => (wallet?.transactions || [])
+    .filter((t) => t.roomId === roomId && t.type === type)
+    .reduce((total, t) => total + Math.abs(Number(t.amount || 0)), 0);
+  const creditTaken = sumOf('CREDIT');
+  const creditRepaid = sumOf('REPAYMENT');
+  const fmtTnd = (v) => `${Number(v).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} TND`;
   const ret = s ? Number(s.returnPct) : 0;
 
   return (
@@ -52,7 +65,59 @@ export default function MatchResultModal({ roomId, onClose, onOpenCourse }) {
             </div>
           )}
 
-          {data && (
+          {wallet && (
+            <div className="rounded-lg border border-[#1E293B] bg-[#111B2E] px-3 py-2 text-xs text-slate-300">
+              Ton portefeuille global : <b className="text-slate-100">{Number(wallet.balance).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} TND</b>
+              {Number(wallet.debt) > 0 && <> · dette restante : <b className="text-rose-300">{Number(wallet.debt).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} TND</b></>}
+              {(creditTaken > 0 || creditRepaid > 0) && (
+                <div className="mt-1">
+                  {creditTaken > 0 && <>Crédit pris pour entrer : <b className="text-amber-300">{fmtTnd(creditTaken)}</b> · </>}
+                  Crédit remboursé sur ce match : <b className="text-emerald-300">{fmtTnd(creditRepaid)}</b>
+                </div>
+              )}
+              <div className="text-[11px] text-slate-500 mt-0.5">Ton capital de fin de match y a été reversé ; une dette éventuelle est remboursée en priorité.</div>
+            </div>
+          )}
+
+          {data?.training && (
+            <div className="rounded-lg border border-[#1E293B] bg-[#111B2E] p-3 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 text-xs font-bold text-emerald-300">
+                  <Target size={14} /> Entraînement : {data.training.title}
+                </div>
+                <div className="text-sm font-bold text-slate-100">{data.training.score} / 100</div>
+              </div>
+              <div className={`text-xs font-semibold ${data.training.score >= 80 ? 'text-emerald-300' : data.training.score >= 50 ? 'text-amber-300' : 'text-rose-300'}`}>
+                {data.training.verdict}
+              </div>
+              <div className="space-y-1">
+                {data.training.checks.map((c) => (
+                  <div key={c.label} className="flex items-start gap-1.5 text-[11px]">
+                    {c.ok ? <Check size={12} className="text-emerald-400 mt-0.5 shrink-0" /> : <X size={12} className="text-rose-400 mt-0.5 shrink-0" />}
+                    <span className="text-slate-300">{c.label} <span className="text-slate-500">({c.detail})</span></span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {showCourses && data?.suggestedRoom && onOpenTrainingRoom && (
+            <div className="rounded-lg border border-emerald-600/40 bg-emerald-950/20 p-3 space-y-2">
+              <div className="flex items-center gap-2 text-xs font-bold text-emerald-300">
+                <Target size={14} /> Salle d'entraînement conseillée : {data.suggestedRoom.title}
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed">{data.suggestedRoom.reason}</p>
+              <p className="text-[11px] text-slate-400">{data.suggestedRoom.goal}</p>
+              <button
+                onClick={() => onOpenTrainingRoom(data.suggestedRoom.theme)}
+                className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-600/20 text-emerald-300 border border-emerald-600/50 hover:bg-emerald-600/30"
+              >
+                Créer cette salle
+              </button>
+            </div>
+          )}
+
+          {showCourses && data && (
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-xs font-bold text-indigo-300">
                 <GraduationCap size={14} /> Cours recommandés pour toi

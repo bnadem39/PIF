@@ -44,6 +44,10 @@ public class RoomService {
     @Autowired(required = false)
     private ApplicationEventPublisher eventPublisher;
 
+    // Portefeuille global : le prix d'entrée d'une salle (son capital initial) y est débité
+    @Autowired(required = false)
+    private com.pif.wallet.service.WalletService walletService;
+
     public RoomService(RoomRepository roomRepository,
                        RoomParticipantRepository participantRepository,
                        RoomOrderRepository orderRepository,
@@ -98,6 +102,14 @@ public class RoomService {
         if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
             room.setPassword(dto.getPassword().trim());
         }
+        // Salle réservée à un rang minimum : l'hôte doit lui-même avoir ce rang, puisqu'il y joue
+        String minTier = RoomTier.normalize(dto.getMinTier());
+        if (minTier != null && creator != null && !RoomTier.allows(minTier, creator.getTier())) {
+            throw new IllegalStateException("Tu ne peux pas créer une salle " + minTier + " : ton rang actuel est "
+                    + creator.getTier() + ".");
+        }
+        room.setMinTier(minTier);
+        room.setTrainingTheme(TrainingTheme.normalize(dto.getTrainingTheme()));
         User managedCreator = creator;
         if (userRepository != null && creator != null && creator.getId() != null) {
             Optional<User> found = userRepository.findById(creator.getId());
@@ -112,6 +124,8 @@ public class RoomService {
 
         // Inscription automatique de l'hôte/créateur en tant que joueur prêt
         if (managedCreator != null) {
+            // L'hôte est arbitre/superviseur : il ne trade pas (voir placeOrder), donc il ne paie pas le prix d'entrée
+            // et ne reçoit rien à la clôture (WalletService.settle ignore tout joueur sans transaction ENTRY).
             RoomParticipant hostParticipant = new RoomParticipant(saved, managedCreator, saved.getInitialCash());
             hostParticipant.setIsReady(true);
             RoomParticipant savedParticipant = participantRepository.saveAndFlush(hostParticipant);
@@ -165,6 +179,15 @@ public class RoomService {
      */
     @Transactional
     public RoomParticipantDto joinRoom(String roomId, String password, User user) {
+        return joinRoom(roomId, password, user, false);
+    }
+
+    /**
+     * Inscription d'un joueur : le prix d'entrée (capital initial de la salle) est débité de son portefeuille global.
+     * acceptCredit : le joueur accepte un crédit si son solde ne suffit pas.
+     */
+    @Transactional
+    public RoomParticipantDto joinRoom(String roomId, String password, User user, boolean acceptCredit) {
         if (user == null) {
             throw new IllegalArgumentException("Vous devez être authentifié pour rejoindre une arène.");
         }
@@ -174,8 +197,14 @@ public class RoomService {
         if (room.getStatus() == RoomStatus.FINISHED) {
             throw new IllegalStateException("Cette salle de match est clôturée et terminée.");
         }
+        // Un joueur déjà inscrit peut toujours revenir dans sa salle, même en cours de simulation
+        RoomParticipantId participantId = new RoomParticipantId(roomId, user.getId());
+        if (participantRepository.existsById(participantId)) {
+            RoomParticipant existing = participantRepository.findById(participantId).get();
+            return RoomParticipantDto.fromEntity(existing);
+        }
         if (room.getStatus() != RoomStatus.LOBBY && room.getStatus() != RoomStatus.WAITING) {
-            throw new IllegalStateException("Impossible de rejoindre une room déjà en cours de simulation.");
+            throw new IllegalStateException("Cette partie a déjà commencé : on ne peut plus la rejoindre. Vous pouvez la regarder en spectateur.");
         }
 
         // Contrôle du mot de passe si la salle est privée (l'hôte créateur en est dispensé)
@@ -186,18 +215,21 @@ public class RoomService {
             }
         }
 
-        RoomParticipantId participantId = new RoomParticipantId(roomId, user.getId());
-        if (participantRepository.existsById(participantId)) {
-            RoomParticipant existing = participantRepository.findById(participantId).get();
-            return RoomParticipantDto.fromEntity(existing);
-        }
-
         User managedUser = user;
         if (userRepository != null && user != null && user.getId() != null) {
             Optional<User> found = userRepository.findById(user.getId());
             if (found != null && found.isPresent()) {
                 managedUser = found.get();
             }
+        }
+        // Salle réservée à un rang minimum : vérifié avant de débiter le prix d'entrée
+        if (!RoomTier.allows(room.getMinTier(), managedUser.getTier())) {
+            throw new IllegalStateException("Cette salle est réservée au rang " + room.getMinTier()
+                    + " ou plus. Ton rang actuel est " + managedUser.getTier()
+                    + " : gagne de l'ELO dans d'autres salles pour y accéder.");
+        }
+        if (walletService != null && managedUser.getId() != null) {
+            walletService.payEntry(managedUser.getId(), roomId, room.getInitialCash(), acceptCredit);
         }
         RoomParticipant participant = new RoomParticipant(room, managedUser, room.getInitialCash());
         RoomParticipant saved = participantRepository.saveAndFlush(participant);

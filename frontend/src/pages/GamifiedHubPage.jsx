@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { TRAINING_THEMES, THEME_BY_CODE } from '../constants/trainingThemes';
 import {
   Trophy, Plus, Play, Copy, Check, GraduationCap, Sparkles,
   Users, Clock, DollarSign, LogIn, LogOut, Zap, ArrowRight,
@@ -11,6 +12,7 @@ import PlayerProfileCard from '../components/hub/PlayerProfileCard';
 import FriendsSidebar from '../components/hub/FriendsSidebar';
 import CreateRoomModal from '../components/hub/CreateRoomModal';
 import AcademyView from '../components/lobby/AcademyView';
+import LearnPage from './LearnPage';
 import PlayerAvatar from '../components/common/PlayerAvatar';
 import AppearanceCustomizerModal from '../components/hub/AppearanceCustomizerModal';
 import FriendProfileModal from '../components/hub/FriendProfileModal';
@@ -23,6 +25,7 @@ import { getPlayerLevelFrame } from '../utils/playerLevelFrames';
 import { getRooms, getPlayerProfile, joinArenaRoom, getPendingInvitations, acceptInvitation, declineInvitation, logoutUser } from '../services/api';
 import { applyThemeSkin, getStoredTheme } from '../utils/colorPaletteExtractor';
 import { resolveMediaUrl } from '../components/common/PlayerAvatar';
+import WalletBadge from '../components/WalletBadge';
 
 const FILTER_TABS = [
   { id: 'ALL', label: 'Toutes les Arènes' },
@@ -30,11 +33,13 @@ const FILTER_TABS = [
   { id: 'RUNNING', label: 'En Cours (Live)' },
   { id: 'FRIENDS', label: 'Arènes d\'Amis' },
   { id: 'RANKED', label: 'Classées' },
-  { id: 'CASUAL', label: 'Casual' }
+  { id: 'CASUAL', label: 'Casual' },
+  { id: 'TRAINING', label: 'Entraînement' }
 ];
 
 export default function GamifiedHubPage({ currentUser, onOpenAuthModal, onLogout, initialTab = 'ARENAS' }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [profile, setProfile] = useState(() => {
     const st = getStoredTheme();
     return {
@@ -63,6 +68,22 @@ export default function GamifiedHubPage({ currentUser, onOpenAuthModal, onLogout
   const [searchQuery, setSearchQuery] = useState('');
   const [quickCode, setQuickCode] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [createTheme, setCreateTheme] = useState('');
+
+  // Arrivée depuis la fenêtre de fin de match : la salle d'entraînement conseillée s'ouvre directement
+  useEffect(() => {
+    const theme = location.state?.createTheme;
+    if (theme) {
+      setCreateTheme(theme);
+      setIsCreateModalOpen(true);
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location.state, location.pathname, navigate]);
+
+  const openTrainingRoom = (code) => {
+    setCreateTheme(code);
+    setIsCreateModalOpen(true);
+  };
   const [isFriendsOpen, setIsFriendsOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isAppearanceOpen, setIsAppearanceOpen] = useState(false);
@@ -164,11 +185,14 @@ export default function GamifiedHubPage({ currentUser, onOpenAuthModal, onLogout
 
   const handleAcceptInvite = async (invId, roomId) => {
     try {
+      // Même chemin que l'entrée normale : contrôle du rang puis débit du prix d'entrée
+      await joinArenaRoom(roomId);
       await acceptInvitation(invId);
       setIsNotifOpen(false);
       navigate(`/arena/${roomId}`);
     } catch (e) {
-      navigate(`/arena/${roomId}`);
+      setJoinError(`Impossible de rejoindre ${roomId} : ${e.message}`);
+      setTimeout(() => setJoinError(''), 4000);
     }
   };
 
@@ -196,6 +220,7 @@ export default function GamifiedHubPage({ currentUser, onOpenAuthModal, onLogout
     if (filterType === 'RANKED') return r.requiredTier && r.requiredTier !== 'ALL';
     if (filterType === 'CASUAL') return !r.requiredTier || r.requiredTier === 'ALL';
     if (filterType === 'FRIENDS') return true;
+    if (filterType === 'TRAINING') return !!r.trainingTheme;
     return true;
   });
 
@@ -457,6 +482,8 @@ export default function GamifiedHubPage({ currentUser, onOpenAuthModal, onLogout
               </button>
             )}
 
+            <WalletBadge refreshKey={rooms.length} className="hidden md:flex" />
+
             {/* Create Room Button with Gold Esports Accent */}
             <button
               onClick={() => setIsCreateModalOpen(true)}
@@ -507,10 +534,38 @@ export default function GamifiedHubPage({ currentUser, onOpenAuthModal, onLogout
 
             {/* TAB 1: ACADEMIC ACADEMY VIEW */}
             {activeTab === 'ACADEMY' ? (
-              <AcademyView currentUser={currentUser} />
+              <div className="flex flex-col gap-6">
+                {/* Parcours complet : niveaux 1 à 3, leçons avec vidéos, quiz, scénarios, défis */}
+                <LearnPage currentUser={currentUser} />
+                <AcademyView currentUser={currentUser} />
+              </div>
             ) : (
               /* TAB 2: AVAILABLE ARENAS / ROOM BROWSER */
               <section className="flex flex-col gap-5">
+                {/* Salles d'entraînement : un thème par comportement à améliorer */}
+                <div className="rounded-2xl bg-[#0B1120] border border-[#1E293B] p-4">
+                  <div className="flex items-center gap-2 text-sm font-black text-emerald-300">
+                    <GraduationCap size={16} /> Salles d'entraînement
+                  </div>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Chaque salle travaille un point précis. À la fin du match, tu reçois une note sur 100, et on te conseille la salle qui corrige ta principale faiblesse.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3 mt-3">
+                    {TRAINING_THEMES.map((t) => (
+                      <div key={t.code} className="rounded-xl bg-[#080C14] border border-[#1E293B] p-3 flex flex-col gap-2">
+                        <div className="text-xs font-bold text-slate-100">{t.title}</div>
+                        <p className="text-[11px] text-slate-400 leading-relaxed flex-1">{t.goal}</p>
+                        <button
+                          onClick={() => openTrainingRoom(t.code)}
+                          className="text-[11px] font-bold px-2 py-1.5 rounded-lg bg-emerald-600/20 text-emerald-300 border border-emerald-600/50 hover:bg-emerald-600/30"
+                        >
+                          Créer cette salle
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Filter Tabs & Search Bar */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1E293B] pb-4">
                   {/* Filter Tabs */}
@@ -642,6 +697,18 @@ export default function GamifiedHubPage({ currentUser, onOpenAuthModal, onLogout
                               >
                                 {room.status === 'LOBBY' ? 'SALLE D\'ATTENTE' : room.status}
                               </span>
+                            </div>
+                            <div className="mt-2">
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${room.minTier
+                                ? 'bg-amber-950/50 text-amber-300 border-amber-600/60'
+                                : 'bg-slate-800/60 text-slate-400 border-slate-600/60'}`}>
+                                {room.minTier ? `Réservée : ${room.minTier} ou plus` : 'Ouverte à tous les rangs'}
+                              </span>
+                              {room.trainingTheme && THEME_BY_CODE[room.trainingTheme] && (
+                                <span className="ml-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full border bg-emerald-950/50 text-emerald-300 border-emerald-600/60">
+                                  Entraînement : {THEME_BY_CODE[room.trainingTheme].title}
+                                </span>
+                              )}
                             </div>
 
                             {/* Room Simulation Badges */}
@@ -826,9 +893,11 @@ export default function GamifiedHubPage({ currentUser, onOpenAuthModal, onLogout
           ───────────────────────────────────────────────────────────────────────────── */}
       <CreateRoomModal
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
+        initialTheme={createTheme}
+        onClose={() => { setIsCreateModalOpen(false); setCreateTheme(''); }}
         onRoomCreated={(room) => {
           setIsCreateModalOpen(false);
+          setCreateTheme('');
           loadData();
           navigate(`/arena/${room.id}`);
         }}

@@ -5,6 +5,7 @@ Endpoints FastAPI du stress testing, montés dans ai_server.py :
   GET  /api/ai/stress/scenarios   scénarios prédéfinis et bornes des chocs
   GET  /api/ai/stress/models      comparaison des modèles + importance globale SHAP
   POST /api/ai/stress/run         projection d'un ou plusieurs scénarios sur les banques choisies
+  POST /api/ai/stress/reverse     stress inversé : ampleur de crise qui fait passer chaque banque sous le minimum
 """
 import logging
 import threading
@@ -18,6 +19,7 @@ from .dataset import generate_training_data
 from .engine import Thresholds, feature_row, project, summarize_by_type
 from .explain import StressExplainer
 from .models import load_or_train
+from .reverse import reverse_stress
 from .scenarios import PRESET_SCENARIOS, SHOCK_BOUNDS, SHOCK_LABELS, Shocks
 
 log = logging.getLogger("stress.api")
@@ -65,6 +67,12 @@ class RunRequest(BaseModel):
     scenarios: List[ScenarioIn] = Field(..., min_length=1, max_length=10)
     bank_ids: Optional[List[str]] = None
     explain: bool = True
+    min_capital_ratio: float = Field(0.10, gt=0, lt=1)
+
+
+class ReverseRequest(BaseModel):
+    shocks: ShocksIn
+    bank_ids: Optional[List[str]] = None
     min_capital_ratio: float = Field(0.10, gt=0, lt=1)
 
 
@@ -144,3 +152,18 @@ def run(req: RunRequest):
         })
     return {"model": {t: b["name"] for t, b in bundle["best"].items()}, "data_source": bundle["data_source"],
             "scenarios": out}
+
+
+@router.post("/reverse")
+def reverse(req: ReverseRequest):
+    bundle, _ = state.ready()
+    df = load_banks()
+    if req.bank_ids:
+        unknown = sorted(set(req.bank_ids) - set(df.index))
+        if unknown:
+            raise HTTPException(status_code=400, detail=f"Banques inconnues : {unknown}")
+        df = df.loc[req.bank_ids]
+    thresholds = Thresholds(min_capital=req.min_capital_ratio)
+    shocks = Shocks(**req.shocks.model_dump())
+    return {"min_capital_ratio": req.min_capital_ratio,
+            "banks": reverse_stress(df, shocks, bundle["best"], thresholds)}

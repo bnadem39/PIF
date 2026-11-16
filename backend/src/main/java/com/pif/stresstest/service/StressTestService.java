@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.pif.audit.model.AuditAction;
 import com.pif.audit.service.AuditService;
 import com.pif.auth.model.User;
+import com.pif.stresstest.dto.ReverseRequest;
 import com.pif.stresstest.dto.RunRequest;
 import com.pif.stresstest.dto.ScenarioDto;
 import com.pif.stresstest.dto.ScenarioRequest;
@@ -78,6 +79,33 @@ public class StressTestService {
         JsonNode result = aiClient.post("/run", body);
         auditService.record(user, AuditAction.STRESS_TEST_RUN, true,
                 "Scénarios : " + scenarios.stream().map(s -> (String) s.get("code")).toList());
+        return result;
+    }
+
+    public JsonNode reverse(User user, ReverseRequest request) {
+        ShocksDto shocks;
+        String code;
+        if (request.scenarioId() != null) {
+            StressScenario s = repository.findById(request.scenarioId())
+                    .orElseThrow(() -> new IllegalArgumentException("Scénario introuvable : " + request.scenarioId()));
+            shocks = ScenarioDto.from(s).shocks();
+            code = s.getCode();
+        } else if (request.customShocks() != null) {
+            shocks = request.customShocks();
+            code = "CUSTOM";
+        } else {
+            throw new IllegalArgumentException("Choisissez un scénario (scenarioId) ou des chocs personnalisés (customShocks).");
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put("shocks", scenarioPayload(code, code, shocks).get("shocks"));
+        if (request.bankIds() != null && !request.bankIds().isEmpty()) {
+            body.put("bank_ids", request.bankIds());
+        }
+        if (request.minCapitalRatio() != null) {
+            body.put("min_capital_ratio", request.minCapitalRatio());
+        }
+        JsonNode result = aiClient.post("/reverse", body);
+        auditService.record(user, AuditAction.STRESS_TEST_RUN, true, "Stress inversé : " + code);
         return result;
     }
 

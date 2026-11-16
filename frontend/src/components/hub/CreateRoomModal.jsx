@@ -1,19 +1,38 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Trophy, Calendar, DollarSign, Clock, Zap, X, ArrowRight, Lock } from 'lucide-react';
-import { createArenaRoom } from '../../services/api';
+import { createArenaRoom, getWallet } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
+import { TRAINING_THEMES, THEME_BY_CODE } from '../../constants/trainingThemes';
 
-export default function CreateRoomModal({ isOpen, onClose, onRoomCreated }) {
+export default function CreateRoomModal({ isOpen, onClose, onRoomCreated, initialTheme = '' }) {
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [startDate, setStartDate] = useState('2022-01-01');
   const [endDate, setEndDate] = useState('2023-12-31');
-  const [initialCash, setInitialCash] = useState(100000);
+  const [initialCash, setInitialCash] = useState(25000);
+  const [wallet, setWallet] = useState(null);
   const [gameDurationMinutes, setGameDurationMinutes] = useState(15);
   const [tickRateMs, setTickRateMs] = useState(1000);
   const [password, setPassword] = useState('');
+  const [minTier, setMinTier] = useState('');
+  const [trainingTheme, setTrainingTheme] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Ouverture depuis une salle d'entraînement conseillée : le thème est déjà choisi
+  useEffect(() => {
+    if (!isOpen) return;
+    setTrainingTheme(initialTheme || '');
+    if (initialTheme && THEME_BY_CODE[initialTheme]) {
+      setName((n) => n || `Entraînement : ${THEME_BY_CODE[initialTheme].title}`);
+    }
+  }, [isOpen, initialTheme]);
+
+  // Solde du portefeuille global, pour savoir si le prix d'entrée est couvert
+  useEffect(() => {
+    if (!isOpen) return;
+    getWallet().then(setWallet).catch(() => setWallet(null));
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -33,7 +52,9 @@ export default function CreateRoomModal({ isOpen, onClose, onRoomCreated }) {
         initialCash,
         gameDurationMinutes,
         tickRateMs,
-        password: password.trim() || undefined
+        password: password.trim() || undefined,
+        minTier: minTier || undefined,
+        trainingTheme: trainingTheme || undefined
       });
       if (onRoomCreated) onRoomCreated(room);
       onClose();
@@ -120,10 +141,10 @@ export default function CreateRoomModal({ isOpen, onClose, onRoomCreated }) {
           {/* Starting Cash Presets */}
           <div>
             <label className="text-xs font-bold text-slate-300 flex items-center gap-1 mb-1.5">
-              <DollarSign size={13} className="text-emerald-400" /> Capital Initial par Joueur
+              <DollarSign size={13} className="text-emerald-400" /> Prix d'entrée (capital de jeu de chaque joueur)
             </label>
             <div className="grid grid-cols-4 gap-2">
-              {[50000, 100000, 250000, 500000].map((val) => (
+              {[10000, 25000, 50000, 100000].map((val) => (
                 <button
                   key={val}
                   type="button"
@@ -138,6 +159,78 @@ export default function CreateRoomModal({ isOpen, onClose, onRoomCreated }) {
                 </button>
               ))}
             </div>
+            <p className="text-[11px] text-slate-400 mt-1.5 leading-relaxed">
+              Ce montant est débité de ton portefeuille global à l'entrée, et tu récupères ton capital final à la fin du match.
+              {wallet && (
+                <>
+                  {' '}Ton solde : <b className="text-slate-200">{Number(wallet.balance).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} TND</b>.
+                  {Number(wallet.balance) < initialCash && (
+                    <span className="text-amber-300"> Solde insuffisant : un crédit de {(initialCash - Number(wallet.balance)).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} TND te sera proposé.</span>
+                  )}
+                </>
+              )}
+            </p>
+          </div>
+
+          {/* Type de salle : ordinaire ou salle d'entraînement */}
+          <div>
+            <label className="text-xs font-bold text-slate-300 flex items-center gap-1 mb-1.5">
+              <Zap size={13} className="text-emerald-400" /> Type de salle
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {[{ code: '', title: 'Salle ordinaire' }, ...TRAINING_THEMES].map((t) => (
+                <button
+                  key={t.code || 'none'}
+                  type="button"
+                  onClick={() => {
+                    setTrainingTheme(t.code);
+                    if (t.code && !name.trim()) setName(`Entraînement : ${t.title}`);
+                  }}
+                  className={`py-2 px-2 rounded-xl text-xs font-bold border transition-all ${
+                    trainingTheme === t.code
+                      ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300'
+                      : 'bg-[#080C14] border-[#1E293B] text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  {t.title}
+                </button>
+              ))}
+            </div>
+            {trainingTheme && THEME_BY_CODE[trainingTheme] && (
+              <div className="text-[11px] text-slate-300 mt-1.5 leading-relaxed">
+                <p>{THEME_BY_CODE[trainingTheme].goal}</p>
+                <p className="text-slate-400 mt-0.5">
+                  À la fin, chaque joueur reçoit une note sur 100 d'après : {THEME_BY_CODE[trainingTheme].rules.join(' · ')}.
+                  Les règles sont seulement notées : rien n'est bloqué.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Rang minimum pour entrer */}
+          <div>
+            <label className="text-xs font-bold text-slate-300 flex items-center gap-1 mb-1.5">
+              <Trophy size={13} className="text-amber-400" /> Niveau de la salle (rang minimum pour entrer)
+            </label>
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+              {[['', 'Tous'], ['BRONZE', 'Bronze'], ['SILVER', 'Silver'], ['GOLD', 'Gold'], ['PLATINUM', 'Platinum'], ['MASTER', 'Master']].map(([val, label]) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => setMinTier(val)}
+                  className={`py-2 rounded-xl text-xs font-bold border transition-all ${
+                    minTier === val
+                      ? 'bg-amber-500/20 border-amber-500 text-amber-300'
+                      : 'bg-[#080C14] border-[#1E293B] text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] text-slate-400 mt-1.5 leading-relaxed">
+              Seuls les joueurs de ce rang ou d'un rang supérieur pourront entrer. Le rang vient de l'ELO : Bronze sous 1000, Silver jusqu'à 1500, Gold jusqu'à 2000, Platinum jusqu'à 2500, puis Master. Tu dois toi-même avoir ce rang.
+            </p>
           </div>
 
           {/* Match Duration & Speed Factor */}

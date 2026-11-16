@@ -79,7 +79,7 @@ export default function RegisterPage({ onRegisterSuccess }) {
           </div>
         </Link>
         <Link
-          to="/login"
+          to="/"
           className="text-xs font-bold text-amber-400 hover:text-amber-300 transition-colors"
         >
           Déjà un compte ? Connexion →
@@ -231,7 +231,7 @@ export default function RegisterPage({ onRegisterSuccess }) {
 
           <p className="text-center text-xs text-slate-400 pt-2 border-t border-[#1E293B]">
             Vous possédez déjà un compte ?{' '}
-            <Link to="/login" className="text-emerald-400 hover:underline font-bold">
+            <Link to="/" className="text-emerald-400 hover:underline font-bold">
               Se connecter au salon
             </Link>
           </p>

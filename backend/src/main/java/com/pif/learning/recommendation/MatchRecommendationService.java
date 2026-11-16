@@ -6,14 +6,19 @@ import com.pif.learning.model.ItemType;
 import com.pif.learning.model.LearningProgress;
 import com.pif.learning.recommendation.MatchRecommendationDtos.Item;
 import com.pif.learning.recommendation.MatchRecommendationDtos.MatchRecommendationView;
+import com.pif.learning.recommendation.MatchRecommendationDtos.RoomSuggestion;
 import com.pif.learning.recommendation.MatchRecommendationDtos.Summary;
+import com.pif.learning.recommendation.MatchRecommendationDtos.TrainingResult;
 import com.pif.learning.repository.LearningProgressRepository;
 import com.pif.multiplayer.dto.RoomParticipantDto;
 import com.pif.multiplayer.model.RoomOrder;
 import com.pif.multiplayer.repository.RoomOrderRepository;
 import com.pif.multiplayer.repository.RoomParticipantRepository;
+import com.pif.multiplayer.model.TrainingTheme;
 import com.pif.multiplayer.service.RoomService;
 import com.pif.multiplayer.event.RoomClosingEvent;
+import com.pif.wallet.model.WalletTransactionType;
+import com.pif.wallet.repository.WalletTransactionRepository;
 import com.pif.multiplayer.model.RoomParticipant;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -38,6 +43,7 @@ public class MatchRecommendationService {
     private final RoomOrderRepository orderRepository;
     private final LearningCatalog catalog;
     private final LearningProgressRepository progressRepository;
+    private final WalletTransactionRepository walletTransactionRepository;
 
     /**
      * La clôture d'une salle supprime ses participants et ses ordres : les résultats sont donc relevés juste avant
@@ -53,12 +59,14 @@ public class MatchRecommendationService {
 
     public MatchRecommendationService(RoomService roomService, RoomParticipantRepository participantRepository,
                                       RoomOrderRepository orderRepository, LearningCatalog catalog,
-                                      LearningProgressRepository progressRepository) {
+                                      LearningProgressRepository progressRepository,
+                                      WalletTransactionRepository walletTransactionRepository) {
         this.roomService = roomService;
         this.participantRepository = participantRepository;
         this.orderRepository = orderRepository;
         this.catalog = catalog;
         this.progressRepository = progressRepository;
+        this.walletTransactionRepository = walletTransactionRepository;
     }
 
     /** Relève la recommandation de chaque joueur avant la suppression de la salle. */
@@ -88,7 +96,7 @@ public class MatchRecommendationService {
         }
         // Spectateur ou autre compte : pas de résultat à analyser, ce n'est pas une erreur
         return new MatchRecommendationView(null, List.of(),
-                "Tu n'as pas joué dans cette salle avec ce compte : aucune recommandation à afficher.");
+                "Tu n'as pas joué dans cette salle avec ce compte : aucune recommandation à afficher.", null, null);
     }
 
     private static String snapshotKey(String roomId, Long userId) {
@@ -110,13 +118,29 @@ public class MatchRecommendationService {
     private MatchRecommendationView build(User user, String roomId) {
         MatchStats stats = stats(user, roomId);
         RecommendationRules.Progress progress = progress(user);
-        List<Item> items = RecommendationRules.plan(RecommendationRules.evaluate(stats), catalog, progress);
+        List<RecommendationRules.Finding> findings = RecommendationRules.evaluate(stats);
+        List<Item> items = RecommendationRules.plan(findings, catalog, progress);
+
+        // Salle d'entraînement : score si la salle a un thème, puis salle conseillée selon le comportement constaté
+        TrainingTheme played = roomTheme(roomId);
+        TrainingResult training = played != null ? TrainingScorer.score(played, stats) : null;
+        RoomSuggestion suggestion = TrainingScorer.suggest(findings, played, training != null ? training.score() : null)
+                .orElse(null);
 
         Summary summary = new Summary(round2(stats.returnPct() * 100), stats.rank(), stats.participants(),
                 stats.tradeCount(), stats.positionCount(), round2(stats.cashShare() * 100),
                 round2(stats.largestShareOfInvested() * 100));
         String message = items.isEmpty() ? "Tu as déjà validé tous les cours de la formation : bravo !" : null;
-        return new MatchRecommendationView(summary, items, message);
+        return new MatchRecommendationView(summary, items, message, training, suggestion);
+    }
+
+    /** Thème de la salle (null : salle ordinaire, ou salle introuvable). */
+    private TrainingTheme roomTheme(String roomId) {
+        try {
+            return TrainingTheme.of(roomService.getRoom(roomId).getTrainingTheme()).orElse(null);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private MatchStats stats(User user, String roomId) {
@@ -124,6 +148,8 @@ public class MatchRecommendationService {
         double initial = number(portfolio.get("initialCash"));
         double cash = number(portfolio.get("cashBalance"));
         double equity = number(portfolio.get("totalPortfolioValue"));
+        // Match déjà réglé : le rendement affiché doit correspondre au montant réellement reversé au portefeuille
+        equity = settledPayout(user, roomId, equity);
 
         double positionsValue = 0.0;
         double largest = 0.0;
@@ -154,6 +180,19 @@ public class MatchRecommendationService {
         }
         return new MatchStats(initial, equity, cash, positionsValue, largest, positionCount, orders.size(),
                 protectedOrders, rank, participants);
+    }
+
+    /** Montant reversé au portefeuille à la clôture de cette salle ; à défaut, la valeur calculée à l'instant. */
+    private double settledPayout(User user, String roomId, double fallback) {
+        try {
+            return walletTransactionRepository.findTop30ByUserIdOrderByIdDesc(user.getId()).stream()
+                    .filter(t -> roomId.equals(t.getRoomId()) && t.getType() == WalletTransactionType.SETTLEMENT)
+                    .findFirst()
+                    .map(t -> t.getAmount().doubleValue())
+                    .orElse(fallback);
+        } catch (Exception e) {
+            return fallback;
+        }
     }
 
     private RecommendationRules.Progress progress(User user) {

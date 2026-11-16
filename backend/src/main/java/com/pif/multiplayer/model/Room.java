@@ -58,6 +58,14 @@ public class Room {
     @Column(name = "max_spectators")
     private Integer maxSpectators = 50;
 
+    /** Rang minimum pour entrer (BRONZE … MASTER) ; null : salle ouverte à tous. */
+    @Column(name = "min_tier", length = 20)
+    private String minTier;
+
+    /** Thème d'une salle d'entraînement (RISK, DIVERSIFICATION, DISCIPLINE, AI, CRISIS) ; null : salle ordinaire. */
+    @Column(name = "training_theme", length = 20)
+    private String trainingTheme;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -204,6 +212,22 @@ public class Room {
 
     public void setStartedAt(LocalDateTime startedAt) {
         this.startedAt = startedAt;
+    }
+
+    public String getMinTier() {
+        return minTier;
+    }
+
+    public void setMinTier(String minTier) {
+        this.minTier = minTier;
+    }
+
+    public String getTrainingTheme() {
+        return trainingTheme;
+    }
+
+    public void setTrainingTheme(String trainingTheme) {
+        this.trainingTheme = trainingTheme;
     }
 
     public List<RoomParticipant> getParticipants() {

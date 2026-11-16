@@ -29,7 +29,7 @@ export default function TradingSeasonPreview() {
         </div>
 
         <button
-          onClick={() => navigate('/login')}
+          onClick={() => { navigate('/'); setTimeout(() => document.getElementById('hero')?.scrollIntoView({ behavior: 'smooth' }), 50); }}
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-400 hover:to-amber-400 text-slate-950 transition-all shadow-lg shadow-rose-950/40 active:scale-95 cursor-pointer self-start md:self-auto"
         >
           <span>Consulter la Saison 1</span>
@@ -122,7 +122,7 @@ export default function TradingSeasonPreview() {
           </div>
 
           <button
-            onClick={() => navigate('/login')}
+            onClick={() => { navigate('/'); setTimeout(() => document.getElementById('hero')?.scrollIntoView({ behavior: 'smooth' }), 50); }}
             className="w-full py-2.5 rounded-xl bg-[#1E293B] hover:bg-slate-700 text-xs font-bold text-slate-200 transition-all text-center cursor-pointer"
           >
             Voir le Classement Complet →

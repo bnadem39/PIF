@@ -1,21 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Mail, Check, X, ShieldAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { acceptInvitation, declineInvitation } from '../../services/api';
+import { acceptInvitation, declineInvitation, joinArenaRoom } from '../../services/api';
 
 export default function InvitationToast({ invitation, onDismiss }) {
   const navigate = useNavigate();
+  const [error, setError] = useState('');
 
   if (!invitation) return null;
 
   const handleAccept = async () => {
     try {
+      // Même chemin que l'entrée normale : contrôle du rang puis débit du prix d'entrée
+      await joinArenaRoom(invitation.roomId);
       await acceptInvitation(invitation.id);
       onDismiss();
       navigate(`/arena/${invitation.roomId}`);
     } catch (e) {
       console.error('Erreur acceptation:', e);
-      navigate(`/arena/${invitation.roomId}`);
+      setError(e.message || "Impossible de rejoindre cette salle.");
     }
   };
 
@@ -52,6 +55,8 @@ export default function InvitationToast({ invitation, onDismiss }) {
           <X size={16} />
         </button>
       </div>
+
+      {error && <p className="text-xs font-semibold text-rose-400">{error}</p>}
 
       <div className="flex items-center gap-2 pt-1 border-t border-slate-800">
         <button

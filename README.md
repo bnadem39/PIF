@@ -181,6 +181,8 @@ Les fichiers de données sont cherchés dans le répertoire courant puis le rép
 - **Sans biais d'anticipation** : décision à la clôture, exécution à l'ouverture du lendemain.
 - **Réaliste** : frais 0,4 %, slippage 0,1 %, titres entiers pour les actions, quantités fractionnaires pour les cryptos.
 - Indicateurs : rendement total et annualisé, volatilité, Sharpe, Sortino, perte maximale, Calmar, bêta, taux de réussite, profit factor, exposition, frais.
+- **Validation hors échantillon** : la période est coupée en 70 % (référence) et 30 % (test, jamais « vu » par la stratégie). Un verdict en clair est affiché : *Fiable* (le test confirme la référence), *À surveiller* (elle gagne au test mais nettement moins) ou *Fragile* (elle perd au test). Les paramètres sont ceux choisis par l'utilisateur : rien n'est ajusté sur le test. Non calculée si un segment fait moins de 30 séances.
+- **Comparaison à un indice de référence** : « Indice BVMT équipondéré », moyenne des rendements journaliers de toutes les actions BVMT disponibles (le TUNINDEX officiel n'est pas dans les données). Pour chaque stratégie : rendement, rendement du marché, écart, bêta et alpha annualisé. La courbe de l'indice est tracée avec les stratégies. Pas d'indice pour les crypto-actifs.
 
 > ⚠️ Le modèle IA a été entraîné sur les données antérieures au **2020-06-19**. Un backtest du signal IA qui commence avant cette date le teste sur ses propres données d'entraînement ; la page l'indique.
 
@@ -190,8 +192,11 @@ Les fichiers de données sont cherchés dans le répertoire courant puis le rép
 - Projection des pertes puis des ratios CET1, LCR, NPL, ROA et du besoin en capital. Statut `CRITIQUE` (CET1 < 7 %), `VULNERABLE` (sous le minimum, 10 % par défaut, ou LCR < 1) ou `RESILIENTE`.
 - Finance islamique : absorption de 80 % des pertes par les PSIA, risque commercial déplacé, Murabaha moins sensible aux taux, Musharaka / Mudaraba exposées comme des fonds propres.
 - Explications SHAP par banque, écart entre banque conventionnelle et islamique, importance globale.
+- **Scénarios historiques** (migration `V15`) : Révolution tunisienne 2011, Covid-19 2020 et crise financière 2008, marqués « (inspiré) » : les valeurs sont des ordres de grandeur approximatifs, à but pédagogique.
+- **Stress inversé** (`POST /api/v1/stress-test/reverse`) : au lieu de « que se passe-t-il si la crise arrive ? », on cherche **quelle ampleur de crise fait passer chaque banque sous le ratio minimal**. Les chocs du scénario sont multipliés par un facteur (100 % = le scénario, jusqu'à 200 %) et le point de rupture est trouvé par dichotomie. L'écran donne un verdict par banque (*Très solide*, *Résiste*, *Ne résiste pas*, *Déjà en danger*), classées de la plus fragile à la plus solide, et, au clic, les chocs qui la fragilisent le plus, testés un par un.
 
 ### Actuariat (`/api/v1/actuarial`)
+- L'écran commence par un **niveau de risque** (faible, moyen, élevé) et une lecture en phrases simples, avec des montants pour 1 000 TND ; les indicateurs techniques, des bulles d'aide et un lexique viennent ensuite.
 La Bourse n'est pas assurable : le module ne calcule **ni prime, ni sinistre**. Il applique les méthodes actuarielles de mesure du risque aux **actifs financiers** et décrit leur évolution possible par des fourchettes de probabilités, jamais par une promesse de rendement.
 - **Route** : `POST /api/v1/actuarial/analyze` (JWT). Le backend lit l'historique journalier de l'actif, le **coupe à la date simulée de la salle** (aucune donnée future) et l'envoie au service IA (`POST /api/ai/actuarial/analyze`), qui fait tous les calculs. Au moins 60 séances sont nécessaires.
 - **Risque** (rendements logarithmiques journaliers) : volatilité annualisée, VaR historique et paramétrique, Expected Shortfall, passage à h jours par la règle en √h, drawdown maximal et actuel, asymétrie et kurtosis.
@@ -207,6 +212,8 @@ La Bourse n'est pas assurable : le module ne calcule **ni prime, ni sinistre**. 
 - 6 scénarios sur données réelles (krach COVID, record du bitcoin…) : décider Acheter, Attendre ou Vendre, puis voir les 20 séances suivantes.
 - 4 défis notés par le moteur de backtesting.
 - Points, 6 niveaux (Débutant → Expert), 7 badges et classement.
+- Les modules sont rangés par **niveau** (1 Débutant, 2 Intermédiaire, 3 Avancé), avec la progression de chaque niveau.
+- Une leçon peut contenir une **vidéo YouTube** : bloc `{ "type": "video", "youtubeId": "…", "title": "…" }` dans `learning/catalog.json`.
 - **Cours recommandé après un match** (`GET /api/v1/learning/recommendation/{roomId}`) : à la fin d'une salle, des règles simples analysent le résultat du joueur (rendement, rang, nombre d'ordres, concentration, part de cash, usage du Stop-Loss) et proposent jusqu'à 3 cours, en sautant ceux qu'il a déjà validés. Aucune donnée d'un autre joueur n'est utilisée.
 
 | Situation constatée dans le match | Cours proposé |
@@ -217,9 +224,22 @@ La Bourse n'est pas assurable : le module ne calcule **ni prime, ni sinistre**. 
 | 30 ordres ou plus avec un résultat négatif | Analyse technique : confirmer une tendance |
 | Résultat négatif, 3 ordres ou plus, aucun Stop-Loss / Take-Profit | Bases : types d'ordres |
 | Plus de 90 % du capital resté en cash | Classes d'actifs : actions et obligations |
-| Gain de 5 % ou plus (ou 1er avec un gain) | IA : modèles de prédiction |
+| Gain de 5 % ou plus | IA : modèles de prédiction |
 
 Les cas sont triés par priorité, un seul cours est proposé par module, et si tout est déjà validé on propose la suite du parcours.
+
+### Portefeuille global et salles (`/api/v1/wallet`)
+- Chaque joueur a **un seul portefeuille** pour toutes les salles : 100 000 TND au départ, attribués une seule fois.
+- **Entrer dans une salle coûte son prix d'entrée**, qui devient le capital de jeu du joueur dans la salle. L'hôte le paie aussi à la création.
+- **À la fin du match**, le capital final du joueur revient dans son portefeuille : un gain l'augmente, une perte le diminue.
+- **Crédit** : si le solde ne couvre pas le prix d'entrée, un crédit de la différence est proposé (dette plafonnée à 100 000 TND). Il est remboursé en priorité sur ce que le joueur récupère en fin de match.
+- Chaque mouvement est écrit dans un journal (`wallet_transactions`, migration `V13`) : une salle ne peut être ni débitée ni réglée deux fois.
+- **Salles par niveau** : à la création, l'hôte peut réserver la salle à un rang minimum (Bronze, Silver, Gold, Platinum, Master ; migration `V14`). Le rang vient de l'ELO du joueur. L'entrée est refusée, avant tout débit, à un joueur de rang inférieur ; l'hôte doit lui-même avoir ce rang.
+- `GET /api/v1/wallet` renvoie le solde, la dette, le crédit disponible et les 30 derniers mouvements.
+- **Salles d'entraînement** (migration `V16`) : à la création, l'hôte peut donner un thème à la salle : *Gestion du risque*, *Diversification*, *Discipline de trading*, *Stratégie IA* ou *Gestion de crise*. À la fin du match, chaque joueur reçoit une **note sur 100** calculée d'après des règles simples propres au thème (par exemple, pour la diversification : au moins 4 actifs, aucun au-dessus de 35 %, au moins 50 % investi). Les règles sont **seulement notées** : rien n'est bloqué. Un joueur qui n'a passé aucun ordre obtient 0.
+- **Salle conseillée** : d'après le comportement constaté pendant le match (concentration, surtrading, absence de Stop-Loss, grosse perte, trop de cash, bon résultat), la fenêtre de fin de match propose la salle d'entraînement qui corrige la principale faiblesse, avec un bouton qui ouvre sa création. Aucune salle n'est conseillée à l'hôte, ni à un joueur qui vient d'atteindre l'objectif de cette salle.
+- Limite : la salle « Stratégie IA » ne peut pas vérifier que le joueur a réellement suivi les signaux de l'IA ; elle note le rendement, le nombre d'ordres et la part investie.
+- Limite : si le serveur redémarre pendant un match, le prix d'entrée reste engagé jusqu'à ce que l'hôte clôture la salle.
 
 ### Administration (`/api/v1/admin`, rôle ADMIN)
 - **Vue d'ensemble** : utilisateurs, ordres, montants échangés, connexions, backtests, activité des 30 derniers jours, progression de la formation, état du service IA.
@@ -232,7 +252,7 @@ Les cas sont triés par priorité, un seul cours est proposé par module, et si 
 
 ## 🗄️ Base de données
 
-Le schéma est géré par **Flyway** (`backend/src/main/resources/db/migration`, versions V1 à V5) ; Hibernate se contente de le valider. Pour modifier le schéma, ajouter un nouveau fichier `V6__description.sql`, sans jamais modifier une migration déjà appliquée.
+Le schéma est géré par **Flyway** (`backend/src/main/resources/db/migration`, versions V1 à V16) ; Hibernate se contente de le valider. Pour modifier le schéma, ajouter un nouveau fichier `V6__description.sql`, sans jamais modifier une migration déjà appliquée.
 
 ---
 

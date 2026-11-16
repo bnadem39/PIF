@@ -39,7 +39,7 @@ export default function LandingCTA() {
             </button>
 
             <button
-              onClick={() => navigate('/login')}
+              onClick={() => { navigate('/'); setTimeout(() => document.getElementById('hero')?.scrollIntoView({ behavior: 'smooth' }), 50); }}
               className="w-full sm:w-auto px-6 py-3.5 rounded-2xl text-xs sm:text-sm font-bold bg-[#1E293B] hover:bg-slate-700 text-white flex items-center justify-center gap-2 border border-slate-700 transition-all cursor-pointer"
             >
               <LogIn size={15} />
