@@ -6,6 +6,7 @@ import {
   getStressBanks,
   getStressModels,
   runStressTest,
+  runReverseStress,
   createStressScenario,
   deleteStressScenario
 } from '../services/stressTestService';
@@ -240,6 +241,133 @@ function ModelsPanel({ models }) {
   );
 }
 
+
+// Unités lisibles pour la limite d'un choc pris seul
+const SHOCK_UNIT = {
+  rate_shock_bp: ' pb', equity_drop_pct: ' %', unemployment_increase_pp: ' pts', gdp_growth_pct: ' %',
+  default_rate_multiplier: '×', asset_quality_downgrade: ' cran(s)', revenue_drop_pct: ' %'
+};
+
+// Verdict en un mot + une phrase simple, à partir du point de rupture (factor : 1 = la crise choisie)
+function reverseVerdict(bp) {
+  if (bp.state === 'already_below') {
+    return { rank: 0, badge: 'Déjà en danger', cls: 'bg-rose-500/15 text-rose-300 border-rose-500/40',
+      text: 'Cette banque est déjà sous le minimum, même sans crise.' };
+  }
+  if (bp.state === 'resists') {
+    return { rank: 9, badge: 'Très solide', cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40',
+      text: 'Elle résiste même à une crise deux fois plus grave que celle choisie.' };
+  }
+  const p = Math.round(bp.factor * 100);
+  if (p < 100) {
+    return { rank: 1 + bp.factor, badge: 'Ne résiste pas', cls: 'bg-rose-500/15 text-rose-300 border-rose-500/40',
+      text: `Elle tombe sous le minimum quand la crise n'a atteint que ${p} % de sa force. La crise complète la met en danger.` };
+  }
+  return { rank: 1 + bp.factor, badge: 'Résiste', cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40',
+    text: `Elle résiste à la crise complète. Elle ne tomberait que si la crise était ${p - 100} % plus grave.` };
+}
+
+/**
+ * Stress inversé, version simple : « quelles banques résistent à cette crise, et avec quelle marge ? ».
+ */
+function ReversePanel({ scenarios, bankIds, minRatio }) {
+  const [scenarioId, setScenarioId] = useState('');
+  const [data, setData] = useState(null);
+  const [open, setOpen] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState(null);
+
+  const go = async () => {
+    if (!scenarioId) return;
+    setLoading(true);
+    setErr(null);
+    try {
+      const res = await runReverseStress({ scenarioId: Number(scenarioId), bankIds, minCapitalRatio: minRatio });
+      setData(res);
+      setOpen(null);
+    } catch (e) {
+      setErr(e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Les plus fragiles en premier
+  const banks = useMemo(() => (data?.banks || [])
+    .map((b) => ({ ...b, verdict: reverseVerdict(b.breaking_point) }))
+    .sort((a, b) => a.verdict.rank - b.verdict.rank), [data]);
+  const failing = banks.filter((b) => b.breaking_point.state === 'already_below'
+    || (b.breaking_point.state === 'breaks' && b.breaking_point.factor < 1)).length;
+  const opened = banks.find((b) => b.bank_id === open);
+  const scenarioName = scenarios.find((s) => String(s.id) === String(scenarioId))?.name;
+
+  return (
+    <Card title="Quelles banques résistent à cette crise ?">
+      <p className="text-[13px] text-slate-300 mb-2">
+        Choisissez une crise. On regarde chaque banque : <strong>résiste-t-elle ?</strong> et <strong>avec quelle marge de sécurité ?</strong>{' '}
+        Une banque « ne résiste pas » quand sa solidité (CET1) passe sous {pct(minRatio, 0)}.
+      </p>
+      <div className="flex flex-wrap items-center gap-2 mb-2">
+        <select
+          value={scenarioId} onChange={(e) => setScenarioId(e.target.value)}
+          className="bg-[#1E293B] border border-[#334155] rounded px-2 py-1.5 text-xs text-slate-200 flex-1 min-w-[180px]"
+        >
+          <option value="">1. Choisir une crise…</option>
+          {scenarios.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+        </select>
+        <button
+          onClick={go} disabled={!scenarioId || loading}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-[#38BDF8] text-[#0B1120] disabled:opacity-40"
+        >
+          {loading ? <RefreshCw size={13} className="animate-spin" /> : <Play size={13} />}
+          {loading ? 'Calcul…' : '2. Voir qui résiste'}
+        </button>
+      </div>
+      {err && <div className="text-xs text-rose-400 mb-2">{err}</div>}
+
+      {banks.length > 0 && (
+        <div className="space-y-1.5">
+          <div className="text-sm font-semibold text-slate-100">
+            Crise « {scenarioName} » : {failing} banque(s) sur {banks.length} ne résistent pas.
+          </div>
+          {banks.map((b) => (
+            <button
+              key={b.bank_id} onClick={() => setOpen(open === b.bank_id ? null : b.bank_id)}
+              className={`w-full text-left rounded-lg border px-2.5 py-2 ${open === b.bank_id ? 'border-[#38BDF8]' : 'border-[#1E293B] hover:border-[#334155]'}`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[13px] font-medium text-slate-200">
+                  <span className="inline-block w-1.5 h-1.5 rounded-full mr-1.5" style={{ background: TYPE_COLOR[b.bank_type] }} />{b.name}
+                </span>
+                <span className={`px-1.5 py-0.5 rounded border text-xs font-bold whitespace-nowrap ${b.verdict.cls}`}>{b.verdict.badge}</span>
+              </div>
+              <div className="text-xs text-slate-300 mt-1">{b.verdict.text}</div>
+            </button>
+          ))}
+          <p className="text-xs text-slate-400">Classées de la plus fragile à la plus solide. Cliquez sur une banque pour voir ce qui la fragilise le plus.</p>
+        </div>
+      )}
+
+      {opened && (
+        <div className="mt-3 rounded-lg border border-[#1E293B] p-2.5">
+          <div className="text-xs font-bold text-slate-100 mb-1">Ce qui fragilise le plus {opened.name}</div>
+          <p className="text-xs text-slate-400 mb-1.5">Chaque problème est testé seul, à son niveau maximum. Du plus au moins dangereux :</p>
+          <div className="space-y-1">
+            {opened.single_shocks.slice(0, 4).map((c) => (
+              <div key={c.key} className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 text-[13px]">
+                <span className="text-slate-300 truncate">{c.label}</span>
+                <span className={`text-right ${c.limit != null ? 'text-rose-300' : 'text-emerald-300'}`}>
+                  {c.limit != null ? `la met en danger dès ${c.limit}${SHOCK_UNIT[c.key]}` : 'elle le supporte'}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+}
+
 /**
  * AI Stress Testing (cahier §3.5) avec explications SHAP (§3.6).
  */
@@ -372,6 +500,7 @@ export default function StressTestPage({ currentUser }) {
                   )}
                 </label>
               ))}
+              <p className="text-xs text-slate-400 pt-1">« (inspiré) » : scénarios historiques aux ordres de grandeur approximatifs, à but pédagogique.</p>
               <label className="flex items-center gap-2 text-xs text-slate-200 pt-1 border-t border-[#1E293B]">
                 <input type="checkbox" checked={useCustom} onChange={(e) => setUseCustom(e.target.checked)} />
                 Scénario personnalisé
@@ -459,6 +588,8 @@ export default function StressTestPage({ currentUser }) {
 
         {/* ── Résultats ─────────────────────────────────────────── */}
         <div className="space-y-3 min-w-0">
+          <ReversePanel scenarios={scenarios} bankIds={bankIds} minRatio={minRatio} />
+
           {!sc && (
             <div className="border border-dashed border-[#1E293B] rounded-xl p-10 text-center flex flex-col items-center gap-2">
               <Landmark size={28} className="text-slate-600" />

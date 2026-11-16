@@ -12,6 +12,8 @@ public record StrategyResult(
         Map<String, Double> params,
         Metrics metrics,
         List<EquityPoint> equity,
-        List<TradeDto> trades
+        List<TradeDto> trades,
+        Validation validation,
+        BenchmarkStats benchmark
 ) {
 }

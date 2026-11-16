@@ -5,9 +5,12 @@ import com.pif.audit.service.AuditService;
 import com.pif.auth.model.User;
 import com.pif.backtest.dto.BacktestRequest;
 import com.pif.backtest.dto.BacktestResponse;
+import com.pif.backtest.dto.BenchmarkStats;
+import com.pif.backtest.dto.EquityPoint;
 import com.pif.backtest.dto.StrategyResult;
 import com.pif.backtest.dto.StrategySpec;
 import com.pif.backtest.dto.TradeDto;
+import com.pif.backtest.dto.Validation;
 import com.pif.backtest.model.StrategyType;
 import com.pif.common.exception.AiServiceUnavailableException;
 import com.pif.marketdata.dto.CandleDto;
@@ -34,8 +37,11 @@ public class BacktestService {
     private final LocalCsvMarketDataService marketData;
     private final AiSignalClient aiSignalClient;
     private final AuditService auditService;
+    private final MarketBenchmark benchmark;
 
-    public BacktestService(LocalCsvMarketDataService marketData, AiSignalClient aiSignalClient, AuditService auditService) {
+    public BacktestService(LocalCsvMarketDataService marketData, AiSignalClient aiSignalClient, AuditService auditService,
+                           MarketBenchmark benchmark) {
+        this.benchmark = benchmark;
         this.marketData = marketData;
         this.aiSignalClient = aiSignalClient;
         this.auditService = auditService;
@@ -72,6 +78,8 @@ public class BacktestService {
         double[][] ai = null;
         boolean aiFailed = false;
 
+        Map<String, Double> benchReturns = isCrypto(symbol) ? Map.of() : benchmark.dailyReturns();
+        boolean hasBenchmark = !benchReturns.isEmpty();
         List<StrategyResult> results = new ArrayList<>();
         Map<StrategyType, Integer> seen = new LinkedHashMap<>();
         for (StrategySpec spec : req.strategies()) {
@@ -96,15 +104,36 @@ public class BacktestService {
             if (trades.size() > MAX_TRADES_RETURNED) {
                 trades = trades.subList(trades.size() - MAX_TRADES_RETURNED, trades.size());
             }
+            Validation validation = BacktestAnalysis.validate(bars, targets, from, to, capital, costs, rf, !isCrypto(symbol));
+            BenchmarkStats vsIndex = hasBenchmark ? BacktestAnalysis.compare(run.equity(), capital, benchReturns) : null;
             results.add(new StrategyResult(spec.type().name() + "_" + idx, label(spec.type(), params), spec.type(),
-                    params, run.metrics(), run.equity(), trades));
+                    params, run.metrics(), run.equity(), trades, validation, vsIndex));
         }
 
         auditService.record(user, AuditAction.BACKTEST_RUN, true, symbol + " " + bars.get(from).date() + " → "
                 + bars.get(to).date() + " : " + results.stream().map(StrategyResult::label).toList());
 
+        List<EquityPoint> benchEquity = null;
+        if (hasBenchmark) {
+            benchEquity = benchmarkEquity(bars, from, to, capital, benchReturns);
+        } else if (isCrypto(symbol)) {
+            warnings.add("Pas d'indice de référence pour les crypto-actifs : la comparaison au marché n'est disponible que pour les actions BVMT.");
+        }
         return new BacktestResponse(symbol, bars.get(from).date(), bars.get(to).date(), to - from + 1, capital,
-                commission * 100, slippage * 100, results, warnings);
+                commission * 100, slippage * 100, hasBenchmark ? MarketBenchmark.LABEL : null, benchEquity, results, warnings);
+    }
+
+    /** Valeur d'un portefeuille qui suivrait l'indice, partant du même capital. */
+    private static List<EquityPoint> benchmarkEquity(List<Bar> bars, int from, int to, double capital, Map<String, Double> returns) {
+        List<EquityPoint> out = new ArrayList<>();
+        double level = capital;
+        double peak = capital;
+        for (int i = from; i <= to; i++) {
+            level *= 1 + returns.getOrDefault(bars.get(i).date(), 0.0);
+            peak = Math.max(peak, level);
+            out.add(new EquityPoint(bars.get(i).date(), level, level / peak - 1, 0));
+        }
+        return out;
     }
 
     private double[][] aiProbabilities(String symbol, List<Bar> bars, String start, List<String> warnings) {
