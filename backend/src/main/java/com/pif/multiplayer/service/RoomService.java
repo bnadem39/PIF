@@ -124,11 +124,8 @@ public class RoomService {
 
         // Inscription automatique de l'hôte/créateur en tant que joueur prêt
         if (managedCreator != null) {
-            // L'hôte paie lui aussi le prix d'entrée ; en cas de refus, toute la création est annulée
-            if (walletService != null && managedCreator.getId() != null) {
-                walletService.payEntry(managedCreator.getId(), saved.getId(), saved.getInitialCash(),
-                        Boolean.TRUE.equals(dto.getAcceptCredit()));
-            }
+            // L'hôte est arbitre/superviseur : il ne trade pas (voir placeOrder), donc il ne paie pas le prix d'entrée
+            // et ne reçoit rien à la clôture (WalletService.settle ignore tout joueur sans transaction ENTRY).
             RoomParticipant hostParticipant = new RoomParticipant(saved, managedCreator, saved.getInitialCash());
             hostParticipant.setIsReady(true);
             RoomParticipant savedParticipant = participantRepository.saveAndFlush(hostParticipant);

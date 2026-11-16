@@ -2,7 +2,6 @@ package com.pif.gamification.service;
 
 import com.pif.auth.model.User;
 import com.pif.gamification.dto.SpectatorSessionDto;
-import com.pif.gamification.model.RoomSpectator;
 import com.pif.gamification.repository.RoomSpectatorRepository;
 import com.pif.multiplayer.dto.RoomDto;
 import com.pif.multiplayer.model.Room;
@@ -55,11 +54,8 @@ public class SpectatorService {
             throw new IllegalStateException("Capacité maximale de spectateurs atteinte (" + max + " max).");
         }
 
-        // Si l'utilisateur n'est pas encore enregistré comme spectateur
-        if (spectatorRepository.findByRoomAndUser(room, user).isEmpty()) {
-            RoomSpectator spec = new RoomSpectator(room, user);
-            spectatorRepository.save(spec);
-        }
+        // Inscription idempotente (pas d'erreur si le spectateur est déjà enregistré, même en cas d'appels simultanés)
+        spectatorRepository.insertIfAbsent(roomId, user.getId());
 
         long updatedCount = spectatorRepository.countByRoom(room);
 
